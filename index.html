@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaseDeck — Pro Se Case Management</title>
+  <meta name="description" content="Document organization, deadline tracking, timeline, search, and an evidence locker for self-represented litigants. Runs entirely in your browser." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>" />
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">⚖️</span>
+        <span class="brand-name">CaseDeck</span>
+      </div>
+
+      <div class="case-switcher">
+        <label for="case-select">Active case</label>
+        <select id="case-select" aria-label="Select active case"></select>
+        <button id="new-case-btn" class="btn btn-ghost btn-sm" title="Create a new case">+ New case</button>
+      </div>
+
+      <nav class="nav" aria-label="Primary">
+        <button class="nav-item is-active" data-view="dashboard"><span class="nav-icon">▦</span> Dashboard</button>
+        <button class="nav-item" data-view="documents"><span class="nav-icon">🗂️</span> Documents</button>
+        <button class="nav-item" data-view="deadlines"><span class="nav-icon">⏰</span> Deadlines</button>
+        <button class="nav-item" data-view="timeline"><span class="nav-icon">↕</span> Timeline</button>
+        <button class="nav-item" data-view="evidence"><span class="nav-icon">🔒</span> Evidence Locker</button>
+        <button class="nav-item" data-view="search"><span class="nav-icon">🔎</span> Search</button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="export-btn" class="btn btn-ghost btn-sm">⬇ Export case (JSON)</button>
+        <button id="import-btn" class="btn btn-ghost btn-sm">⬆ Import case</button>
+        <input id="import-file" type="file" accept="application/json" hidden />
+        <p class="disclaimer">Your data never leaves this browser. Not legal advice.</p>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="view-title">Dashboard</h1>
+          <p id="view-subtitle" class="muted"></p>
+        </div>
+        <div class="topbar-actions" id="topbar-actions"></div>
+      </header>
+      <section id="view-root" class="view-root"></section>
+    </main>
+  </div>
+
+  <!-- Modal host -->
+  <div id="modal-host" class="modal-host" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <h2 id="modal-title"></h2>
+        <button class="modal-close" data-close-modal aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/views.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
