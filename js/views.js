@@ -524,6 +524,158 @@
       });
   }
 
+  /* ============================ RESOURCES ============================ */
+  const RES_CATEGORIES = ['Court Portal', 'Docket / Case Lookup', 'Legal Research', 'Statutes / Rules', 'Opposing Party', 'Government / Agency', 'Other'];
+
+  // A few starter links useful to most Georgia pro se litigants.
+  const STARTER_LINKS = [
+    { title: 'CourtListener (free case law & dockets)', url: 'https://www.courtlistener.com/', category: 'Legal Research' },
+    { title: 'PeachCourt / eFileGA (GA e-filing)', url: 'https://peachcourt.com/', category: 'Court Portal' },
+    { title: 'Georgia Code (LexisNexis official)', url: 'https://law.justia.com/codes/georgia/', category: 'Statutes / Rules' },
+    { title: 'Uniform Superior Court Rules', url: 'https://georgiacourts.gov/rules/', category: 'Statutes / Rules' },
+    { title: 'GA Secretary of State — business search', url: 'https://ecorp.sos.ga.gov/BusinessSearch', category: 'Opposing Party' },
+  ];
+
+  function resources() {
+    return {
+      subtitle: 'Save the sites you use for this case — and prep them for AI in one click.',
+      actions: [{ label: '+ Add link', kind: 'primary', onClick: () => addResource() }],
+      mount(root) {
+        const c = App.current();
+        root.innerHTML = `
+          <div class="filterbar">
+            <input id="res-filter" class="input" placeholder="Filter links…" />
+            <select id="res-cat-filter" class="input">
+              <option value="">All categories</option>
+              ${RES_CATEGORIES.map((t) => `<option>${t}</option>`).join('')}
+            </select>
+            ${c.resources.length ? '' : '<button class="btn btn-sm" id="res-seed">Add starter links</button>'}
+          </div>
+          <div class="ai-note">
+            🤖 <strong>Using these with AI:</strong> click <em>Copy for AI</em> on any link to put its address and your
+            notes on the clipboard, ready to paste into Claude or another assistant. Live auto-fetching of a page's
+            contents needs a connector or backend — see the notes in the repo. Paste anything the AI gives back into
+            the link's <em>AI summary</em> so it travels with your case.
+          </div>
+          <div id="res-list" class="list"></div>`;
+
+        const list = root.querySelector('#res-list');
+        const filterEl = root.querySelector('#res-filter');
+        const catEl = root.querySelector('#res-cat-filter');
+
+        function paint() {
+          const q = filterEl.value.toLowerCase().trim();
+          const fc = catEl.value;
+          const rows = App.current().resources
+            .filter((r) => !fc || r.category === fc)
+            .filter((r) => !q || [r.title, r.url, r.category, r.notes, r.aiSummary].join(' ').toLowerCase().includes(q))
+            .sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+          if (!rows.length) {
+            list.innerHTML = emptyHint(App.current().resources.length
+              ? 'No links match your filters.'
+              : 'No links yet. Add one, or use the starter links above.');
+            return;
+          }
+          list.innerHTML = rows.map(resCard).join('');
+          list.querySelectorAll('[data-res]').forEach((card) => {
+            const id = card.dataset.res;
+            card.querySelector('[data-act="copy"]').addEventListener('click', () => copyForAI(id));
+            card.querySelector('[data-act="edit"]').addEventListener('click', () => addResource(id));
+            card.querySelector('[data-act="del"]').addEventListener('click', () => {
+              const c2 = App.current();
+              c2.resources = c2.resources.filter((x) => x.id !== id);
+              App.save(); paint(); App.toast('Link removed');
+            });
+          });
+        }
+
+        function resCard(r) {
+          let host = r.url;
+          try { host = new URL(r.url).hostname.replace(/^www\./, ''); } catch (e) { /* keep raw */ }
+          return `<div class="res-card" data-res="${r.id}">
+            <div class="res-head">
+              <div class="res-main">
+                <a class="res-title" href="${U.esc(r.url)}" target="_blank" rel="noopener noreferrer">${U.esc(r.title || host)}</a>
+                <div class="muted sm">${U.esc(host)} · ${U.esc(r.category)}</div>
+              </div>
+              <div class="res-actions">
+                <button class="btn btn-sm" data-act="copy" title="Copy address + notes for pasting into an AI">Copy for AI</button>
+                <button class="icon-btn" data-act="edit" title="Edit">✎</button>
+                <button class="icon-btn" data-act="del" title="Delete">✕</button>
+              </div>
+            </div>
+            ${r.notes ? `<div class="card-note">${U.esc(r.notes)}</div>` : ''}
+            ${r.aiSummary ? `<div class="ai-summary"><span class="ai-summary-tag">AI summary</span>${U.esc(r.aiSummary)}</div>` : ''}
+          </div>`;
+        }
+
+        filterEl.addEventListener('input', U.debounce(paint, 120));
+        catEl.addEventListener('change', paint);
+        const seedBtn = root.querySelector('#res-seed');
+        if (seedBtn) seedBtn.addEventListener('click', () => {
+          const now = new Date().toISOString();
+          STARTER_LINKS.forEach((l) => App.current().resources.push({ id: U.uid(), notes: '', aiSummary: '', addedAt: now, ...l }));
+          App.save(); App.render(); App.toast('Starter links added');
+        });
+        paint();
+      },
+    };
+  }
+
+  function addResource(id) {
+    const c = App.current();
+    const r = id ? c.resources.find((x) => x.id === id) : null;
+    App.modal(r ? 'Edit link' : 'Add link', `
+      <label class="field"><span>Title</span>
+        <input id="r-title" class="input" placeholder="e.g. Forsyth County case search" value="${r ? U.esc(r.title) : ''}" /></label>
+      <label class="field"><span>URL</span>
+        <input id="r-url" class="input" placeholder="https://…" value="${r ? U.esc(r.url) : ''}" /></label>
+      <label class="field"><span>Category</span>
+        <select id="r-cat" class="input">${RES_CATEGORIES.map((t) => `<option ${r && r.category === t ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="field"><span>Why it matters / notes</span>
+        <textarea id="r-notes" class="input" rows="2">${r ? U.esc(r.notes) : ''}</textarea></label>
+      <label class="field"><span>AI summary (paste what an assistant tells you)</span>
+        <textarea id="r-ai" class="input" rows="3">${r ? U.esc(r.aiSummary) : ''}</textarea></label>
+      <div class="modal-actions"><button class="btn btn-primary" id="r-save">${r ? 'Save' : 'Add link'}</button></div>`,
+      (body, close) => {
+        body.querySelector('#r-save').addEventListener('click', () => {
+          let url = body.querySelector('#r-url').value.trim();
+          if (!url) { App.toast('A URL is required'); return; }
+          if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+          const payload = {
+            title: body.querySelector('#r-title').value.trim(),
+            url, category: body.querySelector('#r-cat').value,
+            notes: body.querySelector('#r-notes').value.trim(),
+            aiSummary: body.querySelector('#r-ai').value.trim(),
+          };
+          if (r) { Object.assign(r, payload); }
+          else { c.resources.push({ id: U.uid(), addedAt: new Date().toISOString(), ...payload }); }
+          App.save(); close(); App.render(); App.toast('Link saved');
+        });
+      });
+  }
+
+  async function copyForAI(id) {
+    const c = App.current();
+    const r = c.resources.find((x) => x.id === id);
+    if (!r) return;
+    const block =
+      `Case: ${c.name}${c.caseNumber ? ' (' + c.caseNumber + ')' : ''}\n` +
+      `Resource: ${r.title || r.url}\n` +
+      `URL: ${r.url}\n` +
+      `Category: ${r.category}\n` +
+      (r.notes ? `My notes: ${r.notes}\n` : '') +
+      `\nPlease review this page and summarize what's relevant to my case, ` +
+      `pull out any key links, dates, or deadlines, and flag anything I should act on.`;
+    try {
+      await navigator.clipboard.writeText(block);
+      App.toast('Copied — paste into your AI assistant');
+    } catch (e) {
+      App.modal('Copy for AI', `<p class="muted">Select and copy the text below:</p>
+        <textarea class="input" rows="10" readonly>${U.esc(block)}</textarea>`);
+    }
+  }
+
   /* ============================ SEARCH ============================ */
   function search() {
     return {
@@ -557,6 +709,8 @@
       ...c.evidence.map((e) => ({ kind: 'Evidence', icon: '🔒', id: e.id, openable: true, title: e.name,
         text: [e.name, e.source, (e.custody || []).map((x) => x.action + ' ' + x.note).join(' ')].join(' '),
         meta: e.source || 'evidence' })),
+      ...c.resources.map((r) => ({ kind: 'Resource', icon: '🔗', href: r.url, title: r.title || r.url,
+        text: [r.title, r.url, r.category, r.notes, r.aiSummary].join(' '), meta: r.category })),
     ];
     const scored = corpus.map((item) => {
       const hay = item.text.toLowerCase();
@@ -573,6 +727,7 @@
           <div class="list-main"><div class="list-title">${highlight(item.title, terms)}</div>
             <div class="muted sm">${item.kind} · ${U.esc(item.meta)}</div></div>
           ${item.openable ? '<button class="btn btn-sm">Open</button>' : ''}
+          ${item.href ? `<a class="btn btn-sm" href="${U.esc(item.href)}" target="_blank" rel="noopener noreferrer">Open ↗</a>` : ''}
         </div>`).join('')}</div>`;
   }
 
@@ -593,5 +748,5 @@
   /* ============================ shared bits ============================ */
   function emptyHint(msg) { return `<div class="empty">${U.esc(msg)}</div>`; }
 
-  window.Views = { dashboard, documents, deadlines, timeline, evidence, search };
+  window.Views = { dashboard, documents, deadlines, timeline, evidence, resources, search };
 })();

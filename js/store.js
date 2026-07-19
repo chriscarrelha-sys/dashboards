@@ -89,13 +89,24 @@
       documents: [],   // {id, name, type, status, notes, hash, size, mime, blobKey, addedAt, docDate}
       deadlines: [],   // {id, title, dueDate, rule, docId, done, addedAt}
       evidence: [],    // {id, name, source, hash, size, mime, blobKey, addedAt, custody:[{at, action, note}]}
+      resources: [],   // {id, title, url, category, notes, aiSummary, addedAt}
     };
+  }
+
+  // Backfill any keys added in later versions so older saved cases stay valid.
+  function normalizeCase(c) {
+    if (!c) return c;
+    if (!Array.isArray(c.documents)) c.documents = [];
+    if (!Array.isArray(c.deadlines)) c.deadlines = [];
+    if (!Array.isArray(c.evidence)) c.evidence = [];
+    if (!Array.isArray(c.resources)) c.resources = [];
+    return c;
   }
 
   function readCase(id) {
     try {
       const raw = localStorage.getItem(LS_CASE(id));
-      if (raw) return JSON.parse(raw);
+      if (raw) return normalizeCase(JSON.parse(raw));
     } catch (e) { /* fall through */ }
     return null;
   }

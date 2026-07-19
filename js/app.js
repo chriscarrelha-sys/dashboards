@@ -33,7 +33,7 @@
       this._viewParams = null;
       const titles = {
         dashboard: 'Dashboard', documents: 'Documents', deadlines: 'Deadlines',
-        timeline: 'Case Timeline', evidence: 'Evidence Locker', search: 'Search',
+        timeline: 'Case Timeline', evidence: 'Evidence Locker', resources: 'Resources', search: 'Search',
       };
       document.getElementById('view-title').textContent = titles[this.view] || 'Dashboard';
       document.getElementById('view-subtitle').textContent = v.subtitle || '';
