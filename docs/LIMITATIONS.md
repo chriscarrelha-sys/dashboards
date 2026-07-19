@@ -2,6 +2,15 @@
 
 Written plainly so nothing is oversold.
 
+## ✅ Completed & functional — Phase 6 (launch readiness, migration tooling, stabilization)
+- Launch-readiness gate (`npm run launch:check`): 23 checks over env/DB/migrations/storage/private-object/search/jobs/backup/encryption/auth/2FA/email/calendar/notifications/AI/monitoring/health/versions; **any failure blocks launch**, warnings need documented acknowledgment; **a mock is never reported as pass**. Runs logged to `LaunchCheckRun`.
+- Health endpoint `GET /api/health` (liveness + DB + schema version; 503 if DB down)
+- Production-blocker register (`ProductionBlocker` model + `docs/PRODUCTION-BLOCKERS.md`), gated by `openLaunchBlockerCount()`
+- Security headers (CSP, HSTS in prod, X-Frame-Options DENY, nosniff, Referrer/Permissions policies, COOP/CORP) + `X-Robots-Tag: noindex` + `robots.txt`; **browser-verified: zero CSP console errors**
+- Controlled real-case migration: **dry-run** inventory planner (`npm run migrate:inventory`, no import), `MigrationBatch`/`MigrationItem`, pilot/full import **requires a pre-migration backup**, `rollbackBatch` removes only app records (**source files + inventory + audit preserved**)
+- Operating manual, admin runbook, final integrations matrix, launch plan
+- 5 new tests (65 total passing); migration `..._phase6_launch_migration` (additive; Phase 1–5 preserved)
+
 ## ✅ Completed & functional — Phase 5 (advanced AI analysis, docket, companion, prod config)
 - Advanced Case Review: **versioned, source-linked** analysis with element-gap flags, adverse evidence, contradictions, procedural-risk, verification-needed — **no win-probability score**; Source Graph
 - Court-Docket Monitoring: entries + dedupe, docket-sheet import → Verification Queue, monitor config (non-manual providers honestly shown **unavailable**)
@@ -84,15 +93,17 @@ Written plainly so nothing is oversold.
 - Documents are never sent to an AI provider without a configured provider and an explicit user action.
 - **No "military-grade" or similar claims** — this list is the real state.
 
-## 🔴 Deferred to Phase 6 (require external accounts / your approval)
-- Actual production deployment + managed PostgreSQL + encryption at rest
+## 🔴 Deferred to production operations (require external accounts / your approval)
+These are the Phase 6 **launch blockers** and deferred items — the tooling and gates
+are in the repo, but each action needs an external account or your approval at the
+point it's taken (see `docs/PRODUCTION-BLOCKERS.md` and `docs/LAUNCH.md`):
+- Actual production deployment + managed PostgreSQL + encryption at rest + private object storage
+- Production secret creation/rotation; verified off-box backups + a restore rehearsal
 - Signed native Mac companion binary (Apple Developer account); live iCloud folder monitoring
-- Live PACER/PeachCourt/AI/calendar/storage OAuth; hosted search backend + job worker; native iOS push
-- Full 2FA verification + forced re-auth for sensitive ops (scaffolding present)
+- Live PACER/PeachCourt/AI/calendar/storage/email OAuth; hosted/semantic search + external job worker; native iOS push
+- Full 2FA **enforcement** for sensitive ops (TOTP + hashed-recovery-code scaffolding present)
 
-## Recommended next build step
-**Phase 5 — Production Deployment, Mac Companion App, Mobile Experience, Advanced AI
-Case Analysis, Court-Docket Monitoring, and Operational Validation:** real auth (NextAuth +
-2FA/passkeys), PostgreSQL + encryption at rest, a hosted search backend and job queue, real
-OAuth calendar/storage, PDF/OCR/ZIP generation, the Mac companion agent, a polished mobile
-experience, and a read-only court-docket monitor.
+## After Phase 6 — maintenance mode
+The planned build is complete. Remaining work is maintenance: defect correction,
+workflow refinement from real use, authorizing live integrations one at a time,
+and optional enhancements. No further major architecture phase is required.

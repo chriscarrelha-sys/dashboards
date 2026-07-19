@@ -7,10 +7,14 @@ documents, deadlines, evidence, discovery, filings, correspondence, research,
 strategy, and AI-assisted analysis. It is **not** a public SaaS product and is
 **not** a legal-advice platform.
 
-> This is the first working vertical slice (Phase 0 + core Phase 1–3), built on a
-> modular foundation designed to grow into the full specification. See
-> [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) for exactly what is real, mocked,
-> and not yet built.
+> Phases 1–6 are built on a modular foundation. Phase 6 makes the app
+> **launch-ready** — a launch-readiness gate, security headers, a health
+> endpoint, a controlled/reversible real-case migration path, and full operating
+> docs — while stopping short of any irreversible action (production deploy,
+> paid infrastructure, live OAuth, real-data migration) that requires your
+> explicit approval. See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) for exactly
+> what is real, mocked, and deferred, and [`docs/LAUNCH.md`](docs/LAUNCH.md) for
+> the launch plan.
 
 ## Trust model (the core idea)
 
@@ -115,7 +119,16 @@ npm run db:reset    # drop, re-migrate, re-seed
 - **Security scaffolding** — 2FA enrollment (TOTP secret + hashed recovery codes), per-case AI privacy modes, provider-usage tracking.
 - **Production config** — `Dockerfile`, CI pipeline, `npm run validate:env` (blocks SQLite/dev-auth in prod), and DB indexes. **Not auto-deployed** — see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-See [`docs/`](docs/) for [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA-MODEL.md), the [verification workflow](docs/VERIFICATION-WORKFLOW.md), [filing/service/research workflows](docs/FILING-WORKFLOW.md), [security threat model](docs/SECURITY.md), [deployment](docs/DEPLOYMENT.md), [companion spec](docs/COMPANION.md), [operations runbook & DR](docs/RUNBOOK.md), [privacy](docs/PRIVACY.md), roadmap, and limitations.
+### Phase 6 — Production launch, controlled migration, stabilization
+- **Launch-readiness gate** — `npm run launch:check` inspects env, DB connectivity, migrations, storage/private-object enforcement, search, jobs, backup, encryption, auth/2FA, email/calendar/notifications, AI provider, error monitoring, health, and app/schema versions. **Any failure blocks launch; warnings need documented acknowledgment.** A mock is never reported green. Runs logged to `LaunchCheckRun`.
+- **Health endpoint** — `GET /api/health` (liveness + DB + schema version; 503 if the DB is down).
+- **Production-blocker register** — the `ProductionBlocker` model + [`docs/PRODUCTION-BLOCKERS.md`](docs/PRODUCTION-BLOCKERS.md), classified launch-blocker / high-post-launch / defect / enhancement / deferred / unsupported, gated by `openLaunchBlockerCount()`.
+- **Security headers** — CSP, HSTS (prod), X-Frame-Options DENY, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP/CORP, and `X-Robots-Tag: noindex` + `robots.txt` (private tool, never indexed). Browser-verified: zero CSP console errors.
+- **Controlled real-case migration** — a **dry-run** planner (`npm run migrate:inventory -- <folder>`) hashes files, groups duplicates/versions, infers type/date (all proposals), and writes a source inventory **without importing**. In-app `MigrationBatch` refuses a pilot/full import **without a pre-migration backup**, and `rollbackBatch` removes only app records — **source files, inventory, and audit history are preserved**.
+- **Operating manual + admin runbook + final integrations matrix** — [`docs/OPERATING-MANUAL.md`](docs/OPERATING-MANUAL.md), [`docs/ADMIN-RUNBOOK.md`](docs/ADMIN-RUNBOOK.md), [`docs/INTEGRATIONS-MATRIX.md`](docs/INTEGRATIONS-MATRIX.md).
+- **Not auto-launched.** Production deploy, paid infrastructure, DNS, live OAuth, secret creation, and real-data migration each require explicit approval — see [`docs/LAUNCH.md`](docs/LAUNCH.md).
+
+See [`docs/`](docs/) for [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA-MODEL.md), the [verification workflow](docs/VERIFICATION-WORKFLOW.md), [filing/service/research workflows](docs/FILING-WORKFLOW.md), [security threat model](docs/SECURITY.md), [deployment](docs/DEPLOYMENT.md), [launch plan](docs/LAUNCH.md), [production blockers](docs/PRODUCTION-BLOCKERS.md), [operating manual](docs/OPERATING-MANUAL.md), [admin runbook](docs/ADMIN-RUNBOOK.md), [integrations matrix](docs/INTEGRATIONS-MATRIX.md), [companion spec](docs/COMPANION.md), [operations runbook & DR](docs/RUNBOOK.md), [privacy](docs/PRIVACY.md), roadmap, and limitations.
 
 ## Documentation
 

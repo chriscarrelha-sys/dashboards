@@ -16,7 +16,9 @@
     "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "validate:env": "node scripts/validate-env.mjs"
+    "validate:env": "node scripts/validate-env.mjs",
+    "launch:check": "node scripts/launch-check.mjs",
+    "migrate:inventory": "node scripts/migrate-inventory.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

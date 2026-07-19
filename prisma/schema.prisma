@@ -2053,3 +2053,101 @@ model ProviderUsage {
 
   @@index([provider])
 }
+
+/* ============================ PHASE 6 ============================ */
+
+// Launch-readiness gate runs — a log of every `npm run launch:check`.
+model LaunchCheckRun {
+  id         String   @id @default(cuid())
+  userId     String?
+  environment String  @default("development")
+  overall    String   // pass|warning|failure
+  passCount  Int      @default(0)
+  warnCount  Int      @default(0)
+  failCount  Int      @default(0)
+  results    String   // JSON: [{key,label,level,detail}]
+  appVersion String?
+  schemaVersion String?
+  acknowledgedWarnings String? // JSON list of acknowledged warning keys
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Production blocker register (Phase 6 §4).
+model ProductionBlocker {
+  id           String   @id @default(cuid())
+  title        String
+  subsystem    String   // authentication|authorization|database|storage|search|jobs|backup|restore|export|companion|mobile|ai-privacy|audit|security|performance|deployment|integrations
+  description  String
+  severity     String   @default("launch-blocker") // launch-blocker|high-post-launch|defect|enhancement|deferred|unsupported
+  impact       String?
+  reproduction String?
+  resolution   String?
+  owner        String   @default("owner")
+  status       String   @default("open") // open|in-progress|resolved|accepted-risk|deferred
+  testingRequired String?
+  deploymentDependency String?
+  rollbackImpact String?
+  resolvedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+
+  @@index([status])
+  @@index([severity])
+}
+
+// A controlled real-case migration batch (Phase 6 §31–37). Non-destructive:
+// rollback removes only the app records this batch created; source files and
+// audit history are preserved.
+model MigrationBatch {
+  id           String   @id @default(cuid())
+  caseId       String
+  userId       String?
+  label        String
+  sourcePath   String?
+  mode         String   @default("dry-run") // dry-run|pilot|full
+  status       String   @default("planned") // planned|inventoried|importing|complete|rolled-back|failed
+  totalFiles   Int      @default(0)
+  processed    Int      @default(0)
+  duplicates   Int      @default(0)
+  needsReview  Int      @default(0)
+  unreadable   Int      @default(0)
+  failed       Int      @default(0)
+  backupRef    String?  // pre-migration backup reference (required before a real import)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+
+  items MigrationItem[]
+
+  @@index([caseId])
+  @@index([status])
+}
+
+// One source file in a migration batch — the preserved source inventory.
+model MigrationItem {
+  id            String   @id @default(cuid())
+  batchId       String
+  batch         MigrationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  fileName      String
+  sourcePath    String?
+  sizeBytes     Int?
+  extension     String?
+  hash          String?
+  likelyDate    DateTime?
+  likelyType    String?
+  duplicateGroup String?
+  versionGroup  String?
+  unreadable    Boolean  @default(false)
+  passwordProtected Boolean @default(false)
+  classification String  @default("pending") // pending|routine|needs-review|duplicate|version|quarantined|failed
+  confidence    Float?
+  // App records this item created (for rollback). JSON: {documentId?, versionId?, indexIds?}
+  createdRecords String?
+  migrationStatus String @default("pending") // pending|imported|skipped|rolled-back
+  createdAt     DateTime @default(now())
+
+  @@index([batchId])
+  @@index([hash])
+}

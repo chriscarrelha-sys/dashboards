@@ -92,6 +92,16 @@ New models: `CaseReview` (versioned source-linked analysis), `DocketSource`/`Doc
 `TwoFactorSecret`, `CaseAiSetting` (per-case AI privacy mode), `ProviderUsage`. Plus production
 `@@index`es on hot columns. Migration: `..._phase5_ai_analysis_docket_companion` (additive; Phase 1–4 preserved).
 
+## Phase 6 additions (launch readiness, controlled migration)
+
+New models (relation-free — plain `caseId`/`userId` + `@@index`, to avoid touching
+the `Case` relation list during the launch freeze): `LaunchCheckRun` (a log of
+every launch-readiness gate run), `ProductionBlocker` (the blocker register),
+`MigrationBatch` + `MigrationItem` (a controlled, reversible real-case migration —
+`MigrationItem` preserves the source inventory; `MigrationBatch.backupRef` is
+required before any pilot/full import so a rollback point always exists).
+Migration: `20260719133834_phase6_launch_migration` (additive; Phase 1–5 preserved).
+
 ## Notes on relationships
 
 Relationships are intentionally simple in this first migration (foreign keys +

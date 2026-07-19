@@ -59,8 +59,18 @@ Phased build plan. Phase 0 and the core of Phases 1–3 are in this first slice.
 - Security scaffolding: 2FA enroll (TOTP secret + hashed recovery codes), per-case AI privacy modes, provider-usage tracking; production config (Dockerfile, CI, env-validate, DB indexes)
 - **Deferred to Phase 6 (need external accounts/approval):** actual production deploy, signed native Mac binary, live PACER/PeachCourt/AI/OAuth, real PostgreSQL + encryption at rest, hosted search/job worker, native push
 
-## Phase 6 (next) — Production Launch, Real Case Migration, Live Integration Authorization, User Acceptance, Post-Launch Stabilization
-- NextAuth/Auth.js (+ optional Apple/Google/Microsoft, 2FA), Postgres deployment
-- Background-job queue for document processing
-- Real calendar + storage (iCloud companion) adapters
-- Export/backup, audit history UI, safe deletion workflow
+## Phase 6 — Production Launch, Real Case Migration, Stabilization ✅ (this build, in-repo scope)
+- **Launch-readiness gate** (`npm run launch:check`) — env/DB/migrations/storage/private-object/search/jobs/backup/encryption/auth/2FA/email/calendar/notifications/AI/monitoring/health/version checks; failures block launch, warnings need acknowledgment; a mock is never green. Runs logged (`LaunchCheckRun`).
+- **Health endpoint** `GET /api/health` (liveness + DB + schema version).
+- **Production-blocker register** (`ProductionBlocker` + `docs/PRODUCTION-BLOCKERS.md`), gated by `openLaunchBlockerCount()`.
+- **Security headers** (CSP, HSTS in prod, frame/referrer/permissions policies, COOP/CORP) + `X-Robots-Tag: noindex` + `robots.txt`; browser-verified zero CSP errors.
+- **Controlled, reversible real-case migration** — dry-run inventory planner (`npm run migrate:inventory`), `MigrationBatch`/`MigrationItem`, pilot/full import requires a pre-migration backup, `rollbackBatch` preserves source + inventory + audit.
+- **Docs** — operating manual, admin runbook, final integrations matrix, launch plan.
+- 5 new DB/engine tests (65 total passing). Migration `..._phase6_launch_migration` (additive; Phase 1–5 preserved).
+- **Deferred to production ops (need external accounts/approval):** actual deploy, managed Postgres + encryption at rest, private object storage, production secrets, off-box backups, live OAuth (calendar/storage/email/AI), signed native Mac binary, native push, hosted/semantic search, external job worker.
+
+## After Phase 6 — Maintenance mode
+The planned build is complete. Further work is **maintenance**: defect correction,
+workflow refinement from real use, authorizing live integrations one at a time,
+and optional enhancements. No further major architecture phase is required —
+use the app with one real case, find friction, and issue narrow correction prompts.
