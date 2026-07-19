@@ -86,6 +86,7 @@ export const CASE_NAV: NavGroup[] = [
     label: 'Motions and Filings',
     icon: 'gavel',
     items: [
+      { label: 'Filing Workspace', slug: 'filing-workspace' },
       { label: 'Pleadings', slug: 'pleadings' },
       { label: 'Pending Motions', slug: 'motions/pending' },
       { label: 'Filed Motions', slug: 'motions/filed' },

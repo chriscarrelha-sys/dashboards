@@ -295,6 +295,110 @@ async function main() {
     data: { caseId: regions.id, recipient: 'Prior loan servicer', subpoenaType: 'documents', requested: 'Complete servicing file and assignment records. (Demo.)', status: 'draft' },
   });
 
+  // ---------------------- Phase 3 demo data (Regions) ----------------------
+  const someEvidence = await prisma.evidenceItem.findMany({ where: { caseId: regions.id }, take: 2, orderBy: { createdAt: 'asc' } });
+
+  // Filing 1: motion in drafting (with versions, links, checklist, package, cert).
+  const motion = await prisma.filing.create({
+    data: {
+      caseId: regions.id, title: 'Motion to Dismiss Plaintiff’s Complaint', formalTitle: 'Defendant’s Motion to Dismiss',
+      filingType: 'motion', filingParty: 'Defendant', stage: 'authorities-linked', dueDate: daysFromNow(6),
+      requestedRelief: 'Dismissal of the complaint for lack of standing. (Demo.)', portalType: 'peachcourt', portalUrl: 'https://peachcourt.com/',
+      createdBy: 'user',
+      stageHistory: { create: [{ toStage: 'planned', note: 'Created' }, { toStage: 'initial-draft' }, { toStage: 'evidence-linked' }, { toStage: 'authorities-linked' }] },
+      checklistItems: { create: [
+        { category: 'case-identity', label: 'Full caption matches the case profile', status: 'complete' },
+        { category: 'content', label: 'Legal issues linked', status: 'complete' },
+        { category: 'content', label: 'Authorities linked and citations verified', status: 'needs-review' },
+        { category: 'components', label: 'Certificate of service prepared', status: 'incomplete' },
+        { category: 'service', label: 'Recipients identified and addresses verified', status: 'incomplete' },
+      ] },
+      versions: { create: [
+        { versionNumber: 1, label: 'initial-draft', contentText: 'DRAFT — Motion to Dismiss. [INSERT statement of facts]. (Demo placeholder.)', reviewStatus: 'reviewed', approvalStatus: 'pending', createdBy: 'user', changesSummary: 'First draft' },
+        { versionNumber: 2, label: 'revised-draft', contentText: 'REVISED DRAFT — Motion to Dismiss. Argument section expanded. (Demo.)', reviewStatus: 'reviewed', approvalStatus: 'pending', createdBy: 'user', changesSummary: 'Expanded argument' },
+      ] },
+    },
+  });
+  await prisma.filingLegalIssueLink.create({ data: { filingId: motion.id, legalIssueId: standingDefense.id } });
+  if (someEvidence[0]) await prisma.filingEvidenceLink.create({ data: { filingId: motion.id, evidenceId: someEvidence[0].id, relation: 'supporting' } });
+  if (someEvidence[1]) await prisma.filingEvidenceLink.create({ data: { filingId: motion.id, evidenceId: someEvidence[1].id, relation: 'adverse' } });
+
+  // Authorities (4; one adverse, one unverified).
+  const auth1 = await prisma.authority.create({ data: { caseId: regions.id, citation: 'Reese v. Provident, 259 Ga. App. 744 (2003)', court: 'Ga. Ct. App.', jurisdiction: 'GA', year: 2003, proposition: 'Party seeking to enforce must show it is the holder. (Demo.)', verificationStatus: 'controlling', dateVerified: new Date() } });
+  await prisma.authority.create({ data: { caseId: regions.id, citation: 'You v. JP Morgan, 293 Ga. 67 (2013)', court: 'Ga.', jurisdiction: 'GA', year: 2013, proposition: 'Non-parties to a security deed. (Demo.)', verificationStatus: 'persuasive', dateVerified: new Date() } });
+  await prisma.authority.create({ data: { caseId: regions.id, citation: 'Adverse Auth., 300 Ga. 1 (2016)', court: 'Ga.', jurisdiction: 'GA', year: 2016, proposition: 'ADVERSE: servicer may enforce. (Demo.)', treatment: 'distinguished', verificationStatus: 'adverse', dateVerified: new Date() } });
+  const authUnverified = await prisma.authority.create({ data: { caseId: regions.id, citation: '[MOCK] 123 Ga. App. 456 (2021)', proposition: 'Unverified proposition — open the source. (Demo.)', verificationStatus: 'unverified' } });
+  await prisma.authorityVerification.create({ data: { authorityId: auth1.id, step: 'exists', status: 'confirmed' } });
+  await prisma.filingAuthorityLink.create({ data: { filingId: motion.id, authorityId: auth1.id, pinpoint: 'at 746' } });
+  await prisma.filingAuthorityLink.create({ data: { filingId: motion.id, authorityId: authUnverified.id } });
+
+  // Certificate + package with exhibits.
+  await prisma.certificateOfService.create({ data: { caseId: regions.id, filingId: motion.id, servingParty: 'Defendant', method: 'efile', recipientsText: 'Counsel for Regions Bank', statementText: 'I certify that I served a copy of the Motion to Dismiss by e-file. (Draft.)', filedStatus: 'draft', verificationStatus: 'proposed', createdBy: 'user' } });
+  const pkg = await prisma.filingPackage.create({ data: { caseId: regions.id, filingId: motion.id, title: 'Motion to Dismiss — filing package', portal: 'peachcourt' } });
+  await prisma.filingPackageItem.createMany({ data: [
+    { packageId: pkg.id, order: 0, label: 'Motion to Dismiss', documentId: verifDoc.id },
+    { packageId: pkg.id, order: 1, label: 'Exhibit A — Assignment records', documentId: answerDoc.id, exhibitDesignation: 'Ex. A', separateUpload: true },
+  ] });
+
+  // Filing 2: response (planned).
+  await prisma.filing.create({ data: { caseId: regions.id, title: 'Response to Plaintiff’s Motion for Summary Judgment', filingType: 'response', filingParty: 'Defendant', stage: 'planned', dueDate: daysFromNow(18), createdBy: 'user', stageHistory: { create: { toStage: 'planned' } } } });
+
+  // Filing 3: completed (filed) with submission + filed-stamped version + service.
+  const completed = await prisma.filing.create({
+    data: {
+      caseId: regions.id, title: 'Answer and Counterclaims', filingType: 'answer', filingParty: 'Defendant',
+      stage: 'served', status: 'filed', actualFilingDate: new Date(Date.UTC(2026, 4, 12)), docketNumber: 'DOC-12',
+      createdBy: 'user', certificateOfService: true,
+      stageHistory: { create: [{ toStage: 'ready-to-file' }, { toStage: 'filed' }, { toStage: 'filed-stamped' }, { toStage: 'served' }] },
+      versions: { create: [{ versionNumber: 1, label: 'filed-stamped', reviewStatus: 'approved', approvalStatus: 'final-for-filing', createdBy: 'user', changesSummary: 'Filed-stamped copy' }] },
+      submissions: { create: { portal: 'peachcourt', submittedAt: new Date(Date.UTC(2026, 4, 12)), confirmationNumber: 'PC-99231', docketNumber: 'DOC-12', status: 'accepted' } },
+    },
+  });
+  const recip1 = await prisma.serviceRecipient.create({ data: { caseId: regions.id, name: 'McCalla Raymer (counsel for Regions)', role: 'Opposing counsel', email: 'service@example.com', serviceAddress: '1544 Old Alabama Rd', preferredMethod: 'efile', sourceOfAddress: 'Complaint signature block', lastVerified: new Date(Date.UTC(2026, 3, 2)) } });
+  await prisma.serviceEvent.createMany({ data: [
+    { caseId: regions.id, filingId: completed.id, recipientId: recip1.id, recipientName: 'McCalla Raymer', serviceMethod: 'efile', serviceDate: new Date(Date.UTC(2026, 4, 12)), deliveryStatus: 'delivered', verificationStatus: 'confirmed' },
+    { caseId: regions.id, filingId: completed.id, recipientName: 'Regions Bank (courtesy copy)', serviceMethod: 'mail', serviceDate: new Date(Date.UTC(2026, 4, 13)), deliveryStatus: 'sent', verificationStatus: 'confirmed' },
+  ] });
+
+  // Communications (several; one needs follow-up).
+  await prisma.communication.createMany({ data: [
+    { caseId: regions.id, kind: 'email', direction: 'inbound', subject: 'Re: discovery responses', summary: 'Opposing counsel promised supplemental responses. (Demo.)', withParty: 'McCalla Raymer', followUpRequired: true, occurredAt: daysFromNow(-3), createdBy: 'user' },
+    { caseId: regions.id, kind: 'letter', direction: 'outbound', subject: 'Deficiency letter', summary: 'Sent meet-and-confer letter. (Demo.)', occurredAt: daysFromNow(-5), createdBy: 'user' },
+    { caseId: regions.id, kind: 'settlement', direction: 'inbound', subject: 'Settlement discussion', summary: 'Verbal settlement floated. (Demo.)', settlementComm: true, confidentiality: 'settlement', occurredAt: daysFromNow(-7), createdBy: 'user' },
+  ] });
+
+  // Research.
+  await prisma.researchQuestion.create({ data: { caseId: regions.id, question: 'Does a servicer have standing to enforce absent a recorded assignment?', jurisdiction: 'GA', legalIssueId: standingDefense.id, status: 'researching', verificationStatus: 'confirmed' } });
+  await prisma.researchMemorandum.create({ data: { caseId: regions.id, title: 'Standing to enforce — GA', issuePresented: 'Whether plaintiff is entitled to enforce.', briefAnswer: 'Likely not without an unbroken assignment chain. (Demo.)', jurisdiction: 'GA', createdBy: 'user', verificationStatus: 'confirmed' } });
+
+  // Strategy (several + one superseded), decisions (2), opposing, settlements (2), damages (3), remedies (2).
+  const strat1 = await prisma.strategyItem.create({ data: { caseId: regions.id, recordType: 'objective', title: 'Defeat standing; preserve counterclaims', status: 'active', sourceType: 'user', verificationStatus: 'confirmed', assumptions: 'Assignment chain is broken. (Demo.)' } });
+  const stratNew = await prisma.strategyItem.create({ data: { caseId: regions.id, recordType: 'next-move', title: 'File motion to compel on ROG 1 & 2', status: 'active', sourceType: 'user', verificationStatus: 'confirmed' } });
+  await prisma.strategyItem.create({ data: { caseId: regions.id, recordType: 'leverage', title: 'Balance-mismatch contradiction', status: 'active', sourceType: 'user', verificationStatus: 'confirmed' } });
+  const stratOld = await prisma.strategyItem.create({ data: { caseId: regions.id, recordType: 'next-move', title: 'Old plan: wait for responses', status: 'superseded', sourceType: 'user', verificationStatus: 'confirmed' } });
+  await prisma.strategyItem.update({ where: { id: stratOld.id }, data: { supersededById: stratNew.id } });
+  void strat1;
+
+  await prisma.decisionLogEntry.createMany({ data: [
+    { caseId: regions.id, title: 'File motion to dismiss', decision: 'Move to dismiss on standing grounds. (Demo.)', options: 'Answer only; MTD; both', selectedOption: 'MTD + answer', rationale: 'Standing is the strongest defense.', decidedBy: 'user' },
+    { caseId: regions.id, title: 'Pursue counterclaims', decision: 'Assert GFBPA counterclaim. (Demo.)', rationale: 'Fee-shifting leverage.', decidedBy: 'user' },
+  ] });
+  await prisma.opposingPosition.create({ data: { caseId: regions.id, party: 'Regions Bank', issue: 'Standing', positionSummary: 'Claims it is the current holder. (Demo.)', weaknesses: 'No recorded assignment produced.', userResponse: 'Demand the assignment chain in discovery.', status: 'active', verificationStatus: 'confirmed' } });
+
+  await prisma.settlementRecord.createMany({ data: [
+    { caseId: regions.id, offerType: 'offer', direction: 'inbound', monetaryAmount: 5000, releaseScope: 'Full mutual release', confidentiality: 'settlement', status: 'open', offerDate: daysFromNow(-7), deadline: daysFromNow(10) },
+    { caseId: regions.id, offerType: 'counteroffer', direction: 'outbound', monetaryAmount: 15000, releaseScope: 'Claims in this action only', confidentiality: 'settlement', status: 'open', offerDate: daysFromNow(-2) },
+  ] });
+  await prisma.damageItem.createMany({ data: [
+    { caseId: regions.id, label: 'Improper fees charged', category: 'direct-economic', amount: 3200, calculationMethod: 'Sum of disputed fee line items', assumptions: 'All flagged fees improper. (Demo.)', verificationStatus: 'proposed' },
+    { caseId: regions.id, label: 'Credit-report harm', category: 'credit-related', amount: 5000, calculationMethod: 'Estimated', assumptions: 'Adverse tradeline reported. (Demo.)', verificationStatus: 'proposed' },
+    { caseId: regions.id, label: 'Attorney/filing costs', category: 'fees-expenses', amount: 800, verificationStatus: 'proposed' },
+  ] });
+  await prisma.remedy.createMany({ data: [
+    { caseId: regions.id, remedyType: 'declaratory', description: 'Declaration that plaintiff lacks standing. (Demo.)', legalBasis: 'Standing doctrine', legalIssueId: standingDefense.id, status: 'requested' },
+    { caseId: regions.id, remedyType: 'credit-correction', description: 'Correct the credit report. (Demo.)', legalBasis: 'GFBPA/FCRA', legalIssueId: gfbpaClaim.id, status: 'requested' },
+  ] });
+
   // ============================ CASE 2: Federal / PACER ============================
   const ndga = await prisma.court.create({
     data: {

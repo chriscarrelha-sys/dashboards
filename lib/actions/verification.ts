@@ -158,6 +158,26 @@ export async function resolveProposal(
       createdEntity = 'Witness'; createdId = w.id;
       break;
     }
+    // ---- Phase 3 proposal kinds ----
+    case 'authority': {
+      const a = await prisma.authority.create({
+        data: { caseId, citation: proposal.citation || proposal.citationText || 'Authority', court: proposal.court || null, jurisdiction: proposal.jurisdiction || null, proposition: proposal.proposition || proposal.quotedProposition || null, verificationStatus: 'unverified' },
+      });
+      createdEntity = 'Authority'; createdId = a.id;
+      break;
+    }
+    case 'citation': {
+      const c = await prisma.citationOccurrence.create({
+        data: { caseId, filingId: proposal.filingId || null, documentId: item.sourceDocId || null, citationText: proposal.citationText || 'citation', location: proposal.location || null, quotedProposition: proposal.quotedProposition || null, flags: proposal.flags ? JSON.stringify(proposal.flags) : null, provider: item.provider, confidence: item.confidence, verificationStatus: 'unverified' },
+      });
+      createdEntity = 'CitationOccurrence'; createdId = c.id;
+      break;
+    }
+    case 'draft-review': {
+      // Informational: approving acknowledges the warning (no new entity).
+      createdEntity = 'DraftReviewIssue'; createdId = item.id;
+      break;
+    }
     default:
       throw new Error(`Unknown proposal kind: ${item.kind}`);
   }
@@ -172,6 +192,7 @@ export async function resolveProposal(
     evidence: 'evidence', admission: 'admissions', contradiction: 'contradictions',
     'legal-issue': 'claims', 'discovery-extraction': 'discovery', 'discovery-deficiency': 'discovery/deficiencies',
     witness: 'people/witnesses', 'document-classification': 'documents',
+    authority: 'research', citation: 'research', 'draft-review': 'filing-workspace',
   };
   if (dest[item.kind]) revalidatePath(`/case/${caseId}/${dest[item.kind]}`);
   return { decision, createdEntity, createdId };

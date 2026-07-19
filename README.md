@@ -88,7 +88,18 @@ npm run db:reset    # drop, re-migrate, re-seed
 - **Verification Queue** — every AI proposal (evidence, contradiction, admission, legal issue, discovery import, deficiency) is confirmed here; **approval creates the structured record and writes the audit log**. Mock extraction never fabricates pages.
 - **Audit History** at Administration → Audit History.
 
-See [`docs/`](docs/) for architecture, data model, integration status, the [verification workflow](docs/VERIFICATION-WORKFLOW.md), roadmap, and limitations.
+### Phase 3 — Operational litigation workspace
+- **Filing Workspace** — a 20-stage filing lifecycle with history and backward moves; a tabbed workspace (Overview / Draft / Support / Checklist / Cert & Service / Package / Filing / AI); support linked to legal issues, evidence, authorities, discovery, and documents.
+- **Drafts & versions** — versions are never overwritten; designate one final-for-filing.
+- **Readiness & QC** — a readiness checklist plus rule-based warnings (operational, not legal conclusions); waiving a warning requires a reason and is logged.
+- **Filing packages** — ordered components + a downloadable manifest; submission + filed-stamped tracking (Pro Se Wins **records**, it does not file).
+- **Certificates & service** — draft certificates of service; reusable recipient profiles with last-verified dates; a Service History mirrored to the timeline.
+- **Communications** — log emails/letters/calls with confidentiality + settlement markers; spin follow-ups into tasks.
+- **Legal Research** — authorities with a verification workflow (unverified until you open the source), research questions, and memoranda.
+- **Strategy** — strategy items with supersession + snapshots, an **immutable Decision Log**, Opposing Positions, Settlement comparison, Damages, and Remedies.
+- **Source-controlled AI drafting** — visible source scope before submission; AI draft review files issues into the Verification Queue (never rewrites).
+
+See [`docs/`](docs/) for architecture, data model, integration status, the [verification workflow](docs/VERIFICATION-WORKFLOW.md), the [filing/service/research workflows](docs/FILING-WORKFLOW.md), roadmap, and limitations.
 
 ## Documentation
 

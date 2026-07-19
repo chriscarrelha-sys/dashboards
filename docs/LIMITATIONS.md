@@ -2,6 +2,17 @@
 
 Written plainly so nothing is oversold.
 
+## ✅ Completed & functional — Phase 3 (filing, service, research, strategy)
+- Filing Workspace: 20-stage lifecycle with history + backward moves; support links; draft versions (never overwritten) with final-for-filing designation
+- Readiness checklist + rule-based QC warnings; **waivers/overrides logged to audit**
+- Filing packages + downloadable manifest; submission + filed-stamped tracking (records, does not file)
+- Certificates of service (draft → review); Service recipients (last-verified) + Service History mirrored to timeline
+- Communications Center with follow-up → task; confidentiality/settlement markers
+- Legal Research: authorities + verification workflow (unverified until source opened); research questions + memoranda
+- Strategy Workspace + snapshots; **immutable Decision Log (supersede)**; Opposing Positions; Settlement comparison; Damages (with assumptions); Remedies
+- Source-controlled AI drafting (visible scope) + AI draft review → Verification Queue
+- 12 new DB integration tests (33 total passing)
+
 ## ✅ Completed & functional — Phase 2 (evidence, contradictions, legal issues, discovery)
 - Evidence Command Center: table/card views, filters (type/posture/AI-vs-user), search, create-from-document, cross-links to legal issues/elements/discovery
 - Legal Issues (unified) with Elements & Burdens matrix; supporting / adverse / missing evidence surfaced per element; element status updates
@@ -23,6 +34,10 @@ Written plainly so nothing is oversold.
 - Server-side Zod validation, per-action ownership checks, audit logging
 
 ## 🟡 Mocked (interface real, external call not)
+- **AI drafting / draft review / citation extraction** (Phase 3) — mock output with visible source scope; routes proposals to the Verification Queue; never fabricates citations/pages. Real provider drops in behind the router.
+- **Filing packages** produce a downloadable text **manifest**; ZIP bundling and PDF merge are not yet implemented.
+- **Direct filing / service are NOT implemented** — Pro Se Wins records filing and service details; it does not submit to PeachCourt/PACER or serve documents. Email ingestion, rich-text/PDF diff, and a live legal-research provider are also not wired.
+- **Authority treatment checking** is manual — automated negative-treatment/Shepardizing is not connected to any source.
 - **AI structured extraction** (evidence, contradictions, discovery import, deficiency review) — produces clearly-labeled `[MOCK]` proposals routed to the Verification Queue; never fabricates page numbers (marks them `unavailable`). Real provider drops in behind the same contract.
 - **Authentication/foundation** — schema + fields exist; a dedicated checklist UI and deposition transcript management are not built yet.
 - **Exhibit binder generation** — exhibit status/label fields exist on evidence; PDF binder production is deferred.
@@ -49,9 +64,10 @@ Written plainly so nothing is oversold.
 - **No "military-grade" or similar claims** — this list is the real state.
 
 ## Recommended next build step
-**Phase 3 — Filing Workspace, Communications, Service, Research, and Strategy:**
-filing packages / hearing binders / certificates of service, a Communications +
-Service History module (linked to meet-and-confer), Authorities pinpoint
-verification, and the Strategy suite (objectives / leverage / decision log /
-damages). In parallel, wire **one real AI provider** behind the existing router
-(key-gated) so structured extraction runs live into the Verification Queue.
+**Phase 4 — Universal Search, Exhibit & Binder Generation, Calendar & Notifications,
+External Integrations, Backup, Export, and Security Hardening:** case-wide search
+across every record type, real exhibit/binder PDF generation (building on the
+filing-package model), calendar sync + reminder scheduling for deadlines and
+filing events, real external connectors (starting with one live AI provider and
+a read-only court-docket source), and export/backup + production auth (NextAuth,
+2FA) with encryption-at-rest.

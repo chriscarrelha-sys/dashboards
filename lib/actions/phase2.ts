@@ -31,7 +31,7 @@ const evidenceSchema = z.object({
   timelineEventId: z.string().optional(),
 });
 
-export async function createEvidence(caseId: string, input: z.infer<typeof evidenceSchema>) {
+export async function createEvidence(caseId: string, input: z.input<typeof evidenceSchema>) {
   const { user } = await assertOwnedCase(caseId);
   const data = evidenceSchema.parse(input);
 

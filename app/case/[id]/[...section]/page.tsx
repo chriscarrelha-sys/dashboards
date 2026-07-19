@@ -17,6 +17,11 @@ import { VerificationQueueModule } from '@/components/modules/VerificationQueueM
 import {
   DeficienciesModule, MeetConferModule, WitnessesModule, SubpoenasModule, AuditModule,
 } from '@/components/modules/Phase2Modules';
+import { FilingWorkspaceModule } from '@/components/modules/FilingWorkspaceModule';
+import {
+  CommunicationsModule, ServiceModule, ResearchModule, StrategyModule,
+  DecisionLogModule, OpposingModule, SettlementModule, DamagesModule, RemediesModule,
+} from '@/components/modules/Phase3Modules';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,6 +88,18 @@ export default async function CaseSection({
   if (slug === 'discovery/subpoenas') return <SubpoenasModule caseId={id} />;
   if (slug === 'people/witnesses' || slug === 'witnesses') return <WitnessesModule caseId={id} />;
   if (slug === 'admin/audit') return <AuditModule caseId={id} />;
+
+  // ---- Phase 3 modules ----
+  if (slug === 'filing-workspace' || slug === 'filings/packages') return <FilingWorkspaceModule caseId={id} />;
+  if (slug === 'comms/emails' || slug === 'comms/letters' || slug === 'comms/calls') return <CommunicationsModule caseId={id} />;
+  if (slug === 'comms/service-history') return <ServiceModule caseId={id} />;
+  if (slug === 'research' || slug === 'research/sources' || slug === 'authorities') return <ResearchModule caseId={id} />;
+  if (slug === 'strategy' || slug === 'strategy/objectives' || slug === 'strategy/next-moves' || slug === 'strategy/leverage') return <StrategyModule caseId={id} />;
+  if (slug === 'strategy/decision-log') return <DecisionLogModule caseId={id} />;
+  if (slug === 'strategy/opposing') return <OpposingModule caseId={id} />;
+  if (slug === 'strategy/settlement' || slug === 'strategy/negotiation') return <SettlementModule caseId={id} />;
+  if (slug === 'strategy/damages') return <DamagesModule caseId={id} />;
+  if (slug === 'strategy/remedies') return <RemediesModule caseId={id} />;
 
   // ---- Known nav sections without a dedicated module yet: polished empty state ----
   const label = labelForSlug(slug);

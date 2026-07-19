@@ -56,6 +56,25 @@ Extended existing models with nullable Phase 2 fields (non-destructive) and adde
 
 Migration: `20260719114745_phase2_evidence_discovery` (additive; Phase 1 data preserved).
 
+## Phase 3 additions (filing, service, research, strategy)
+
+Extended `Filing`, `Communication`, `Authority`, `DamageItem`, `DecisionLogEntry`
+with nullable fields; added:
+
+- **Filing:** `FilingStageHistory`, `FilingVersion`, `FilingChecklistItem`,
+  `FilingPackage`/`FilingPackageItem`, `FilingSubmission`, and join tables
+  `Filing{LegalIssue,Evidence,Authority,Discovery,Document}Link`.
+- **Service:** `CertificateOfService`, `ServiceRecipient`, `ServiceEvent`.
+- **Communications:** `CommunicationAttachment` (+ extended `Communication`).
+- **Research:** `AuthorityVerification`, `CitationOccurrence`, `ResearchQuestion`,
+  `ResearchMemorandum`.
+- **Strategy:** `StrategyItem`, `StrategySnapshot`, `OpposingPosition`,
+  `SettlementRecord`/`SettlementTerm`, `Remedy` (+ extended `DamageItem`,
+  `DecisionLogEntry`).
+- **AI:** `AIDraftRun`, `DraftReviewIssue`.
+
+Migration: `20260719123800_phase3_filing_service_research_strategy` (additive; Phase 1 & 2 data preserved).
+
 ## Notes on relationships
 
 Relationships are intentionally simple in this first migration (foreign keys +

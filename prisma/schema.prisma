@@ -97,6 +97,21 @@ model Case {
   aiConversations   AIConversation[]
   storageLocations  StorageLocation[]
   caseNotes         CaseNote[]
+  // Phase 3
+  filingPackages    FilingPackage[]
+  certificates      CertificateOfService[]
+  serviceRecipients ServiceRecipient[]
+  serviceEvents     ServiceEvent[]
+  citationOccurrences CitationOccurrence[]
+  researchQuestions ResearchQuestion[]
+  researchMemoranda ResearchMemorandum[]
+  strategyItems     StrategyItem[]
+  strategySnapshots StrategySnapshot[]
+  opposingPositions OpposingPosition[]
+  settlements       SettlementRecord[]
+  remedies          Remedy[]
+  aiDraftRuns       AIDraftRun[]
+  draftReviewIssues DraftReviewIssue[]
 }
 
 model Court {
@@ -247,6 +262,12 @@ model Document {
   discoverySetSources   DiscoverySet[] @relation("DiscoverySetSource")
   deficiencySources     DiscoveryDeficiency[] @relation("DeficiencySource")
   authDocuments         AuthenticationRecord[] @relation("AuthDocument")
+  // Phase 3 back-relations
+  filingDocumentLinks   FilingDocumentLink[]
+  filingPackageItems    FilingPackageItem[]
+  filingVersions        FilingVersion[]
+  communicationAttachments CommunicationAttachment[]
+  citationOccurrences   CitationOccurrence[]
 }
 
 model DocumentVersion {
@@ -469,6 +490,7 @@ model LegalIssue {
   elements       LegalIssueElement[]
   evidenceLinks  EvidenceLegalIssueLink[]
   authorityLinks LegalIssueAuthorityLink[]
+  filingLinks    FilingLegalIssueLink[]
 }
 
 model LegalIssueElement {
@@ -578,6 +600,9 @@ model Authority {
   createdAt    DateTime @default(now())
 
   issueLinks LegalIssueAuthorityLink[]
+  filingLinks FilingAuthorityLink[]
+  verifications AuthorityVerification[]
+  citationOccurrences CitationOccurrence[]
 }
 
 // ----------------------------------------------------------------------------
@@ -632,6 +657,7 @@ model EvidenceItem {
   motionLinks         EvidenceMotionLink[]
   documentLinks       EvidenceDocumentLink[]
   authenticationRecords AuthenticationRecord[]
+  filingLinks         FilingEvidenceLink[]
 }
 
 model Exhibit {
@@ -779,6 +805,7 @@ model DiscoveryRequest {
   responses     DiscoveryResponse[]
   deficiencies  DiscoveryDeficiency[]
   evidenceLinks EvidenceDiscoveryLink[]
+  filingLinks   FilingDiscoveryLink[]
 }
 
 model DiscoveryResponse {
@@ -933,14 +960,54 @@ model Motion {
 }
 
 model Filing {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  title     String
-  filedDate DateTime?
-  status    String   @default("draft") // draft|filed|served
+  id            String   @id @default(cuid())
+  caseId        String
+  case          Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title         String
+  formalTitle   String?
+  shortTitle    String?
+  filingType    String? // see lib/enums FILING_TYPES
+  filingParty   String?
+  respondingParty String?
+  motionId      String?
+  deadlineId    String?
+  dueDate       DateTime?
+  plannedFilingDate DateTime?
+  actualFilingDate  DateTime?
+  filedDate     DateTime?
+  status        String   @default("draft") // draft|filed|served (legacy)
+  stage         String   @default("planned") // lifecycle stage — see lib/enums FILING_STAGES
+  portalType    String? // peachcourt|pacer|other
+  portalUrl     String?
+  docketNumber  String?
+  description   String?
+  purpose       String?
+  requestedRelief String?
+  governingRules String?
+  confidentiality String @default("public")
   certificateOfService Boolean @default(false)
-  createdAt DateTime @default(now())
+  createdBy     String?
+  aiProvenance  String?
+  verificationStatus String @default("confirmed")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+
+  stageHistory      FilingStageHistory[]
+  legalIssueLinks   FilingLegalIssueLink[]
+  evidenceLinks     FilingEvidenceLink[]
+  authorityLinks    FilingAuthorityLink[]
+  discoveryLinks    FilingDiscoveryLink[]
+  documentLinks     FilingDocumentLink[]
+  checklistItems    FilingChecklistItem[]
+  versions          FilingVersion[]
+  submissions       FilingSubmission[]
+  packages          FilingPackage[]
+  certificates      CertificateOfService[]
+  serviceEvents     ServiceEvent[]
+  communications    Communication[] @relation("FilingComms")
+  citationOccurrences CitationOccurrence[]
+  aiDraftRuns       AIDraftRun[]
+  draftReviewIssues DraftReviewIssue[]
 }
 
 // ----------------------------------------------------------------------------
@@ -951,14 +1018,30 @@ model Communication {
   id        String   @id @default(cuid())
   caseId    String
   case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  kind      String // email|letter|call|conversation
+  kind      String // email|letter|call|voicemail|text|meeting|video|court|clerk|process-server|opposing-counsel|settlement|meet-confer|internal|other
+  direction String   @default("outbound") // inbound|outbound|internal|court-originated|third-party
+  sender    String?
+  recipients String?
+  cc        String?
   subject   String?
   summary   String?
+  fullText  String?
   withParty String?
   occurredAt DateTime?
+  relatedFilingId String?
+  filing    Filing?  @relation("FilingComms", fields: [relatedFilingId], references: [id], onDelete: SetNull)
+  followUpRequired Boolean @default(false)
+  followUpDate DateTime?
+  confidentiality String @default("public") // public|confidential|privileged|work-product|settlement|...
+  privilege String?
+  settlementComm Boolean @default(false)
+  createdBy String?
+  verificationStatus String @default("confirmed")
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 
   meetAndConfers MeetAndConferRecord[]
+  attachments    CommunicationAttachment[]
 }
 
 // ----------------------------------------------------------------------------
@@ -975,24 +1058,50 @@ model StrategyNote {
   createdAt DateTime @default(now())
 }
 
+// Immutable-by-convention: never edit substance; supersede with a new entry.
 model DecisionLogEntry {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  decision  String
-  rationale String?
-  decidedAt DateTime @default(now())
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title           String?
+  decision        String
+  issueConsidered String?
+  options         String?
+  selectedOption  String?
+  rationale       String?
+  risks           String?
+  counterarguments String?
+  assumptions     String?
+  expectedResult  String?
+  actualResult    String?
+  reviewDate      DateTime?
+  supersededById  String?
+  decidedBy       String?
+  aiContribution  String?
+  decidedAt       DateTime @default(now())
 }
 
 model DamageItem {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  label     String
-  category  String? // economic|non-economic|statutory|punitive
-  amount    Float?
-  basis     String?
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  label          String
+  category       String? // see lib/enums DAMAGE_CATEGORIES
+  amount         Float?
+  currency       String   @default("USD")
+  dateRange      String?
+  calculationMethod String?
+  formula        String?
+  assumptions    String?
+  causationTheory String?
+  mitigation     String?
+  amountsRecovered Float?
+  duplicationConcern String?
+  basis          String?
+  verificationStatus String @default("proposed")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
 }
 
 // ----------------------------------------------------------------------------
@@ -1106,4 +1215,420 @@ model AuditLog {
   entityId  String?
   detail    String?
   createdAt DateTime @default(now())
+}
+
+// ============================================================================
+// PHASE 3 — Filing, Service, Communications, Research, Strategy, Settlement
+// (Additive. Existing models extended separately with nullable fields.)
+// ============================================================================
+
+model FilingStageHistory {
+  id        String   @id @default(cuid())
+  filingId  String
+  filing    Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  fromStage String?
+  toStage   String
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model FilingLegalIssueLink {
+  id           String   @id @default(cuid())
+  filingId     String
+  filing       Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  @@unique([filingId, legalIssueId])
+}
+
+model FilingEvidenceLink {
+  id         String   @id @default(cuid())
+  filingId   String
+  filing     Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  evidenceId String
+  evidence   EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  relation   String   @default("supporting") // supporting|adverse
+  @@unique([filingId, evidenceId, relation])
+}
+
+model FilingAuthorityLink {
+  id          String   @id @default(cuid())
+  filingId    String
+  filing      Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  authorityId String
+  authority   Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  pinpoint    String?
+  @@unique([filingId, authorityId])
+}
+
+model FilingDiscoveryLink {
+  id                 String   @id @default(cuid())
+  filingId           String
+  filing             Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  discoveryRequestId String
+  discoveryRequest   DiscoveryRequest @relation(fields: [discoveryRequestId], references: [id], onDelete: Cascade)
+  @@unique([filingId, discoveryRequestId])
+}
+
+model FilingDocumentLink {
+  id         String   @id @default(cuid())
+  filingId   String
+  filing     Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  role       String?  // primary|brief|exhibit|proposed-order|certificate|form
+  pageRange  String?
+  @@unique([filingId, documentId, role])
+}
+
+model FilingChecklistItem {
+  id            String   @id @default(cuid())
+  filingId      String
+  filing        Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  category      String   // case-identity|document-identity|timing|content|format|components|service
+  label         String
+  status        String   @default("incomplete") // not-applicable|incomplete|needs-review|complete|blocked|waived
+  overrideReason String?
+  custom        Boolean  @default(false)
+  isWarning     Boolean  @default(false) // auto QC warning vs. manual checklist item
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+}
+
+model FilingVersion {
+  id             String   @id @default(cuid())
+  filingId       String
+  filing         Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  label          String   // initial-draft|revised-draft|citation-reviewed|final-for-filing|filed-copy|filed-stamped|served-copy|...
+  contentText    String?  // in-app rich/plain draft text
+  storageKey     String?  // uploaded revision blob
+  documentId     String?
+  document       Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  changesSummary String?
+  reviewStatus   String   @default("draft") // draft|reviewed|approved
+  approvalStatus String   @default("pending") // pending|final-for-filing
+  hash           String?
+  createdBy      String?
+  sourceVersionId String?
+  createdAt      DateTime @default(now())
+}
+
+model FilingSubmission {
+  id                 String   @id @default(cuid())
+  filingId           String
+  filing             Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  portal             String?
+  submittedAt        DateTime?
+  confirmationNumber String?
+  filingFee          String?
+  docketNumber       String?
+  status             String   @default("submitted") // submitted|accepted|rejected|correction-required|corrected|filed
+  receiptNote        String?
+  createdAt          DateTime @default(now())
+}
+
+model FilingPackage {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId  String?
+  filing    Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  title     String
+  portal    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  items     FilingPackageItem[]
+}
+
+model FilingPackageItem {
+  id              String   @id @default(cuid())
+  packageId       String
+  package         FilingPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  order           Int      @default(0)
+  label           String
+  documentId      String?
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  pageRange       String?
+  confidentiality String   @default("public")
+  separateUpload  Boolean  @default(false)
+  exhibitDesignation String?
+}
+
+model CertificateOfService {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  filing             Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  serviceDate        DateTime?
+  servingParty       String?
+  method             String?
+  recipientsText     String?
+  statementText      String?
+  filedStatus        String   @default("draft") // draft|final|filed
+  verificationStatus String   @default("proposed")
+  createdBy          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model ServiceRecipient {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name            String
+  organization    String?
+  role            String?
+  representedParty String?
+  mailingAddress  String?
+  serviceAddress  String?
+  email           String?
+  efileParticipant Boolean @default(false)
+  preferredMethod String?
+  lastVerified    DateTime?
+  sourceOfAddress String?
+  active          Boolean  @default(true)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+  serviceEvents   ServiceEvent[]
+}
+
+model ServiceEvent {
+  id            String   @id @default(cuid())
+  caseId        String
+  case          Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId      String?
+  filing        Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  recipientId   String?
+  recipient     ServiceRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+  recipientName String
+  servingParty  String?
+  serviceDate   DateTime?
+  serviceMethod String?
+  address       String?
+  trackingNumber String?
+  deliveryStatus String  @default("sent") // sent|delivered|accepted|refused|disputed|returned
+  disputed      Boolean  @default(false)
+  deadlineId    String?  // soft link
+  verificationStatus String @default("proposed")
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model CommunicationAttachment {
+  id              String   @id @default(cuid())
+  communicationId String
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  documentId      String?
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  name            String
+  createdAt       DateTime @default(now())
+}
+
+model AuthorityVerification {
+  id          String   @id @default(cuid())
+  authorityId String
+  authority   Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  step        String // exists|court-year|quotation|pinpoint|proposition|treatment|controlling
+  status      String   @default("pending") // pending|confirmed|failed
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+model CitationOccurrence {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  filing             Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  documentId         String?
+  document           Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  citationText       String
+  location           String?
+  authorityId        String?
+  authority          Authority? @relation(fields: [authorityId], references: [id], onDelete: SetNull)
+  quotedProposition  String?
+  confidence         Float?
+  provider           String?
+  flags              String? // JSON list of warnings
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+}
+
+model ResearchQuestion {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  question           String
+  legalIssueId       String?
+  jurisdiction       String?
+  priority           String   @default("normal")
+  status             String   @default("open") // open|researching|preliminary-answer|verification-needed|complete|superseded|abandoned
+  searchTerms        String?
+  conclusion         String?
+  contraryAuthority  String?
+  verificationStatus String   @default("proposed")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model ResearchMemorandum {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  title              String
+  issuePresented     String?
+  briefAnswer        String?
+  facts              String?
+  jurisdiction       String?
+  analysis           String?
+  conclusion         String?
+  unresolved         String?
+  createdBy          String?
+  aiProvider         String?
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model StrategyItem {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  recordType         String   @default("objective") // objective|next-move|leverage|vulnerability|risk|opportunity|opposing-move|contingency|settlement|hearing|discovery|filing|evidentiary|appeal|unresolved
+  title              String
+  description        String?
+  priority           String   @default("normal")
+  status             String   @default("active") // proposed|active|monitoring|blocked|completed|rejected|superseded|contingency|unresolved
+  timeframe          String?
+  assumptions        String?
+  risks              String?
+  counterarguments   String?
+  confidence         Float?
+  sourceType         String?  // user|ai
+  aiProvider         String?
+  relatedLegalIssueId String?
+  relatedEvidenceId  String?
+  relatedFilingId    String?
+  supersededById     String?
+  verificationStatus String   @default("confirmed")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model StrategySnapshot {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  label     String
+  summary   String   // JSON snapshot of strategy items at a point in time
+  createdAt DateTime @default(now())
+}
+
+model OpposingPosition {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  party              String?
+  issue              String
+  positionSummary    String?
+  exactStatement     String?
+  sourceDocumentId   String?
+  sourcePage         String?
+  positionDate       DateTime?
+  weaknesses         String?
+  userResponse       String?
+  status             String   @default("active")
+  relatedFilingId    String?
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model SettlementRecord {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  offerType          String // demand|offer|counteroffer|mediation|informal|nonmonetary|consent-order|withdrawn|expired
+  direction          String   @default("outbound")
+  sender             String?
+  recipient          String?
+  offerDate          DateTime?
+  monetaryAmount     Float?
+  nonmonetaryTerms   String?
+  releaseScope       String?
+  confidentiality    String?
+  dismissalTerms     String?
+  paymentTerms       String?
+  creditReportingTerms String?
+  taxTerms           String?
+  deadline           DateTime?
+  status             String   @default("open") // open|pending|accepted|rejected|withdrawn|expired|superseded
+  sourceCommunicationId String?
+  strategicAssessment String?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+  terms              SettlementTerm[]
+}
+
+model SettlementTerm {
+  id           String   @id @default(cuid())
+  settlementId String
+  settlement   SettlementRecord @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  label        String
+  value        String?
+  category     String?
+}
+
+model Remedy {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  remedyType     String
+  description    String?
+  legalBasis     String?
+  legalIssueId   String?
+  status         String   @default("requested")
+  opposingPosition String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model AIDraftRun {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  filing             Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  provider           String
+  task               String
+  sourceScope        String   // JSON describing the approved source scope
+  prompt             String
+  output             String
+  userEdits          String?
+  destinationFilingId String?
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+}
+
+model DraftReviewIssue {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId    String?
+  filing      Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  location    String?
+  issueType   String
+  explanation String?
+  severity    String   @default("warning") // info|warning|high
+  confidence  Float?
+  status      String   @default("open") // open|resolved|overridden
+  createdAt   DateTime @default(now())
 }

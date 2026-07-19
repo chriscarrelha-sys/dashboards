@@ -32,10 +32,16 @@ Phased build plan. Phase 0 and the core of Phases 1–3 are in this first slice.
 - Relational cross-linking (document↔evidence↔element↔discovery↔witness↔timeline) with deep links; case-scoped audit view
 - **Next:** authentication/foundation checklists UI, deposition transcript management, exhibit binder generation, motion-to-compel workspace
 
-## Phase 3 (next) — Filing Workspace, Communications, Service, Research, Strategy
-- Filing packages, hearing binders, certificates of service, proposed orders
-- Communications (emails/letters/calls) + Service History; link to meet-and-confer
-- Research + Authorities pinpoint verification; Strategy (objectives/leverage/decision log/damages)
+## Phase 3 — Filing Workspace, Communications, Service, Research, Strategy ✅ (this build)
+- Filing Workspace: lifecycle (20 stages) with history, support links (issues/evidence/authorities/discovery/documents), draft versions (never overwritten), readiness checklist + rule-based QC warnings with logged overrides, filing packages + downloadable manifest, submission + filed-stamped tracking
+- Certificates of service + Service recipients + Service History (mirrored to timeline)
+- Communications Center with follow-up → task; confidentiality/settlement markers
+- Legal Research: authorities + verification workflow (unverified until source opened), research questions + memoranda, citation extraction (mock → queue)
+- Strategy Workspace + snapshots, immutable Decision Log (supersede), Opposing Positions, Settlement comparison, Damages, Remedies
+- Source-controlled AI drafting (visible source scope) + AI draft review → Verification Queue
+- **Next:** real ZIP bundling, rich-text/PDF diff, real email ingestion, live research provider
+
+## Phase 4 (next) — Universal Search, Exhibit & Binder Generation, Calendar & Notifications, External Integrations, Backup, Export, Security Hardening
 
 ## Phase 5 — Production hardening
 - NextAuth/Auth.js (+ optional Apple/Google/Microsoft, 2FA), Postgres deployment

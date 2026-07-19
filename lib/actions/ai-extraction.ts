@@ -112,6 +112,27 @@ export async function aiExtractDiscovery(caseId: string, documentId: string) {
   return { proposed: 1 };
 }
 
+/** Extract proposed citations from a filing/document (mock). */
+export async function aiExtractCitations(caseId: string, documentId: string, filingId?: string) {
+  const { user } = await assertOwnedCase(caseId);
+  const doc = await prisma.document.findFirst({ where: { id: documentId, caseId } });
+  if (!doc) throw new Error('Document not found');
+  await queue(caseId, [
+    {
+      kind: 'citation', title: 'Proposed citation — authority not in library', confidence: 0.55,
+      sourceDocId: documentId, sourcePage: 'unavailable',
+      reason: 'Citation referenced in text but not matched to a verified authority; open the source to confirm.',
+      proposal: {
+        citationText: '[MOCK] 123 Ga. App. 456 (2021)', location: 'draft §II.A',
+        quotedProposition: '[MOCK] proposition the citation is offered for',
+        flags: ['authority-not-linked', 'unverified-treatment'], filingId: filingId ?? null,
+      },
+    },
+  ]);
+  await audit(user.id, 'ai.extract-citations', 'Document', documentId);
+  return { proposed: 1 };
+}
+
 /** Review discovery responses for potential deficiencies (mock). */
 export async function aiReviewDeficiencies(caseId: string, requestIds: string[]) {
   const { user } = await assertOwnedCase(caseId);

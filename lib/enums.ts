@@ -190,8 +190,123 @@ export const PROPOSAL_KINDS = [
 ] as const;
 export type ProposalKind = (typeof PROPOSAL_KINDS)[number];
 
+/* ============================ PHASE 3 ============================ */
+
+export const FILING_TYPES = [
+  'complaint', 'amended-complaint', 'answer', 'amended-answer', 'counterclaim', 'reply-to-counterclaim',
+  'motion', 'response', 'reply', 'surreply', 'notice', 'objection', 'affidavit', 'declaration',
+  'brief', 'memorandum', 'proposed-order', 'certificate-of-service', 'discovery-motion',
+  'motion-to-compel', 'motion-to-strike', 'motion-for-summary-judgment', 'motion-for-reconsideration',
+  'motion-for-leave', 'emergency-motion', 'pretrial-filing', 'appellate-filing', 'arbitration-filing',
+  'agency-complaint', 'settlement-demand', 'other',
+] as const;
+
+/** Ordered filing lifecycle stages. Configurable; index used for progress display. */
+export const FILING_STAGES = [
+  'planned', 'research', 'outline', 'initial-draft', 'evidence-linked', 'authorities-linked',
+  'citation-verification', 'legal-review', 'formatting-review', 'exhibits-assembled',
+  'proposed-order', 'certificate-prepared', 'final-review', 'ready-to-file', 'filed',
+  'filed-stamped', 'served', 'service-confirmed', 'court-response-pending', 'resolved',
+] as const;
+export type FilingStage = (typeof FILING_STAGES)[number];
+
+export const FILING_CHECKLIST_ITEM_STATUSES = [
+  'not-applicable', 'incomplete', 'needs-review', 'complete', 'blocked', 'waived',
+] as const;
+
+export const VERSION_LABELS = [
+  'initial-draft', 'revised-draft', 'reviewer-draft', 'citation-reviewed', 'final-for-filing',
+  'redacted-filing-copy', 'filed-copy', 'filed-stamped', 'served-copy', 'exhibit-copy',
+] as const;
+
+export const SERVICE_METHODS = [
+  'efile', 'mail', 'personal', 'overnight', 'hand-delivery', 'consented-email', 'other',
+] as const;
+
+export const COMMUNICATION_TYPES = [
+  'email', 'letter', 'call', 'voicemail', 'text', 'meeting', 'video', 'court', 'clerk',
+  'process-server', 'opposing-counsel', 'settlement', 'meet-confer', 'internal', 'other',
+] as const;
+
+export const CONFIDENTIALITY_LEVELS = [
+  'public', 'confidential', 'privileged', 'work-product', 'settlement', 'mediation-confidential',
+  'protective-order', 'personally-sensitive', 'sealed', 'unknown',
+] as const;
+
+export const AUTHORITY_TYPES = [
+  'case', 'statute', 'regulation', 'court-rule', 'local-rule', 'administrative-guidance',
+  'agency-order', 'constitutional', 'treatise', 'law-review', 'practice-guide', 'secondary', 'other',
+] as const;
+
+export const AUTHORITY_VERIFICATION_STATUSES = [
+  'proposed', 'unverified', 'source-located', 'citation-confirmed', 'pinpoint-confirmed',
+  'treatment-checked', 'negative-treatment', 'controlling', 'persuasive', 'adverse',
+  'outdated', 'superseded', 'rejected',
+] as const;
+
+export const RESEARCH_QUESTION_STATUSES = [
+  'open', 'researching', 'preliminary-answer', 'verification-needed', 'complete', 'superseded', 'abandoned',
+] as const;
+
+export const STRATEGY_RECORD_TYPES = [
+  'objective', 'next-move', 'leverage', 'vulnerability', 'risk', 'opportunity', 'opposing-move',
+  'contingency', 'settlement', 'hearing', 'discovery', 'filing', 'evidentiary', 'appeal', 'unresolved',
+] as const;
+
+export const STRATEGY_STATUSES = [
+  'proposed', 'active', 'monitoring', 'blocked', 'completed', 'rejected', 'superseded', 'contingency', 'unresolved',
+] as const;
+
+export const SETTLEMENT_OFFER_TYPES = [
+  'demand', 'offer', 'counteroffer', 'mediation', 'informal', 'nonmonetary',
+  'consent-order', 'withdrawn', 'expired',
+] as const;
+
+export const DAMAGE_CATEGORIES = [
+  'direct-economic', 'consequential', 'lost-income', 'out-of-pocket', 'fees-expenses', 'interest',
+  'statutory', 'emotional-distress', 'reputational', 'property-loss', 'credit-related', 'punitive', 'other',
+] as const;
+
+export const REMEDY_TYPES = [
+  'monetary', 'declaratory', 'injunctive', 'rescission', 'reformation', 'specific-performance',
+  'title-relief', 'credit-correction', 'deletion', 'account-correction', 'fee-shifting',
+  'sanctions', 'costs', 'interest', 'punitive', 'other',
+] as const;
+
+export const AI_DRAFT_TASKS = [
+  'outline-filing', 'draft-section', 'revise-section', 'shorten', 'clarify', 'improve-organization',
+  'identify-missing-support', 'identify-counterarguments', 'fact-statement-from-evidence',
+  'procedural-history-from-timeline', 'draft-certificate', 'draft-proposed-order',
+  'summarize-opposing', 'research-memo', 'compare-to-checklist',
+] as const;
+
+export const AI_SOURCE_SCOPES = [
+  'selected-documents', 'selected-evidence', 'selected-issues', 'selected-authorities',
+  'confirmed-timeline', 'entire-case', 'no-sources',
+] as const;
+
 /** Human labels for the many kebab-case status strings above. */
 export function humanize(s: string | null | undefined): string {
   if (!s) return '—';
   return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
+
+/** Default readiness checklist seeded per filing (category → items). */
+export const FILING_CHECKLIST_TEMPLATE: { category: string; label: string }[] = [
+  { category: 'case-identity', label: 'Full caption matches the case profile' },
+  { category: 'case-identity', label: 'Case number correct' },
+  { category: 'case-identity', label: 'Court / division correct' },
+  { category: 'document-identity', label: 'Filing title correct' },
+  { category: 'document-identity', label: 'Filing party correct' },
+  { category: 'timing', label: 'Deadline confirmed' },
+  { category: 'content', label: 'Requested relief clearly stated' },
+  { category: 'content', label: 'Legal issues linked' },
+  { category: 'content', label: 'Evidence linked' },
+  { category: 'content', label: 'Authorities linked and citations verified' },
+  { category: 'format', label: 'Readable, text-searchable PDF' },
+  { category: 'format', label: 'Signature block present' },
+  { category: 'components', label: 'Certificate of service prepared' },
+  { category: 'components', label: 'Proposed order prepared (if required)' },
+  { category: 'components', label: 'Exhibit index attached (if exhibits)' },
+  { category: 'service', label: 'Recipients identified and addresses verified' },
+];
