@@ -102,6 +102,22 @@ every launch-readiness gate run), `ProductionBlocker` (the blocker register),
 required before any pilot/full import so a rollback point always exists).
 Migration: `20260719133834_phase6_launch_migration` (additive; Phase 1–5 preserved).
 
+## Commercial systems additions (pricing, entitlements, usage, billing)
+
+The commercial control layer — one DB-backed source of truth for the website,
+checkout, Stripe mappings, entitlements, usage enforcement, and cost accounting.
+Relation-free models (plain `userId`/`planCode` + `@@index`), all money in integer
+cents. Key models: `PricingVersion`, `CommercialPlan`/`PlanPrice`/`PlanEntitlement`,
+`FeatureDefinition`, `AccountSubscription`/`SubscriptionStatusHistory`,
+`FoundingMemberConfig`/`FoundingMemberGrant`, `TrialConfig`/`Trial`/`TrialUsage`,
+`AddOnProduct`/`AccountAddOn`, `UsageMeter`/`UsageLedgerEntry` (append-only,
+idempotency-keyed)/`PurchasedActionGrant`, `AIActionDefinition`,
+`AIProviderCostRecord`/`ProcessingUsageRecord`/`WorkflowUsageRecord`/`StorageUsageSnapshot`,
+`VendorPriceConfiguration` (effective-dated), `CostBudget`, `StripeFeeConfig`,
+`StripeWebhookEvent`/`CheckoutSessionRecord`/`BillingPortalSessionRecord`/`BillingEvent`,
+`Coupon`, `CommercialAuditLog`. Migration: `20260719163831_phase7_commercial_systems`
+(additive; all prior data preserved). See [`PRICING.md`](PRICING.md).
+
 ## Notes on relationships
 
 Relationships are intentionally simple in this first migration (foreign keys +

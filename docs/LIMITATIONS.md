@@ -2,6 +2,16 @@
 
 Written plainly so nothing is oversold.
 
+## ✅ Completed & functional — Commercial systems (pricing, entitlements, usage, cost, billing)
+- One DB-backed catalog (plans/prices/entitlements) is the single source of truth for the pricing page, checkout, Stripe mappings, and entitlement enforcement — no pricing constant duplicated in a component. Money is integer cents; prices + vendor rates are effective-dated.
+- Centralized entitlement service + **transaction-safe, idempotency-keyed append-only usage ledger** (no double-charge/negative balance; included allowance before rollover purchased actions; reversible)
+- AI Case Action estimator (weighted units; never exposes tokens/model prices/keys; estimate shown before running)
+- Internal AI cost accounting from effective-dated vendor rates + per-plan contribution-margin reporting (estimated fields labeled)
+- Trials (one-per-user, read-only + 30-day export at expiry), founding cap (transactional), add-ons (AI packs roll over 12mo), upgrades (immediate)/downgrades (period-end, impact surfaced), cancellation (export grace)
+- Surfaces: `/pricing`, `/settings/plan`, `/admin/commercial` (browser-verified: trial→subscribe flow, zero console errors)
+- 22 new tests (87 total passing); migration `..._phase7_commercial_systems` (additive; all prior data preserved)
+- 🟡 **Stripe is mocked** — live API calls, webhook signature verification, and the billing-portal redirect require the Stripe SDK + `STRIPE_SECRET_KEY` + `STRIPE_LIVE=true` (mapping, idempotency, and fee accounting are built). Tax is not calculated. Service products are manually fulfilled.
+
 ## ✅ Completed & functional — Phase 6 (launch readiness, migration tooling, stabilization)
 - Launch-readiness gate (`npm run launch:check`): 23 checks over env/DB/migrations/storage/private-object/search/jobs/backup/encryption/auth/2FA/email/calendar/notifications/AI/monitoring/health/versions; **any failure blocks launch**, warnings need documented acknowledgment; **a mock is never reported as pass**. Runs logged to `LaunchCheckRun`.
 - Health endpoint `GET /api/health` (liveness + DB + schema version; 503 if DB down)

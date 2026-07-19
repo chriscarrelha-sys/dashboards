@@ -5,6 +5,7 @@
  */
 import { PrismaClient } from '@prisma/client';
 import { generateStandardizedName } from '../lib/documents/filename';
+import { seedCommercial } from '../lib/commercial/seed';
 
 const prisma = new PrismaClient();
 
@@ -553,6 +554,9 @@ async function main() {
   await prisma.auditLog.create({
     data: { userId: user.id, action: 'seed', detail: 'Seeded 2 demonstration cases.' },
   });
+
+  const commercial = await seedCommercial(prisma);
+  console.log(`Commercial catalog seeded: ${commercial.plans} plans, ${commercial.prices} prices, ${commercial.addOns} add-ons, ${commercial.actions} AI actions.`);
 
   console.log('Seed complete: 2 demo cases (Regions / PeachCourt, Federal-Mortgage / PACER).');
 }

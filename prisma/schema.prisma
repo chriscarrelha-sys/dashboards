@@ -2151,3 +2151,451 @@ model MigrationItem {
   @@index([batchId])
   @@index([hash])
 }
+
+/* ============================ COMMERCIAL SYSTEMS (single source of truth) ============================ */
+// All money is integer minor units (US cents). No floating-point currency.
+// Models are relation-free (plain userId/planCode + @@index) so the commercial
+// domain is fully additive and never disturbs litigation models. The DB-backed
+// CommercialPlan/PlanPrice/PlanEntitlement records are THE authoritative source
+// for the website, checkout, Stripe mappings, and entitlement enforcement.
+
+model PricingVersion {
+  id          String   @id @default(cuid())
+  version     String   @unique          // e.g. "2026.1"
+  name        String
+  active      Boolean  @default(true)    // is this offered to NEW customers?
+  effectiveFrom DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model CommercialPlan {
+  id             String   @id @default(cuid())
+  code           String   @unique        // ESSENTIALS | PRO | COMMAND
+  name           String
+  tagline        String?
+  tierOrder      Int      @default(0)     // display + upgrade/downgrade ordering
+  badge          String?                  // "Most Popular" | "Best for Complex Litigation"
+  pricingVersion String   @default("2026.1")
+  trialEligible  Boolean  @default(true)
+  active         Boolean  @default(true)  // offered to new customers
+  createdAt      DateTime @default(now())
+
+  @@index([pricingVersion])
+}
+
+model PlanPrice {
+  id           String   @id @default(cuid())
+  planCode     String
+  interval     String   // monthly | annual
+  cadence      String   @default("standard") // standard | founding
+  amount       Int      // cents
+  currency     String   @default("USD")
+  stripePriceId String?
+  effectiveFrom DateTime @default(now())
+  active       Boolean  @default(true)
+
+  @@unique([planCode, interval, cadence, effectiveFrom])
+  @@index([planCode])
+}
+
+// Flexible entitlement rows. One key per limit/feature; value in the typed column.
+model PlanEntitlement {
+  id        String   @id @default(cuid())
+  planCode  String
+  key       String   // active-cases | storage-bytes | ai-actions | processing-pages |
+                     // advanced-workflows | mac-companion | folder-monitoring |
+                     // calendar-sync | priority-processing | support-tier
+  intValue  Int?
+  boolValue Boolean?
+  textValue String?
+  createdAt DateTime @default(now())
+
+  @@unique([planCode, key])
+  @@index([planCode])
+}
+
+model FeatureDefinition {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  category  String   @default("general")
+  createdAt DateTime @default(now())
+}
+
+// The account's subscription. account == User (single-user today; architecture kept).
+model AccountSubscription {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  planCode          String
+  interval          String   @default("monthly") // monthly | annual
+  cadence           String   @default("standard") // standard | founding
+  status            String   @default("trialing") // incomplete|trialing|active|past_due|payment_retry|restricted|read_only|paused|canceled|expired
+  foundingMember    Boolean  @default(false)
+  pricingVersion    String   @default("2026.1")
+  currentPeriodStart DateTime?
+  currentPeriodEnd  DateTime?
+  trialEndsAt       DateTime?
+  scheduledPlanCode String?  // pending downgrade at period end
+  scheduledInterval String?
+  cancelAt          DateTime?
+  canceledAt        DateTime?
+  restrictedAt      DateTime?
+  readOnlyAt        DateTime?
+  exportUntil       DateTime? // export grace window after cancel/expiry
+  stripeCustomerId  String?
+  stripeSubscriptionId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+
+  @@index([planCode])
+  @@index([status])
+}
+
+model SubscriptionStatusHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  fromStatus String?
+  toStatus   String
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model FoundingMemberConfig {
+  id        String   @id @default(cuid())
+  cap       Int      @default(100)
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+model FoundingMemberGrant {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  grantedAt  DateTime @default(now())
+  active     Boolean  @default(true) // false once the sub lapses/cancels
+  endedAt    DateTime?
+  endedReason String?
+
+  @@index([active])
+}
+
+model TrialConfig {
+  id                 String   @id @default(cuid())
+  planCode           String   @default("PRO")
+  days               Int      @default(7)
+  cardRequired       Boolean  @default(false)
+  maxCases           Int      @default(1)
+  maxDocuments       Int      @default(25)
+  maxAiActions       Int      @default(10)
+  maxBinders         Int      @default(1)
+  allowFolderMonitoring Boolean @default(false)
+  allowBulkImport    Boolean  @default(false)
+  allowCaseWideReview Boolean @default(false)
+  exportGraceDays    Int      @default(30)
+  onePerUser         Boolean  @default(true)
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model Trial {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  planCode   String   @default("PRO")
+  startedAt  DateTime @default(now())
+  endsAt     DateTime
+  status     String   @default("active") // active | expired | converted
+  configJson String   // snapshot of TrialConfig at start
+  createdAt  DateTime @default(now())
+
+  @@index([status])
+}
+
+model TrialUsage {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  documentsUsed  Int      @default(0)
+  aiActionsUsed  Int      @default(0)
+  bindersUsed    Int      @default(0)
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model AddOnProduct {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  kind         String   // ai-actions | storage | active-case | service
+  name         String
+  amount       Int      // cents
+  interval     String   @default("one-time") // one-time | monthly
+  grantAmount  Int?     // actions granted, or GB, or cases
+  grantUnit    String?  // actions | gb | cases
+  rolloverMonths Int?   // for action packs (12)
+  quoteRequired Boolean @default(false) // "starting at" services
+  stripePriceId String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model AccountAddOn {
+  id         String   @id @default(cuid())
+  userId     String
+  addOnCode  String
+  quantity   Int      @default(1)
+  status     String   @default("active") // active | canceled | fulfilled | quote-requested
+  stripeItemId String?
+  startedAt  DateTime @default(now())
+  endsAt     DateTime?
+
+  @@index([userId])
+}
+
+// Period-based usage meters (ai-actions, processing-pages, advanced-workflows).
+model UsageMeter {
+  id           String   @id @default(cuid())
+  userId       String
+  key          String   // ai-actions | processing-pages | advanced-workflows
+  periodStart  DateTime
+  periodEnd    DateTime
+  includedLimit Int     @default(0)
+  used         Int      @default(0) // included consumption this period
+  updatedAt    DateTime @updatedAt @default(now())
+
+  @@unique([userId, key, periodStart])
+  @@index([userId, key])
+}
+
+// Append-only usage ledger. Every grant/consume/reverse/expire is one row.
+// idempotencyKey makes webhook/retry double-processing impossible.
+model UsageLedgerEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  meterKey      String   // ai-actions | processing-pages | advanced-workflows | storage-bytes
+  kind          String   // include-grant | purchase-grant | consume | reverse | expire | adjust
+  delta         Int      // signed units (+grant, -consume)
+  balanceAfter  Int?     // optional snapshot for purchased-action grants
+  refType       String?
+  refId         String?
+  idempotencyKey String  @unique
+  expiresAt     DateTime? // for purchase grants (12mo rollover)
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, meterKey])
+}
+
+// Purchased AI-action grants (rollover, consumed after included; oldest-expiry first).
+model PurchasedActionGrant {
+  id         String   @id @default(cuid())
+  userId     String
+  granted    Int
+  remaining  Int
+  source     String   @default("addon") // addon | admin-grant | refund
+  purchasedAt DateTime @default(now())
+  expiresAt  DateTime
+  active     Boolean  @default(true)
+
+  @@index([userId, active])
+}
+
+model AIActionDefinition {
+  id                 String   @id @default(cuid())
+  code               String   @unique
+  name               String
+  description        String?
+  minCharge          Int      @default(1)
+  maxCharge          Int      @default(1)
+  pageWeight         Float    @default(0)
+  docCountWeight     Float    @default(0)
+  tokenWeight        Float    @default(0)   // per 1,000 estimated tokens
+  webResearchWeight  Float    @default(0)
+  premiumModelWeight Float    @default(0)
+  cachedDiscount     Float    @default(0)   // 0..1 fraction removed when cached
+  planAvailability   String   @default("[\"ESSENTIALS\",\"PRO\",\"COMMAND\"]") // JSON
+  trialAvailable     Boolean  @default(true)
+  manualApprovalThreshold Int @default(50)  // charge above this needs confirmation
+  enabled            Boolean  @default(true)
+  effectiveFrom      DateTime @default(now())
+}
+
+model AIProviderCostRecord {
+  id               String   @id @default(cuid())
+  userId           String
+  caseId           String?
+  actionCode       String?
+  provider         String
+  model            String
+  requestId        String?
+  inputTokens      Int      @default(0)
+  cachedInputTokens Int     @default(0)
+  outputTokens     Int      @default(0)
+  toolCalls        Int      @default(0)
+  searchCalls      Int      @default(0)
+  providerReportedCost Int? // cents
+  calculatedCost   Int      @default(0) // cents
+  currency         String   @default("USD")
+  success          Boolean  @default(true)
+  retry            Boolean  @default(false)
+  fallbackProvider String?
+  actionsCharged   Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([provider])
+  @@index([createdAt])
+}
+
+model ProcessingUsageRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  caseId    String?
+  category  String   // ocr | text-extract | render | classify | index | structured | pdf-repair
+  pages     Int      @default(0)
+  cost      Int      @default(0) // cents
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model WorkflowUsageRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  caseId       String?
+  workflowCode String
+  units        Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model StorageUsageSnapshot {
+  id             String   @id @default(cuid())
+  userId         String
+  totalBytes     BigInt   @default(0)
+  originalBytes  BigInt   @default(0)
+  derivativeBytes BigInt  @default(0)
+  tempBytes      BigInt   @default(0)
+  backupBytes    BigInt   @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Effective-dated vendor rates. Token prices are "cents per 1,000,000 tokens".
+model VendorPriceConfiguration {
+  id                 String   @id @default(cuid())
+  vendor             String
+  service            String
+  sku                String?  // model or SKU
+  unitType           String   // token | request | search | storage-gb-month | transfer-gb | ocr-page
+  inputPerMillion    Int?     // cents / 1M input tokens
+  cachedInputPerMillion Int?  // cents / 1M cached input tokens
+  outputPerMillion   Int?     // cents / 1M output tokens
+  requestPrice       Int?     // cents / request
+  searchCallPrice    Int?     // cents / search call
+  storagePerGbMonth  Int?     // cents / GB-month
+  transferPerGb      Int?     // cents / GB
+  ocrPagePrice       Int?     // cents / page
+  effectiveFrom      DateTime @default(now())
+  source             String?
+  lastVerifiedAt     DateTime?
+  active             Boolean  @default(true)
+
+  @@index([vendor, service])
+}
+
+model CostBudget {
+  id               String   @id @default(cuid())
+  planCode         String
+  aiBudget         Int      // cents
+  infraBudget      Int      // cents
+  supportBudget    Int      // cents
+  targetCogs       Int      // cents (nonpayment COGS)
+  minMarginBps     Int      @default(6000)
+  warnBps          Int      @default(7500)  // warn at 75% of budget
+  interventionBps  Int      @default(10000) // intervene at 100%
+  effectiveFrom    DateTime @default(now())
+  active           Boolean  @default(true)
+
+  @@unique([planCode, effectiveFrom])
+}
+
+model StripeFeeConfig {
+  id          String   @id @default(cuid())
+  cardRateBps Int      @default(290)  // 2.9%
+  cardFixed   Int      @default(30)   // $0.30
+  billingBps  Int      @default(70)   // 0.7% Stripe Billing
+  effectiveFrom DateTime @default(now())
+  active      Boolean  @default(true)
+}
+
+model StripeWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  type        String
+  processedAt DateTime?
+  payload     String?
+  createdAt   DateTime @default(now())
+}
+
+model CheckoutSessionRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  planCode   String
+  interval   String
+  cadence    String
+  mode       String   @default("mock") // mock | live
+  status     String   @default("created") // created | completed | expired
+  amount     Int?
+  stripeSessionId String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BillingPortalSessionRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  mode       String   @default("mock")
+  url        String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BillingEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  type       String   // subscription.created | invoice.paid | payment.failed | refund | ...
+  amount     Int?
+  feeAmount  Int?
+  feeKind    String?  // processing | billing | tax | dispute | refund | fx
+  detail     String?
+  stripeRef  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  percentOff  Int?
+  amountOff   Int?     // cents
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model CommercialAuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  actorType String   @default("user") // user | admin | system | webhook
+  action    String
+  entity    String
+  entityId  String?
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}
