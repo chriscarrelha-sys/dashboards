@@ -1,83 +1,104 @@
-# CaseDeck — Pro Se Case Management
+# Pro Se Wins
 
-A local-first case management dashboard for self-represented (pro se) litigants.
-It brings the three things pro se litigants struggle with most — **scattered
-documents, missed deadlines, and no way to search what they already have** —
-into one workspace.
+**A personal litigation command center.** _“Success is the best revenge.”_
 
-Everything runs in the browser. There is no server, no account, and no upload:
-your documents and case data never leave your machine.
+A private, single-user application for managing your own active court cases —
+documents, deadlines, evidence, discovery, filings, correspondence, research,
+strategy, and AI-assisted analysis. It is **not** a public SaaS product and is
+**not** a legal-advice platform.
 
-> ⚖️ CaseDeck is an organizational tool, **not legal advice**.
+> This is the first working vertical slice (Phase 0 + core Phase 1–3), built on a
+> modular foundation designed to grow into the full specification. See
+> [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) for exactly what is real, mocked,
+> and not yet built.
 
-## Features
+## Trust model (the core idea)
 
-| Area | What it does |
-|------|--------------|
-| **Dashboard** | Case-at-a-glance: document counts, open/overdue deadlines, next due date, document-type breakdown, and recent activity. |
-| **Documents** | Drag-and-drop / file-picker upload. Auto-categorizes each file by type (Pleading, Motion, Exhibit, Correspondence, Discovery, Order) from its name, with an editable status tag (Draft → Filed → Served → Pending Response). Filter by name, type, or status. |
-| **Deadlines** | Track due dates with an overdue/soon/ok indicator, mark them done, and link them to a document. Built-in **deadline calculator** adds calendar *or* business days from a trigger date (e.g. "21 days after service"). |
-| **Timeline** | Auto-built chronological view of every filing, deadline, and exhibit — the "tell your story to the judge" view. |
-| **Evidence Locker** | Logs each item with a **SHA-256 fingerprint** (computed via the Web Crypto API) plus a **chain-of-custody log** you append to over time — upload date, source, and every action taken with the item. |
-| **Resources** | Save the websites you use often for a case (court portal, docket lookup, legal research, statutes, opposing-party lookups), categorized and searchable. Includes a **Copy for AI** action that assembles the link + your notes into a ready-to-paste prompt, and an **AI summary** field to store what an assistant gives back so it travels with the case. Ships with starter links useful to Georgia pro se litigants. |
-| **Search** | Plain-language keyword search ranked across document names, notes, types, statuses, deadlines, evidence sources, and resource links, with match highlighting. |
-| **Multiple cases** | Switch between cases; each is stored independently. |
-| **Export / Import** | Export a whole case (metadata **and** file bytes) to a single portable `.casedeck.json` file, and import it back on any machine. |
+Every value that can come from AI extraction or date calculation carries a
+**verification status** and is rendered with a distinct badge, so you can always
+tell apart:
 
-## Running it
+| State | Meaning |
+|-------|---------|
+| **Confirmed** | A fact you've verified. |
+| **Proposed** | AI- or system-suggested; awaiting review. |
+| **Unverified** | Calculated (e.g. a deadline) but not yet confirmed. |
+| **Disputed / Corrected** | Flagged or edited by you. |
 
-It's a static site — no build step.
+Deadlines, hearing dates, service dates, and legal conclusions are **always**
+`unverified` until you confirm them. The app never presents an AI-generated
+legal conclusion as a verified fact.
+
+## Tech stack
+
+- **Next.js 15** (App Router) · **React 19** · **TypeScript** (strict)
+- **Tailwind CSS** with a calm, theme-aware design system
+- **Prisma ORM** — SQLite for zero-setup dev, schema written to port to **PostgreSQL** in production
+- **Zod** for server-side validation
+- Modular service / provider / adapter layers (AI, storage, integrations, deadlines, jobs)
+
+Business logic lives in `lib/*`, never in UI components.
+
+## Getting started
 
 ```bash
-# from the repo root, any static server works:
-python3 -m http.server 8000
-# then open http://localhost:8000
+# 1. Install
+npm install
+
+# 2. Configure environment
+cp .env.example .env         # dev defaults use SQLite; no secrets needed
+
+# 3. Create the database and seed two demonstration cases
+npm run db:migrate           # applies migrations
+npm run db:seed              # 1 Georgia/PeachCourt case + 1 federal/PACER case
+
+# 4. Run
+npm run dev                  # http://localhost:3000
 ```
 
-Use a local server (or any http/https host) rather than opening `index.html`
-directly from the filesystem: the SHA-256 hashing relies on the Web Crypto API,
-which browsers only expose in a **secure context** (https or `localhost`).
+Other scripts:
 
-## How data is stored
-
-- **Case metadata** (documents, deadlines, evidence records, notes) → `localStorage`.
-- **File bytes** (the actual PDFs/images) → **IndexedDB**, so large files don't
-  bloat `localStorage`.
-- Nothing is ever sent over the network. Clearing your browser storage clears
-  your cases — use **Export** to keep a backup.
-
-## Project layout
-
-```
-index.html        App shell + layout
-css/styles.css    Self-contained styling (no external fonts/assets)
-js/store.js       Persistence: IndexedDB blobs + localStorage case index
-js/util.js        Helpers: hashing, date math, formatting, auto-classification
-js/views.js       One render function per screen
-js/app.js         Controller: navigation, modals, case lifecycle, export/import
+```bash
+npm run build       # production build (runs prisma generate first)
+npm run start       # serve the production build
+npm run typecheck   # tsc --noEmit (strict)
+npm run test        # vitest — filename + deadline-rule unit tests
+npm run db:studio   # Prisma Studio
+npm run db:reset    # drop, re-migrate, re-seed
 ```
 
-## AI & connectors — what fits, and what needs a backend
+## What's in this build
 
-CaseDeck is deliberately serverless, which shapes what "AI integration" can mean here:
+- **Landing page** — minimal “Select a Matter” with one card per case + Add New Case.
+- **Add New Case** — wizard with manual entry and initiating-document upload (mock extraction review).
+- **Case homepage** — full caption, court/division/judge, case number, Copy Case Number, Open in PeachCourt/PACER, and three expandable summary cards (Next Action, Next Court Date/Deadline, Current Posture).
+- **Responsive navigation** — the complete case IA (10 groups) as a collapsible desktop sidebar and a mobile drawer; every section is routed. Sections without a dedicated module yet show polished empty states.
+- **Documents** — upload → automatic mock classification → standardized filename → split-view workspace (preview + case record + reclassify). Low-confidence uploads route to the review queue.
+- **Review / Verification Queue** — approve, reject, or open to reclassify.
+- **Timeline** — manual CRUD with trust badges.
+- **Deadlines & Tasks** — CRUD, a calendar/business-day calculator (clearly-labeled example rules), and explicit Confirm for unverified deadlines.
+- **AI Workspace** — persistent conversation with a provider router; responses come from a built-in **mock** unless a provider key is configured. Active provider is always shown before sending.
+- **Integrations hub** — honest connected / mock / unavailable status for AI, storage, calendars, court systems, and PDF tools.
 
-- **Works today (no backend):** the **Copy for AI** bridge on each resource and
-  the ability to store an assistant's response in the **AI summary** field. You
-  drive your own AI tool; CaseDeck prepares the context and keeps the result.
-- **Needs infrastructure:** *automatically* fetching a page's contents and having
-  a model summarize it can't happen in a static browser app — browsers block
-  cross-origin fetches (CORS), and there's no embedded model. Two realistic paths:
-  1. A small **backend proxy + LLM API key** that fetches URLs and calls a model.
-  2. Host CaseDeck as a **claude.ai Artifact** and call your Claude **connectors**
-     (MCP) — email, drive, AI — directly from the page. Connectors (MCP) must be
-     hosted; a plain repo page can't host them, so this is the route for
-     "connect to AI/email programs."
+See [`docs/`](docs/) for architecture, data model, integration status, roadmap, and limitations.
 
-## Roadmap
+## Documentation
 
-Natural extensions that fit the local-first design:
-- OCR of scanned uploads (e.g. Tesseract.js) to make photos of paper filings searchable
-- In-app PDF viewer with highlight/sticky-note annotation (PDF.js)
-- Court-rule presets so the deadline calculator auto-fills common triggers
-- True retrieval-augmented (RAG) semantic search over document text
-- Backend/connector layer to auto-summarize saved resource links and sync email/calendar
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — layers, folder map, request flow
+- [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) — entities and the trust fields
+- [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) — every connector's real status
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased build plan
+- [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) — completed / mocked / unimplemented + security notes
+
+## Security & privacy
+
+The first version runs with a **dev-mode single user** (no external auth yet).
+API keys are read **server-side only** and never exposed to the client; documents
+are never sent to an AI provider without a configured provider and an explicit
+action. See [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) for the honest list of
+what is implemented vs. planned — there are **no “military-grade” claims** here.
+
+---
+
+The earlier static-HTML prototype (“CaseDeck”) is preserved under
+[`legacy-prototype/`](legacy-prototype/) for reference.
