@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { CASE_NAV } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Menu, X, ChevronDown, ArrowLeft, Search } from 'lucide-react';
 
 type Header = { id: string; shortName: string; caption: string; caseNumber: string };
 
@@ -43,6 +43,9 @@ export function CaseShell({ header, children }: { header: Header; children: Reac
           <Link href={base} className="min-w-0">
             <span className="truncate text-sm font-semibold">{header.shortName}</span>
             <span className="ml-2 font-mono text-xs text-muted-foreground">{header.caseNumber}</span>
+          </Link>
+          <Link href={`${base}/search`} className="ml-auto inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground" title="Universal search">
+            <Search size={14} /> <span className="hidden sm:inline">Search</span>
           </Link>
         </header>
 

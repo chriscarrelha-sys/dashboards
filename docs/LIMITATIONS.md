@@ -2,6 +2,16 @@
 
 Written plainly so nothing is oversold.
 
+## ✅ Completed & functional — Phase 4 (search, exhibits/binders, calendar, backup, security)
+- Universal Search: `SearchProvider` abstraction + local index, case/global scope with isolation, page-level results, filters, saved searches + smart collections, reindex
+- Exhibit Builder (page ranges, numbering + duplicate prevention, auth/redaction status); **Bates numbering creates a derivative — source never altered**
+- Binder Builder (seeded sections, validation with source checks); downloadable manifests (filing package, export)
+- Calendar sync (mock; **confirmed-only auto-sync**, idempotent); Notification engine (deduped reminders, digests, priorities)
+- Integration diagnostics (test connection, honest statuses); iCloud/local companion **mock** + spec
+- Backup (create/verify/restore-preview), Full Case Export (**confidentiality review** + manifest), Trash & Restore (soft-delete + typed-`DELETE` purge)
+- Security: server-side authorization + case-scoped search isolation, security-event log, sessions + revoke, System Health page, secrets server-side only
+- 12 new DB integration tests (45 total passing)
+
 ## ✅ Completed & functional — Phase 3 (filing, service, research, strategy)
 - Filing Workspace: 20-stage lifecycle with history + backward moves; support links; draft versions (never overwritten) with final-for-filing designation
 - Readiness checklist + rule-based QC warnings; **waivers/overrides logged to audit**
@@ -34,6 +44,10 @@ Written plainly so nothing is oversold.
 - Server-side Zod validation, per-action ownership checks, audit logging
 
 ## 🟡 Mocked (interface real, external call not)
+- **Search backend** — a local index (`SearchIndexEntry`) queried with contains/rank; fuzzy is approximate and there's no semantic/vector search yet. The `SearchProvider` interface accepts Meili/Typesense/pgvector.
+- **Calendar / storage / email / court integrations** — Apple/Google/Outlook calendars, OneDrive/iCloud, Gmail/Outlook are **mock** (no OAuth); PeachCourt/PACER are **external-link only** (the app records filing info, it does not file). iCloud companion is a documented mock protocol.
+- **PDF / OCR / ZIP** — exhibit page-extraction, true redaction, and binder/export **PDF and ZIP bundling are not implemented**; the app produces **structured text/JSON manifests** and never claims a corrupt or misleading final PDF. True redaction must be done in a trusted PDF tool.
+- **Notifications** — dashboard is real; **email and push are mock channels** (no native iOS push).
 - **AI drafting / draft review / citation extraction** (Phase 3) — mock output with visible source scope; routes proposals to the Verification Queue; never fabricates citations/pages. Real provider drops in behind the router.
 - **Filing packages** produce a downloadable text **manifest**; ZIP bundling and PDF merge are not yet implemented.
 - **Direct filing / service are NOT implemented** — Pro Se Wins records filing and service details; it does not submit to PeachCourt/PACER or serve documents. Email ingestion, rich-text/PDF diff, and a live legal-research provider are also not wired.
@@ -48,12 +62,11 @@ Written plainly so nothing is oversold.
 - **New-case extraction** — pre-fills from the filename; every field is flagged for review.
 
 ## 🔴 Not implemented yet
-- Real authentication (dev-mode single user only), Apple/Google/Microsoft sign-in, 2FA, biometric unlock
-- Most Phase-4 modules (Legal Issues, Evidence library, Discovery, Motions/filings, Parties, Strategy) render polished empty states
-- Drag-and-drop upload, OCR, version comparison, `Undo` after auto-organize
-- Background job queue (document processing runs inline)
-- Calendar event creation / reminders; export & backup UI; audit history UI; safe-deletion workflow
-- PACER/PeachCourt/Adobe integrations (external links only)
+- Real authentication (dev-mode single user only), Apple/Google/Microsoft sign-in, 2FA, passkeys, biometric unlock (see `docs/SECURITY.md`)
+- Real PDF/OCR/ZIP generation (exhibits, binders, exports produce structured manifests); true redaction
+- Live OAuth for calendars/storage/email; native iOS push; hosted search backend + semantic search
+- Real background-job worker (jobs are modeled and run inline); encryption at rest; file-upload malware scanning
+- Mac companion agent (protocol is specified + mocked), court-docket monitoring, direct court filing
 
 ## Security limitations (honest)
 - **No production auth.** `AUTH_DEV_MODE=true` signs in a single fixed local user. Do not deploy as-is.
@@ -64,10 +77,8 @@ Written plainly so nothing is oversold.
 - **No "military-grade" or similar claims** — this list is the real state.
 
 ## Recommended next build step
-**Phase 4 — Universal Search, Exhibit & Binder Generation, Calendar & Notifications,
-External Integrations, Backup, Export, and Security Hardening:** case-wide search
-across every record type, real exhibit/binder PDF generation (building on the
-filing-package model), calendar sync + reminder scheduling for deadlines and
-filing events, real external connectors (starting with one live AI provider and
-a read-only court-docket source), and export/backup + production auth (NextAuth,
-2FA) with encryption-at-rest.
+**Phase 5 — Production Deployment, Mac Companion App, Mobile Experience, Advanced AI
+Case Analysis, Court-Docket Monitoring, and Operational Validation:** real auth (NextAuth +
+2FA/passkeys), PostgreSQL + encryption at rest, a hosted search backend and job queue, real
+OAuth calendar/storage, PDF/OCR/ZIP generation, the Mac companion agent, a polished mobile
+experience, and a read-only court-docket monitor.

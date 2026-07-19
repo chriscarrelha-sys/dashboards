@@ -75,6 +75,16 @@ with nullable fields; added:
 
 Migration: `20260719123800_phase3_filing_service_research_strategy` (additive; Phase 1 & 2 data preserved).
 
+## Phase 4 additions (search, exhibits/binders, calendar, backup, security)
+
+Added `deletedAt` (soft-delete) to Document, EvidenceItem, Filing, Communication; new models:
+`SearchIndexEntry`, `SavedSearch`, `ExhibitSet`/`ExhibitItem`, `BatesJob`,
+`Binder`/`BinderSection`/`BinderItem`, `CalendarConnection`, `NotificationPreference`,
+`Notification`, `NotificationDigest`, `Backup`, `RestorePreview`, `CaseExport`,
+`SecurityEvent`, `AppSession`, `SelectedFolder`, `BackgroundJob`.
+
+Migration: `20260719..._phase4_search_exhibits_calendar_backup` (additive; Phase 1–3 data preserved).
+
 ## Notes on relationships
 
 Relationships are intentionally simple in this first migration (foreign keys +

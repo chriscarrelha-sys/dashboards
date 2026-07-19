@@ -291,6 +291,59 @@ export function humanize(s: string | null | undefined): string {
   return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/* ============================ PHASE 4 ============================ */
+
+export const SEARCH_RECORD_TYPES = [
+  'document', 'evidence', 'filing', 'discovery', 'deadline', 'task', 'communication',
+  'authority', 'strategy', 'admission', 'contradiction', 'legal-issue', 'timeline', 'research',
+] as const;
+
+export const EXHIBIT_NUMBERING_STYLES = [
+  'numeric', 'alpha', 'plaintiff-numeric', 'defendant-alpha', 'px', 'dx', 'joint', 'custom',
+] as const;
+
+export const REDACTION_STATUSES = [
+  'no-redaction-needed', 'potential-redaction', 'redaction-required', 'redaction-in-progress',
+  'redacted-copy-uploaded', 'redaction-reviewed', 'approved-for-export',
+] as const;
+
+export const BINDER_KINDS = [
+  'complete', 'hearing', 'motion', 'discovery', 'evidence', 'deposition', 'settlement', 'research', 'custom',
+] as const;
+
+export const BINDER_SECTION_TEMPLATE = [
+  'Case Summary', 'Procedural History', 'Timeline', 'Pending Deadlines', 'Pleadings',
+  'Pending Motions', 'Orders', 'Discovery', 'Evidence', 'Exhibits', 'Authorities',
+  'Witnesses', 'Communications', 'Damages', 'Settlement', 'Strategy Notes',
+] as const;
+
+export const CALENDAR_PROVIDERS = ['apple', 'google', 'outlook'] as const;
+export const CALENDAR_SYNC_MODES = ['manual', 'confirmed-auto', 'selected-category', 'no-sync'] as const;
+
+export const NOTIFICATION_PRIORITIES = ['critical', 'high', 'normal', 'low', 'informational'] as const;
+
+/** Default reminder offsets (days before) for hearings & final deadlines. */
+export const DEFAULT_REMINDER_OFFSETS = [30, 14, 7, 3, 1, 0] as const;
+
+export const INTEGRATION_STATUSES_V4 = [
+  'not-configured', 'available', 'connected', 'partially-connected', 'mocked',
+  'disabled', 'permission-expired', 'error', 'unsupported', 'planned',
+] as const;
+
+export const BACKUP_TYPES = ['database', 'full', 'manual', 'pre-migration', 'pre-import', 'pre-restore'] as const;
+export const EXPORT_SCOPES = ['full', 'external-sharing', 'documents-only'] as const;
+
+/** Export directory structure (§49). */
+export const EXPORT_DIRS = [
+  '00_Case_Profile', '01_Pleadings', '02_Orders', '03_Motions', '04_Discovery', '05_Evidence',
+  '06_Exhibits', '07_Correspondence', '08_Service', '09_Research', '10_Strategy', '11_Damages',
+  '12_AI_Outputs', '13_Audit', '14_Data_Export', '15_Manifests',
+] as const;
+
+/** Default retention (days) — never deletes the only successful backup. */
+export const BACKUP_RETENTION = { daily: 30, weekly: 84, monthly: 365 } as const;
+export const TRASH_RETENTION_DAYS = 30;
+
 /** Default readiness checklist seeded per filing (category → items). */
 export const FILING_CHECKLIST_TEMPLATE: { category: string; label: string }[] = [
   { category: 'case-identity', label: 'Full caption matches the case profile' },

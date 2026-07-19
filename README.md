@@ -99,7 +99,15 @@ npm run db:reset    # drop, re-migrate, re-seed
 - **Strategy** — strategy items with supersession + snapshots, an **immutable Decision Log**, Opposing Positions, Settlement comparison, Damages, and Remedies.
 - **Source-controlled AI drafting** — visible source scope before submission; AI draft review files issues into the Verification Queue (never rewrites).
 
-See [`docs/`](docs/) for architecture, data model, integration status, the [verification workflow](docs/VERIFICATION-WORKFLOW.md), the [filing/service/research workflows](docs/FILING-WORKFLOW.md), roadmap, and limitations.
+### Phase 4 — Operationally complete for daily use
+- **Universal Search** — case- or all-cases scope (with isolation), page-level results, filters, saved searches & smart collections, behind a swappable `SearchProvider`. Secrets are never indexed; confidential records excluded unless opted in.
+- **Exhibit & Binder Builders** — assemble page ranges into exhibits (numbering + duplicate prevention, authentication/redaction status) and binders (seeded sections, validation). **Bates numbering creates a derivative — the source is never altered.**
+- **Calendar & Notifications** — mock Apple/Google/Outlook sync (only **confirmed** deadlines auto-sync, idempotent); a notification engine with deduped reminders, digests, and priorities.
+- **Integrations Hub + Diagnostics** — honest connected/mock/unavailable status, test-connection, and an iCloud/local **companion mock** + spec.
+- **Backup, Export, Trash** — create/verify/restore-preview backups; full case export with a **confidentiality review** and downloadable manifest; soft-delete with 30-day restore and typed-`DELETE` permanent purge.
+- **Security & Health** — server-side authorization everywhere, case-scoped search isolation, a security-event log, sessions + revoke, secrets kept server-side, and a System Health page.
+
+See [`docs/`](docs/) for architecture, data model, integration status, the [verification workflow](docs/VERIFICATION-WORKFLOW.md), the [filing/service/research workflows](docs/FILING-WORKFLOW.md), the [security threat model](docs/SECURITY.md), roadmap, and limitations.
 
 ## Documentation
 

@@ -399,6 +399,74 @@ async function main() {
     { caseId: regions.id, remedyType: 'credit-correction', description: 'Correct the credit report. (Demo.)', legalBasis: 'GFBPA/FCRA', legalIssueId: gfbpaClaim.id, status: 'requested' },
   ] });
 
+  // ---------------------- Phase 4 demo data (Regions) ----------------------
+  // Saved searches + smart collection.
+  await prisma.savedSearch.createMany({ data: [
+    { caseId: regions.id, title: 'Unverified authorities', scope: 'case', query: 'unverified', isSmartCollection: true, pinned: true, lastRunAt: new Date() },
+    { caseId: regions.id, title: 'Documents mentioning balance', scope: 'case', query: 'balance', lastRunAt: new Date() },
+    { caseId: null, title: 'Filings due soon (all cases)', scope: 'global', query: 'motion', isSmartCollection: true, notify: true, lastRunAt: new Date() },
+  ] });
+
+  // Search index entries (searchable text + a page-level filing result).
+  await prisma.searchIndexEntry.createMany({ data: [
+    { caseId: regions.id, recordType: 'document', recordId: answerDoc.id, title: 'Answer and Counterclaims', body: 'answer denying allegations counterclaims balance $128,400 arbitration waiver', createdBy: 'user', verificationStatus: 'confirmed' },
+    { caseId: regions.id, recordType: 'document', recordId: verifDoc.id, title: 'Unclassified Scan', body: 'assignment chain ledger balance $131,050', createdBy: 'user', verificationStatus: 'proposed' },
+    { caseId: regions.id, recordType: 'filing', recordId: motion.id, title: 'Motion to Dismiss (draft p.1)', body: 'DRAFT Motion to Dismiss statement of facts standing to enforce the note', page: 1, confidentiality: 'public' },
+  ] });
+
+  // Exhibit set with items + page ranges + a Bates derivative.
+  const exSet = await prisma.exhibitSet.create({ data: { caseId: regions.id, title: 'MTD Hearing Exhibits', kind: 'hearing', numberingStyle: 'alpha', status: 'draft' } });
+  await prisma.exhibitItem.createMany({ data: [
+    { exhibitSetId: exSet.id, documentId: answerDoc.id, exhibitNumber: 'A', title: 'Answer and Counterclaims', pageRange: '1-8', authenticationStatus: 'authenticated', redactionStatus: 'no-redaction-needed' },
+    { exhibitSetId: exSet.id, documentId: verifDoc.id, exhibitNumber: 'B', title: 'Assignment records', pageRange: '1-3', authenticationStatus: 'needs-authentication', redactionStatus: 'potential-redaction' },
+  ] });
+  const batesDerivative = await prisma.document.create({ data: { caseId: regions.id, originalName: 'answer_and_counterclaims_final.pdf', standardizedName: '2026-05-12_Regions_Answer_Bates_REGIONS-0001-REGIONS-0008.pdf', title: 'Answer and Counterclaims (Bates REGIONS-0001–REGIONS-0008)', sourceLabel: 'bates-derivative', verificationStatus: 'confirmed', reviewStatus: 'reviewed' } });
+  await prisma.batesJob.create({ data: { caseId: regions.id, prefix: 'REGIONS-', startNumber: 1, digitCount: 4, totalPages: 8, firstNumber: 'REGIONS-0001', lastNumber: 'REGIONS-0008', derivativeDocumentId: batesDerivative.id, status: 'completed' } });
+
+  // Hearing binder with a section item referencing a missing file (validation warning).
+  const binder = await prisma.binder.create({ data: { caseId: regions.id, title: 'MTD Hearing Binder', kind: 'hearing', batesEnabled: true, sections: { create: [{ title: 'Pleadings', order: 0 }, { title: 'Exhibits', order: 1 }, { title: 'Authorities', order: 2 }] } }, include: { sections: true } });
+  await prisma.binderItem.create({ data: { sectionId: binder.sections[0]!.id, label: 'Answer and Counterclaims', documentId: answerDoc.id, order: 0 } });
+  await prisma.binderItem.create({ data: { sectionId: binder.sections[1]!.id, label: 'Exhibit B (no stored file — demo warning)', documentId: verifDoc.id, order: 0 } });
+
+  // Calendar: connect (mock) + sync the confirmed deadline; leave the unverified one unsynced.
+  await prisma.calendarConnection.create({ data: { provider: 'apple', status: 'mocked', isDefault: true, syncMode: 'confirmed-auto' } });
+  const confirmedDeadline = await prisma.deadline.findFirst({ where: { caseId: regions.id, verificationStatus: 'confirmed' } });
+  if (confirmedDeadline) await prisma.calendarEventLink.create({ data: { deadlineId: confirmedDeadline.id, provider: 'apple', externalId: 'mock-hearing-1', status: 'synced' } });
+
+  // Notifications: prefs + reminders + a digest.
+  await prisma.notificationPreference.create({ data: { scope: 'global', channels: JSON.stringify({ dashboard: true, email: true, push: false, digestDaily: true, digestWeekly: false }), schedule: JSON.stringify([30, 14, 7, 3, 1, 0]) } });
+  await prisma.notification.createMany({ data: [
+    { caseId: regions.id, notifKey: 'reminder:mtd:3', title: 'Response to Motion to Dismiss — due in 3d', body: 'Confirmed deadline', priority: 'high', relatedType: 'deadline', sentAt: new Date() },
+    { caseId: regions.id, notifKey: 'filing:rejected:1', title: 'Filing rejected by clerk (demo)', body: 'Correction required', priority: 'critical', status: 'unread', sentAt: new Date() },
+  ] });
+  await prisma.notificationDigest.create({ data: { period: 'daily', content: JSON.stringify({ period: 'daily', openDeadlines: 3, openDeficiencies: 2, unverifiedAuthorities: 1, generatedAt: new Date().toISOString() }) } });
+
+  // Backups: one successful+verified, one failed. Restore preview. Full export + confidential export.
+  const goodBackup = await prisma.backup.create({ data: { type: 'full', status: 'completed', sizeBytes: 40960, location: 'local://backups', encrypted: true, checksum: 'demo-checksum-abc123', completedAt: new Date(), verifiedAt: new Date(), restoreTestStatus: 'passed' } });
+  await prisma.backup.create({ data: { type: 'database', status: 'failed', encrypted: true, error: 'Storage unavailable (demo)' } });
+  await prisma.restorePreview.create({ data: { backupId: goodBackup.id, summary: JSON.stringify({ backupId: goodBackup.id, wouldRestore: 'full', note: 'Simulated preview.' }) } });
+  await prisma.caseExport.create({ data: { caseId: regions.id, scope: 'external-sharing', status: 'completed', includesConfidential: false, manifest: JSON.stringify({ scope: 'external-sharing', note: 'Excludes strategy/privileged.' }) } });
+
+  // Trash: one soft-deleted document (recoverable).
+  const trashedDoc = await prisma.document.create({ data: { caseId: regions.id, originalName: 'superseded_draft.pdf', standardizedName: '2026-04-01_Regions_Superseded-Draft.pdf', title: 'Superseded draft', sourceLabel: 'upload', deletedAt: new Date() } });
+  void trashedDoc;
+
+  // Security events (incl. suspicious upload + diagnostic failure) + a session.
+  await prisma.securityEvent.createMany({ data: [
+    { type: 'login', detail: 'Dev-mode sign-in', device: 'Mac', ip: 'local' },
+    { type: 'backup-created', detail: 'type=full', ip: 'local' },
+    { type: 'suspicious-upload', detail: 'File signature mismatch — quarantined (demo)', ip: 'local' },
+    { type: 'authorization-failure', detail: 'Blocked cross-case link attempt (demo)', ip: 'local' },
+  ] });
+  await prisma.appSession.create({ data: { userId: user.id, device: 'Mac · Safari', ip: 'local', lastActiveAt: new Date() } });
+
+  // Background jobs (incl. one failed) + selected folder mock.
+  await prisma.backgroundJob.createMany({ data: [
+    { type: 'indexing', status: 'completed', progress: 100, completedAt: new Date() },
+    { type: 'integration-sync', status: 'failed', error: 'Google Calendar token expired (demo)', attempts: 2 },
+  ] });
+  await prisma.selectedFolder.create({ data: { provider: 'icloud', path: '~/Library/Mobile Documents/com~apple~CloudDocs/Litigation/Regions', status: 'mock' } });
+
   // ============================ CASE 2: Federal / PACER ============================
   const ndga = await prisma.court.create({
     data: {

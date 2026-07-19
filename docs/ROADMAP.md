@@ -41,9 +41,19 @@ Phased build plan. Phase 0 and the core of Phases 1–3 are in this first slice.
 - Source-controlled AI drafting (visible source scope) + AI draft review → Verification Queue
 - **Next:** real ZIP bundling, rich-text/PDF diff, real email ingestion, live research provider
 
-## Phase 4 (next) — Universal Search, Exhibit & Binder Generation, Calendar & Notifications, External Integrations, Backup, Export, Security Hardening
+## Phase 4 — Search, Exhibits/Binders, Calendar, Notifications, Backup/Export, Security ✅ (this build)
+- Universal Search (SearchProvider abstraction + local index, case/global scope, page-level results, filters, saved searches + smart collections, reindex)
+- Exhibit Builder (sets, page ranges, numbering + duplicate prevention, auth/redaction status) + Bates numbering (creates a derivative; source untouched)
+- Binder Builder (seeded sections, validation with source checks) + downloadable manifest
+- Calendar sync (mock Apple/Google/Outlook; confirmed-only auto-sync, idempotent) + Notification engine (dedup reminders, digests, priorities)
+- Integrations Hub diagnostics (test connection, honest statuses) + iCloud/local companion mock + spec
+- Backup (create/verify/restore-preview), Full Case Export (confidentiality review + manifest), Trash & Restore (soft-delete + confirmed purge)
+- Security: server-side authorization, security-event log, sessions + revoke, secrets server-side only, System Health page
+- **Next:** real search backend (Meili/pgvector), real PDF/OCR + ZIP, live OAuth calendar/storage, real 2FA/passkeys, native push
 
-## Phase 5 — Production hardening
+## Phase 5 (next) — Production Deployment, Mac Companion App, Mobile Experience, Advanced AI Case Analysis, Court-Docket Monitoring, Operational Validation
+
+## Phase 6 — Production hardening (infra)
 - NextAuth/Auth.js (+ optional Apple/Google/Microsoft, 2FA), Postgres deployment
 - Background-job queue for document processing
 - Real calendar + storage (iCloud companion) adapters

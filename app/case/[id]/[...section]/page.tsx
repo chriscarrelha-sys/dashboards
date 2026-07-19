@@ -22,6 +22,10 @@ import {
   CommunicationsModule, ServiceModule, ResearchModule, StrategyModule,
   DecisionLogModule, OpposingModule, SettlementModule, DamagesModule, RemediesModule,
 } from '@/components/modules/Phase3Modules';
+import {
+  SearchModule, ExhibitsModule, BinderModule, CalendarModule, NotificationsModule,
+  BackupModule, ExportModule, TrashModule, SecurityModule, DiagnosticsModule, CompanionModule, HealthModule,
+} from '@/components/modules/Phase4Modules';
 
 export const dynamic = 'force-dynamic';
 
@@ -100,6 +104,20 @@ export default async function CaseSection({
   if (slug === 'strategy/settlement' || slug === 'strategy/negotiation') return <SettlementModule caseId={id} />;
   if (slug === 'strategy/damages') return <DamagesModule caseId={id} />;
   if (slug === 'strategy/remedies') return <RemediesModule caseId={id} />;
+
+  // ---- Phase 4 modules ----
+  if (slug === 'search') return <SearchModule caseId={id} />;
+  if (slug === 'exhibits') return <ExhibitsModule caseId={id} />;
+  if (slug === 'filings/hearing-binders') return <BinderModule caseId={id} />;
+  if (slug === 'calendar') return <CalendarModule caseId={id} />;
+  if (slug === 'admin/notifications') return <NotificationsModule caseId={id} />;
+  if (slug === 'admin/backup') return <BackupModule />;
+  if (slug === 'admin/export') return <ExportModule caseId={id} />;
+  if (slug === 'admin/trash') return <TrashModule caseId={id} />;
+  if (slug === 'admin/security') return <SecurityModule />;
+  if (slug === 'admin/diagnostics') return <DiagnosticsModule />;
+  if (slug === 'admin/file-locations') return <CompanionModule />;
+  if (slug === 'admin/health') return <HealthModule />;
 
   // ---- Known nav sections without a dedicated module yet: polished empty state ----
   const label = labelForSlug(slug);
