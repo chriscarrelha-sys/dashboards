@@ -344,6 +344,36 @@ export const EXPORT_DIRS = [
 export const BACKUP_RETENTION = { daily: 30, weekly: 84, monthly: 365 } as const;
 export const TRASH_RETENTION_DAYS = 30;
 
+/* ============================ PHASE 5 ============================ */
+
+export const DOCKET_SOURCE_TYPES = [
+  'manual', 'docket-sheet', 'court-notice', 'filing-confirmation', 'pacer',
+  'peachcourt', 'public', 'rss', 'third-party', 'clerk',
+] as const;
+
+export const DOCKET_MONITOR_SCHEDULES = ['manual', 'daily', 'weekdays', 'weekly'] as const;
+
+export const AI_CASE_MODES = ['disabled', 'manual', 'approved-automation', 'local-only'] as const;
+
+/** Provider capability registry — each capability's honest availability level. */
+export type CapabilityLevel = 'live' | 'mocked' | 'external-link' | 'unavailable';
+export const PROVIDER_CAPABILITIES: { provider: string; capability: string; level: CapabilityLevel }[] = [
+  { provider: 'openai', capability: 'document-analysis', level: 'mocked' },
+  { provider: 'openai', capability: 'drafting', level: 'mocked' },
+  { provider: 'openai', capability: 'synthesis', level: 'mocked' },
+  { provider: 'claude', capability: 'long-document-review', level: 'mocked' },
+  { provider: 'claude', capability: 'comparison', level: 'mocked' },
+  { provider: 'claude', capability: 'structured-extraction', level: 'mocked' },
+  { provider: 'perplexity', capability: 'source-discovery', level: 'mocked' },
+  { provider: 'gemini', capability: 'secondary-analysis', level: 'mocked' },
+  { provider: 'adobe', capability: 'open-externally', level: 'external-link' },
+  { provider: 'adobe', capability: 'combine-redact-ocr', level: 'unavailable' },
+  { provider: 'onedrive', capability: 'browse-import-export', level: 'mocked' },
+  { provider: 'icloud-companion', capability: 'folder-monitoring', level: 'mocked' },
+  { provider: 'peachcourt', capability: 'portal-access', level: 'external-link' },
+  { provider: 'pacer', capability: 'docket-access', level: 'external-link' },
+];
+
 /** Default readiness checklist seeded per filing (category → items). */
 export const FILING_CHECKLIST_TEMPLATE: { category: string; label: string }[] = [
   { category: 'case-identity', label: 'Full caption matches the case profile' },

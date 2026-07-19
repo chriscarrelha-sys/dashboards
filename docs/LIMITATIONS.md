@@ -2,6 +2,14 @@
 
 Written plainly so nothing is oversold.
 
+## ✅ Completed & functional — Phase 5 (advanced AI analysis, docket, companion, prod config)
+- Advanced Case Review: **versioned, source-linked** analysis with element-gap flags, adverse evidence, contradictions, procedural-risk, verification-needed — **no win-probability score**; Source Graph
+- Court-Docket Monitoring: entries + dedupe, docket-sheet import → Verification Queue, monitor config (non-manual providers honestly shown **unavailable**)
+- Mac companion: secure device-registration API (one-time code → **hashed** device token, returned once), device revoke, reference agent + spec
+- PWA (manifest + conservative offline shell, no private-doc caching); 2FA scaffolding (TOTP secret + hashed recovery codes); per-case AI privacy modes; provider-usage tracking
+- Production config: `Dockerfile`, CI pipeline, `validate:env` (blocks SQLite/dev-auth in prod), DB indexes
+- 8 new DB integration tests (53 total passing)
+
 ## ✅ Completed & functional — Phase 4 (search, exhibits/binders, calendar, backup, security)
 - Universal Search: `SearchProvider` abstraction + local index, case/global scope with isolation, page-level results, filters, saved searches + smart collections, reindex
 - Exhibit Builder (page ranges, numbering + duplicate prevention, auth/redaction status); **Bates numbering creates a derivative — source never altered**
@@ -75,6 +83,12 @@ Written plainly so nothing is oversold.
 - API keys are read **server-side only** and are never sent to the client; `.env` is git-ignored.
 - Documents are never sent to an AI provider without a configured provider and an explicit user action.
 - **No "military-grade" or similar claims** — this list is the real state.
+
+## 🔴 Deferred to Phase 6 (require external accounts / your approval)
+- Actual production deployment + managed PostgreSQL + encryption at rest
+- Signed native Mac companion binary (Apple Developer account); live iCloud folder monitoring
+- Live PACER/PeachCourt/AI/calendar/storage OAuth; hosted search backend + job worker; native iOS push
+- Full 2FA verification + forced re-auth for sensitive ops (scaffolding present)
 
 ## Recommended next build step
 **Phase 5 — Production Deployment, Mac Companion App, Mobile Experience, Advanced AI

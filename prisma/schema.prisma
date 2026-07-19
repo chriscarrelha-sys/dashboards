@@ -120,6 +120,14 @@ model Case {
   binders           Binder[]
   notifications     Notification[]
   caseExports       CaseExport[]
+  // Phase 5
+  caseReviews       CaseReview[]
+  docketSources     DocketSource[]
+  docketEntries     DocketEntry[]
+  docketMonitor     DocketMonitor?
+  aiSetting         CaseAiSetting?
+
+  @@index([userId])
 }
 
 model Court {
@@ -280,6 +288,10 @@ model Document {
   deletedAt             DateTime? // soft-delete (Trash)
   exhibitItems          ExhibitItem[]
   binderItems           BinderItem[]
+  // Phase 5
+  docketSources         DocketSource[]
+
+  @@index([caseId])
 }
 
 model DocumentVersion {
@@ -1907,4 +1919,137 @@ model BackgroundJob {
   startedAt   DateTime?
   completedAt DateTime?
   createdAt   DateTime @default(now())
+}
+
+// ============================================================================
+// PHASE 5 — Advanced AI analysis, Docket monitoring, Mac companion, 2FA,
+// AI privacy modes, provider usage. (Additive.)
+// ============================================================================
+
+model CaseReview {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  version   Int      @default(1)
+  status    String   @default("complete") // running|complete|failed
+  provider  String   @default("mock")
+  sections  String   // JSON: [{key,title,findings:[{text, sourceType, sourceRefs, verificationStatus}]}]
+  summary   String?
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+}
+
+model DocketSource {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  sourceType         String   // manual|docket-sheet|court-notice|filing-confirmation|pacer|peachcourt|public|rss|third-party|clerk
+  retrievalMethod    String?  // upload|external-link|manual|email
+  retrievalDate      DateTime @default(now())
+  externalReference  String?
+  reliability        String   @default("user-entered") // official|user-entered|third-party
+  documentId         String?
+  document           Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+
+  entries DocketEntry[]
+}
+
+model DocketEntry {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  entryNumber        String?
+  filingDate         DateTime?
+  enteredDate        DateTime?
+  title              String
+  description        String?
+  filingParty        String?
+  documentNumber     String?
+  sourceId           String?
+  source             DocketSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  courtLink          String?
+  relatedFilingId    String?
+  deadlineImplication String?
+  serviceImplication String?
+  reviewStatus       String   @default("pending") // pending|reviewed
+  verificationStatus String   @default("proposed")
+  createdBy          String?
+  notes              String?
+  createdAt          DateTime @default(now())
+
+  // Dedupe key components: case + entryNumber + documentNumber.
+  @@unique([caseId, entryNumber, documentNumber])
+  @@index([caseId])
+}
+
+model DocketMonitor {
+  id            String   @id @default(cuid())
+  caseId        String   @unique
+  case          Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  provider      String   @default("manual") // manual|pacer-external|peachcourt-external|public
+  schedule      String   @default("manual") // manual|daily|weekdays|weekly
+  status        String   @default("manual-only") // manual-only|active|error|unavailable
+  lastCheckedAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+}
+
+model CompanionDevice {
+  id               String   @id @default(cuid())
+  userId           String
+  deviceName       String
+  platform         String   @default("mac")
+  tokenHash        String   // SHA-256 of the device token; the token itself is never stored
+  permittedFolders String?  // JSON list of {path, caseId?, mode}
+  registeredAt     DateTime @default(now())
+  lastActiveAt     DateTime?
+  expiresAt        DateTime?
+  revokedAt        DateTime?
+
+  @@index([userId])
+}
+
+model DeviceRegistrationCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model TwoFactorSecret {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  secret        String   // TOTP secret (server-side only)
+  enabled       Boolean  @default(false)
+  recoveryCodes String?  // JSON list of hashed recovery codes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+}
+
+model CaseAiSetting {
+  id               String   @id @default(cuid())
+  caseId           String   @unique
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  mode             String   @default("manual") // disabled|manual|approved-automation|local-only
+  providerAllowlist String? // JSON list of allowed provider keys
+  allowConfidential Boolean @default(false)
+  updatedAt        DateTime @updatedAt @default(now())
+}
+
+model ProviderUsage {
+  id        String   @id @default(cuid())
+  caseId    String?
+  provider  String
+  task      String
+  tokens    Int?
+  costCents Int?
+  status    String   @default("completed")
+  createdAt DateTime @default(now())
+
+  @@index([provider])
 }

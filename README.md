@@ -107,7 +107,15 @@ npm run db:reset    # drop, re-migrate, re-seed
 - **Backup, Export, Trash** — create/verify/restore-preview backups; full case export with a **confidentiality review** and downloadable manifest; soft-delete with 30-day restore and typed-`DELETE` permanent purge.
 - **Security & Health** — server-side authorization everywhere, case-scoped search isolation, a security-event log, sessions + revoke, secrets kept server-side, and a System Health page.
 
-See [`docs/`](docs/) for architecture, data model, integration status, the [verification workflow](docs/VERIFICATION-WORKFLOW.md), the [filing/service/research workflows](docs/FILING-WORKFLOW.md), the [security threat model](docs/SECURITY.md), roadmap, and limitations.
+### Phase 5 — Advanced analysis, docket, companion, production config
+- **Advanced Case Review** — a versioned, **source-linked** analysis of your *confirmed* data: element-by-element gaps, adverse evidence, contradictions, procedural risks, and what needs verification. Every finding shows its status and links to sources. **No win-probability score.** Plus a **Source Graph** of case relationships.
+- **Court-Docket Monitoring** — record entries (deduped), import a docket sheet (proposals → Verification Queue), and configure monitoring — without pretending to have live portal access (PeachCourt/PACER stay external links; no stored passwords).
+- **Mac Companion** — a secure device-registration protocol (`POST /api/companion/register`: one-time code → device-scoped token stored **hashed**, returned once), device management + revoke, a reference agent (`scripts/companion-agent.mjs`), and a full native-app spec ([`docs/COMPANION.md`](docs/COMPANION.md)).
+- **PWA & mobile** — installable manifest + a conservative offline shell (no private-document caching).
+- **Security scaffolding** — 2FA enrollment (TOTP secret + hashed recovery codes), per-case AI privacy modes, provider-usage tracking.
+- **Production config** — `Dockerfile`, CI pipeline, `npm run validate:env` (blocks SQLite/dev-auth in prod), and DB indexes. **Not auto-deployed** — see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+See [`docs/`](docs/) for [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA-MODEL.md), the [verification workflow](docs/VERIFICATION-WORKFLOW.md), [filing/service/research workflows](docs/FILING-WORKFLOW.md), [security threat model](docs/SECURITY.md), [deployment](docs/DEPLOYMENT.md), [companion spec](docs/COMPANION.md), [operations runbook & DR](docs/RUNBOOK.md), [privacy](docs/PRIVACY.md), roadmap, and limitations.
 
 ## Documentation
 

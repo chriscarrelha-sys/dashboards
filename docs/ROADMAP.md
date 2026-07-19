@@ -51,9 +51,15 @@ Phased build plan. Phase 0 and the core of Phases 1–3 are in this first slice.
 - Security: server-side authorization, security-event log, sessions + revoke, secrets server-side only, System Health page
 - **Next:** real search backend (Meili/pgvector), real PDF/OCR + ZIP, live OAuth calendar/storage, real 2FA/passkeys, native push
 
-## Phase 5 (next) — Production Deployment, Mac Companion App, Mobile Experience, Advanced AI Case Analysis, Court-Docket Monitoring, Operational Validation
+## Phase 5 — Production config, Mac companion, mobile/PWA, advanced AI analysis, docket monitoring ✅ (this build, in-repo scope)
+- Advanced Case Review: versioned, source-linked analysis (element-gap, adverse evidence, contradictions, procedural risk, verification-needed) — no win-probability; Source Graph (derived edges)
+- Court-Docket Monitoring: entries + dedupe, docket-sheet import → Verification Queue, monitor config (honest statuses; no fake live access), portal helper (external-link only)
+- Mac companion: secure device-registration protocol (`/api/companion/register`, one-time code → hashed device token), device management + revoke, reference agent, full spec
+- PWA: manifest + conservative offline-shell service worker (no private-doc caching); mobile-aware layout
+- Security scaffolding: 2FA enroll (TOTP secret + hashed recovery codes), per-case AI privacy modes, provider-usage tracking; production config (Dockerfile, CI, env-validate, DB indexes)
+- **Deferred to Phase 6 (need external accounts/approval):** actual production deploy, signed native Mac binary, live PACER/PeachCourt/AI/OAuth, real PostgreSQL + encryption at rest, hosted search/job worker, native push
 
-## Phase 6 — Production hardening (infra)
+## Phase 6 (next) — Production Launch, Real Case Migration, Live Integration Authorization, User Acceptance, Post-Launch Stabilization
 - NextAuth/Auth.js (+ optional Apple/Google/Microsoft, 2FA), Postgres deployment
 - Background-job queue for document processing
 - Real calendar + storage (iCloud companion) adapters

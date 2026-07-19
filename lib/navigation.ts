@@ -15,6 +15,7 @@ export const CASE_NAV: NavGroup[] = [
     items: [
       { label: 'Overview', slug: '' },
       { label: 'Universal Search', slug: 'search' },
+      { label: 'Court Docket', slug: 'docket' },
       { label: 'Timeline', slug: 'timeline' },
       { label: 'Deadlines & Tasks', slug: 'deadlines' },
       { label: 'Calendar', slug: 'calendar' },
@@ -137,6 +138,8 @@ export const CASE_NAV: NavGroup[] = [
     icon: 'sparkles',
     items: [
       { label: 'Case AI Workspace', slug: 'ai' },
+      { label: 'Advanced Case Review', slug: 'ai/case-review' },
+      { label: 'Source Graph', slug: 'ai/source-graph' },
       { label: 'Document Chats', slug: 'ai/document-chats' },
       { label: 'Legal Research', slug: 'research' },
       { label: 'Research Sources', slug: 'research/sources' },
@@ -158,6 +161,8 @@ export const CASE_NAV: NavGroup[] = [
       { label: 'Integrations', slug: 'integrations' },
       { label: 'Integration Diagnostics', slug: 'admin/diagnostics' },
       { label: 'iCloud / File Companion', slug: 'admin/file-locations' },
+      { label: 'Companion Devices', slug: 'admin/devices' },
+      { label: 'AI Privacy & 2FA', slug: 'admin/ai-privacy' },
       { label: 'Notifications', slug: 'admin/notifications' },
       { label: 'Naming Rules', slug: 'admin/naming' },
       { label: 'Permissions', slug: 'admin/permissions' },

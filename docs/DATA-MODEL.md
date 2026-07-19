@@ -85,6 +85,13 @@ Added `deletedAt` (soft-delete) to Document, EvidenceItem, Filing, Communication
 
 Migration: `20260719..._phase4_search_exhibits_calendar_backup` (additive; Phase 1–3 data preserved).
 
+## Phase 5 additions (AI analysis, docket, companion, security)
+
+New models: `CaseReview` (versioned source-linked analysis), `DocketSource`/`DocketEntry`
+(deduped by case+entry#+doc#)/`DocketMonitor`, `CompanionDevice` (hashed token)/`DeviceRegistrationCode`,
+`TwoFactorSecret`, `CaseAiSetting` (per-case AI privacy mode), `ProviderUsage`. Plus production
+`@@index`es on hot columns. Migration: `..._phase5_ai_analysis_docket_companion` (additive; Phase 1–4 preserved).
+
 ## Notes on relationships
 
 Relationships are intentionally simple in this first migration (foreign keys +

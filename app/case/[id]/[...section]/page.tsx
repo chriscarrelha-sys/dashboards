@@ -26,6 +26,9 @@ import {
   SearchModule, ExhibitsModule, BinderModule, CalendarModule, NotificationsModule,
   BackupModule, ExportModule, TrashModule, SecurityModule, DiagnosticsModule, CompanionModule, HealthModule,
 } from '@/components/modules/Phase4Modules';
+import {
+  CaseReviewModule, SourceGraphModule, DocketModule, CompanionDevicesModule, AiPrivacyModule,
+} from '@/components/modules/Phase5Modules';
 
 export const dynamic = 'force-dynamic';
 
@@ -118,6 +121,13 @@ export default async function CaseSection({
   if (slug === 'admin/diagnostics') return <DiagnosticsModule />;
   if (slug === 'admin/file-locations') return <CompanionModule />;
   if (slug === 'admin/health') return <HealthModule />;
+
+  // ---- Phase 5 modules ----
+  if (slug === 'ai/case-review') return <CaseReviewModule caseId={id} />;
+  if (slug === 'ai/source-graph') return <SourceGraphModule caseId={id} />;
+  if (slug === 'docket') return <DocketModule caseId={id} />;
+  if (slug === 'admin/devices') return <CompanionDevicesModule />;
+  if (slug === 'admin/ai-privacy') return <AiPrivacyModule caseId={id} />;
 
   // ---- Known nav sections without a dedicated module yet: polished empty state ----
   const label = labelForSlug(slug);

@@ -1,0 +1,12 @@
+{
+  "name": "Pro Se Wins",
+  "short_name": "Pro Se Wins",
+  "description": "A personal litigation command center.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1420",
+  "theme_color": "#243b6b",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

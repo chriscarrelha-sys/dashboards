@@ -467,6 +467,26 @@ async function main() {
   ] });
   await prisma.selectedFolder.create({ data: { provider: 'icloud', path: '~/Library/Mobile Documents/com~apple~CloudDocs/Litigation/Regions', status: 'mock' } });
 
+  // ---------------------- Phase 5 demo data (Regions) ----------------------
+  await prisma.caseReview.create({ data: { caseId: regions.id, version: 1, status: 'complete', provider: 'mock', summary: '2 legal issues, 6 evidence items, 1 unsupported element, 2 open deficiencies, 2 items needing verification.', sections: JSON.stringify([
+    { key: 'status', title: 'Executive Case Status', findings: [{ text: 'Regions Bank v. [DEMO Defendant] — 25CV-DEMO-0783 (Superior Court of Forsyth County). (Demo.)', sourceType: 'confirmed-fact', sourceRefs: [], verificationStatus: 'confirmed' }] },
+    { key: 'risks', title: 'Procedural Risks', findings: [{ text: '1 unconfirmed/calculated deadline — confirm before relying on it.', sourceType: 'ai-inference', sourceRefs: [], verificationStatus: 'unverified' }] },
+  ]) } });
+
+  const docketSource = await prisma.docketSource.create({ data: { caseId: regions.id, sourceType: 'docket-sheet', retrievalMethod: 'upload', documentId: answerDoc.id, reliability: 'user-entered', verificationStatus: 'proposed' } });
+  await prisma.docketEntry.createMany({ data: [
+    { caseId: regions.id, entryNumber: '1', title: 'Complaint filed', filingParty: 'Plaintiff', sourceId: docketSource.id, reviewStatus: 'reviewed', verificationStatus: 'confirmed', createdBy: 'user', filingDate: new Date(Date.UTC(2026, 3, 2)) },
+    { caseId: regions.id, entryNumber: '7', title: 'Order setting hearing', deadlineImplication: 'Hearing date — CONFIRM', sourceId: docketSource.id, reviewStatus: 'pending', verificationStatus: 'proposed', createdBy: 'ai' },
+  ] });
+  await prisma.docketMonitor.create({ data: { caseId: regions.id, provider: 'manual', schedule: 'weekdays', status: 'manual-only' } });
+
+  await prisma.companionDevice.create({ data: { userId: user.id, deviceName: 'Chris’s MacBook Pro', platform: 'mac', tokenHash: 'demo-hash', registeredAt: new Date(), lastActiveAt: new Date(), permittedFolders: JSON.stringify([{ path: '~/…/CloudDocs/Litigation/Regions', caseId: regions.id, mode: 'review-first' }]) } });
+  await prisma.caseAiSetting.create({ data: { caseId: regions.id, mode: 'manual', allowConfidential: false, providerAllowlist: JSON.stringify(['claude', 'openai']) } });
+  await prisma.providerUsage.createMany({ data: [
+    { caseId: regions.id, provider: 'mock', task: 'case-review', status: 'completed' },
+    { caseId: regions.id, provider: 'mock', task: 'draft-section', status: 'completed' },
+  ] });
+
   // ============================ CASE 2: Federal / PACER ============================
   const ndga = await prisma.court.create({
     data: {
