@@ -7,7 +7,10 @@ import { prisma } from '@/lib/prisma';
  * every caller unchanged.
  */
 
-const DEV_USER_EMAIL = 'owner@prosewins.local';
+// The single local owner. Set OWNER_EMAIL / OWNER_NAME in .env to make this your
+// own instance; defaults keep zero-config local dev working.
+const DEV_USER_EMAIL = process.env.OWNER_EMAIL || 'owner@prosewins.local';
+const DEV_USER_NAME = process.env.OWNER_NAME || 'Case Owner';
 
 export type SessionUser = {
   id: string;
@@ -31,7 +34,7 @@ export async function getCurrentUser(): Promise<SessionUser> {
   const user = await prisma.user.upsert({
     where: { email: DEV_USER_EMAIL },
     update: {},
-    create: { email: DEV_USER_EMAIL, name: 'Case Owner' },
+    create: { email: DEV_USER_EMAIL, name: DEV_USER_NAME },
   });
   return { id: user.id, email: user.email, name: user.name };
 }
