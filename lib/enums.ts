@@ -108,3 +108,90 @@ export const ALWAYS_CONFIRM_KINDS = [
   'governing-rule',
   'calculated-date',
 ] as const;
+
+/* ============================ PHASE 2 ============================ */
+
+export const EVIDENCE_TYPES = [
+  'documentary', 'testimonial', 'admission', 'business-record', 'public-record',
+  'demonstrative', 'digital', 'communication', 'financial-record', 'photograph',
+  'audio-video', 'expert', 'impeachment', 'damages', 'procedural', 'other',
+] as const;
+export type EvidenceType = (typeof EVIDENCE_TYPES)[number];
+
+export const EVIDENCE_POSTURES = ['supports-user', 'adverse', 'mixed', 'neutral', 'unknown'] as const;
+export type EvidencePosture = (typeof EVIDENCE_POSTURES)[number];
+
+export const EVIDENTIARY_STATUSES = [
+  'identified', 'collected', 'reviewed', 'needs-authentication', 'authenticated',
+  'disputed', 'excluded', 'admitted', 'unresolved',
+] as const;
+
+export const AUTHENTICATION_STATUSES = [
+  'not-started', 'needs-authentication', 'in-progress', 'authenticated', 'disputed',
+] as const;
+
+export const EXHIBIT_STATUSES = [
+  'not-selected', 'candidate', 'selected', 'needs-redaction', 'needs-page-extraction',
+  'needs-authentication', 'ready', 'included-in-binder', 'filed', 'admitted', 'excluded',
+] as const;
+
+export const EVIDENCE_LINK_RELATIONS = ['supporting', 'adverse', 'impeachment'] as const;
+
+export const CONTRADICTION_STATUSES = [
+  'proposed', 'confirmed', 'disputed', 'explained', 'resolved', 'immaterial', 'rejected',
+] as const;
+
+export const ADMISSION_CATEGORIES = [
+  'rfa-response', 'pleading', 'affidavit', 'deposition', 'hearing-testimony',
+  'correspondence', 'contract-record', 'judicial', 'party-statement', 'stipulation', 'other',
+] as const;
+
+export const LEGAL_ISSUE_TYPES = [
+  'claim', 'counterclaim', 'defense', 'affirmative-defense', 'procedural', 'evidentiary', 'remedy',
+] as const;
+export type LegalIssueType = (typeof LEGAL_ISSUE_TYPES)[number];
+
+export const LEGAL_ISSUE_STATUSES = [
+  'asserted', 'disputed', 'pending', 'dismissed', 'withdrawn', 'resolved', 'preserved', 'undecided',
+] as const;
+
+export const ELEMENT_STATUSES = [
+  'supported', 'partially-supported', 'disputed', 'unsupported',
+  'missing-evidence', 'legal-issue-unresolved', 'not-applicable',
+] as const;
+export type ElementStatus = (typeof ELEMENT_STATUSES)[number];
+
+export const DISCOVERY_TYPES = [
+  'interrogatories', 'rfp', 'rfa', 'subpoena', 'deposition-notice',
+  'deposition-topics', 'third-party', 'informal', 'other',
+] as const;
+
+export const DISCOVERY_SET_STATUSES = [
+  'draft', 'served', 'received', 'response-due', 'partially-answered',
+  'completed', 'deficient', 'subject-to-motion', 'closed',
+] as const;
+
+export const DEFICIENCY_CATEGORIES = [
+  'no-response', 'late-response', 'incomplete', 'evasive', 'boilerplate-objection',
+  'unsupported-objection', 'missing-verification', 'missing-signature', 'missing-production',
+  'incomplete-production', 'inconsistent', 'contradiction', 'improper-qualification',
+  'failure-to-supplement', 'privilege-log', 'bates-numbering', 'authentication', 'other',
+] as const;
+
+export const DEFICIENCY_STATUSES = [
+  'proposed', 'confirmed', 'raised', 'awaiting-cure', 'partially-cured',
+  'cured', 'disputed', 'included-in-motion', 'waived', 'closed',
+] as const;
+
+/** Verification-queue proposal kinds introduced in Phase 2. */
+export const PROPOSAL_KINDS = [
+  'evidence', 'contradiction', 'admission', 'legal-issue', 'legal-element',
+  'discovery-extraction', 'discovery-deficiency', 'witness', 'authentication',
+] as const;
+export type ProposalKind = (typeof PROPOSAL_KINDS)[number];
+
+/** Human labels for the many kebab-case status strings above. */
+export function humanize(s: string | null | undefined): string {
+  if (!s) return '—';
+  return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}

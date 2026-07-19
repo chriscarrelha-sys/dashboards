@@ -4,11 +4,19 @@ import { labelForSlug } from '@/lib/navigation';
 import { EmptyState } from '@/components/EmptyState';
 import { PageHeading } from '@/components/PageHeading';
 import { DocumentsModule } from '@/components/modules/DocumentsModule';
-import { ReviewQueueModule } from '@/components/modules/ReviewQueueModule';
 import { TimelineModule } from '@/components/modules/TimelineModule';
 import { DeadlinesModule } from '@/components/modules/DeadlinesModule';
 import { AIWorkspaceModule } from '@/components/modules/AIWorkspaceModule';
 import { IntegrationsModule } from '@/components/modules/IntegrationsModule';
+import { EvidenceModule } from '@/components/modules/EvidenceModule';
+import { LegalIssuesModule } from '@/components/modules/LegalIssuesModule';
+import { ContradictionsModule } from '@/components/modules/ContradictionsModule';
+import { AdmissionsModule } from '@/components/modules/AdmissionsModule';
+import { DiscoveryModule } from '@/components/modules/DiscoveryModule';
+import { VerificationQueueModule } from '@/components/modules/VerificationQueueModule';
+import {
+  DeficienciesModule, MeetConferModule, WitnessesModule, SubpoenasModule, AuditModule,
+} from '@/components/modules/Phase2Modules';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,24 +49,40 @@ export default async function CaseSection({
   }
   if (slug === 'review-queue')
     return (
-      <ReviewQueueModule
-        caseId={id}
+      <VerificationQueueModule
+        caseId={id} onlyDocClassification
         title="Document Review Queue"
         description="Documents whose automatic classification was uncertain. Approve, or open the document to reclassify."
       />
     );
   if (slug === 'verification-queue')
     return (
-      <ReviewQueueModule
+      <VerificationQueueModule
         caseId={id}
         title="Verification Queue"
-        description="Proposed items awaiting your confirmation. Deadlines, hearing dates, and legal conclusions must always be verified here."
+        description="Every AI proposal — evidence, contradictions, admissions, legal issues, discovery, deficiencies — awaits your confirmation here. Approving creates the structured record and writes the audit log."
       />
     );
   if (slug === 'timeline') return <TimelineModule caseId={id} />;
   if (slug === 'deadlines') return <DeadlinesModule caseId={id} />;
   if (slug === 'ai') return <AIWorkspaceModule caseId={id} />;
   if (slug === 'integrations') return <IntegrationsModule />;
+
+  // ---- Phase 2 modules ----
+  if (slug === 'evidence') return <EvidenceModule caseId={id} />;
+  if (slug === 'contradictions') return <ContradictionsModule caseId={id} />;
+  if (slug === 'admissions') return <AdmissionsModule caseId={id} />;
+  if (slug === 'claims') return <LegalIssuesModule caseId={id} issueType="claim" title="Claims" />;
+  if (slug === 'counterclaims') return <LegalIssuesModule caseId={id} issueType="counterclaim" title="Counterclaims" />;
+  if (slug === 'defenses') return <LegalIssuesModule caseId={id} issueType="defense" title="Defenses" />;
+  if (slug === 'affirmative-defenses') return <LegalIssuesModule caseId={id} issueType="affirmative-defense" title="Affirmative Defenses" />;
+  if (slug === 'procedural-issues') return <LegalIssuesModule caseId={id} issueType="procedural" title="Procedural Issues" />;
+  if (slug === 'discovery') return <DiscoveryModule caseId={id} />;
+  if (slug === 'discovery/deficiencies') return <DeficienciesModule caseId={id} />;
+  if (slug === 'discovery/meet-confer') return <MeetConferModule caseId={id} />;
+  if (slug === 'discovery/subpoenas') return <SubpoenasModule caseId={id} />;
+  if (slug === 'people/witnesses' || slug === 'witnesses') return <WitnessesModule caseId={id} />;
+  if (slug === 'admin/audit') return <AuditModule caseId={id} />;
 
   // ---- Known nav sections without a dedicated module yet: polished empty state ----
   const label = labelForSlug(slug);

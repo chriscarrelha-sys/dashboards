@@ -81,6 +81,12 @@ model Case {
   admissions        Admission[]
   contradictions    Contradiction[]
   discoveryRequests DiscoveryRequest[]
+  discoverySets     DiscoverySet[]
+  discoveryDeficiencies DiscoveryDeficiency[]
+  meetAndConfers    MeetAndConferRecord[]
+  subpoenas         Subpoena[]
+  depositions       Deposition[]
+  authenticationRecords AuthenticationRecord[]
   motions           Motion[]
   filings           Filing[]
   communications    Communication[]
@@ -167,13 +173,29 @@ model Contact {
 }
 
 model Witness {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  name      String
-  kind      String   @default("fact") // "fact" | "expert"
-  summary   String?
-  createdAt DateTime @default(now())
+  id                String   @id @default(cuid())
+  caseId            String
+  case              Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name              String
+  kind              String   @default("fact") // "fact" | "expert"
+  role              String?
+  party             String? // party affiliation
+  employer          String?
+  contact           String?
+  expectedTestimony String?
+  relevantIssues    String?
+  credibilityNotes  String?
+  authenticationRole String?
+  subpoenaStatus    String?
+  depositionStatus  String?
+  summary           String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+
+  evidenceItems  EvidenceItem[]
+  contradictions Contradiction[]
+  depositions    Deposition[]
 }
 
 // ----------------------------------------------------------------------------
@@ -218,6 +240,13 @@ model Document {
   extractionResults ExtractionResult[]
   evidenceItems     EvidenceItem[]
   aiConversations   AIConversation[]
+  // Phase 2 back-relations
+  admissions            Admission[]
+  evidenceDocumentLinks EvidenceDocumentLink[]
+  contradictionStatements ContradictionStatement[]
+  discoverySetSources   DiscoverySet[] @relation("DiscoverySetSource")
+  deficiencySources     DiscoveryDeficiency[] @relation("DeficiencySource")
+  authDocuments         AuthenticationRecord[] @relation("AuthDocument")
 }
 
 model DocumentVersion {
@@ -286,13 +315,15 @@ model ReviewQueueItem {
   id          String   @id @default(cuid())
   caseId      String
   case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  kind        String // "document-classification" | "deadline" | "hearing" | ...
+  kind        String // document-classification|evidence|contradiction|admission|legal-issue|legal-element|discovery-extraction|discovery-deficiency|witness|authentication
   title       String
   proposal    String // JSON-encoded
   confidence  Float?
   provider    String?
   sourceDocId String?
-  status      String   @default("pending") // pending|approved|rejected|edited
+  sourcePage  String?
+  reason      String? // why this needs review
+  status      String   @default("pending") // pending|approved|rejected|edited|deferred
   createdAt   DateTime @default(now())
 }
 
@@ -318,6 +349,8 @@ model TimelineEvent {
   verificationStatus String   @default("confirmed") // proposed|confirmed|disputed|corrected
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+
+  evidenceLinks EvidenceTimelineLink[]
 }
 
 model Deadline {
@@ -400,24 +433,151 @@ model Defense {
   createdAt   DateTime @default(now())
 }
 
+// Unified legal-issue model backing Claims, Counterclaims, Defenses,
+// Affirmative Defenses, Procedural/Evidentiary issues, and Remedies. The
+// separate nav pages filter this model by `issueType`.
 model LegalIssue {
-  id          String   @id @default(cuid())
-  caseId      String
-  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  title       String
-  category    String // "procedural" | "substantive" | "risk"
-  summary     String?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title          String
+  category       String   @default("substantive") // legacy: procedural|substantive|risk
+  issueType      String   @default("claim") // claim|counterclaim|defense|affirmative-defense|procedural|evidentiary|remedy
+  description    String?
+  summary        String?
+  assertingParty String?
+  opposingParty  String?
+  jurisdiction   String?
+  status         String   @default("asserted") // asserted|disputed|pending|dismissed|withdrawn|resolved|preserved|undecided
+  posture        String?
+  burdenHolder   String?
+  standard       String? // standard or burden of proof
+  requestedRelief String?
+  strengths      String?
+  weaknesses     String?
+  missingProof   String?
+  opposingPosition String?
+  assessment     String?
+  createdBy      String?
+  aiProvider     String?
+  confidence     Float?
+  verificationStatus String @default("proposed")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+
+  elements       LegalIssueElement[]
+  evidenceLinks  EvidenceLegalIssueLink[]
+  authorityLinks LegalIssueAuthorityLink[]
+}
+
+model LegalIssueElement {
+  id           String   @id @default(cuid())
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  number       Int
+  title        String
+  standard     String?
+  burdenHolder String?
+  status       String   @default("unsupported") // supported|partially-supported|disputed|unsupported|missing-evidence|legal-issue-unresolved|not-applicable
+  assessment   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+
+  evidenceLinks  EvidenceLegalIssueLink[]
+  authorityLinks LegalIssueAuthorityLink[]
+}
+
+// ---- Legal-issue join tables ----
+
+model EvidenceLegalIssueLink {
+  id           String   @id @default(cuid())
+  evidenceId   String
+  evidence     EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  elementId    String?
+  element      LegalIssueElement? @relation(fields: [elementId], references: [id], onDelete: SetNull)
+  relation     String   @default("supporting") // supporting|adverse|impeachment
+  createdAt    DateTime @default(now())
+
+  @@unique([evidenceId, legalIssueId, elementId, relation])
+}
+
+model LegalIssueAuthorityLink {
+  id           String   @id @default(cuid())
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  authorityId  String
+  authority    Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  elementId    String?
+  element      LegalIssueElement? @relation(fields: [elementId], references: [id], onDelete: SetNull)
+  proposition  String?
+  pinpoint     String?
+  createdAt    DateTime @default(now())
+}
+
+model EvidenceDiscoveryLink {
+  id                 String   @id @default(cuid())
+  evidenceId         String
+  evidence           EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  discoveryRequestId String
+  discoveryRequest   DiscoveryRequest @relation(fields: [discoveryRequestId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+
+  @@unique([evidenceId, discoveryRequestId])
+}
+
+model EvidenceTimelineLink {
+  id              String   @id @default(cuid())
+  evidenceId      String
+  evidence        EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  timelineEventId String
+  timelineEvent   TimelineEvent @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId, timelineEventId])
+}
+
+model EvidenceMotionLink {
+  id         String   @id @default(cuid())
+  evidenceId String
+  evidence   EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  motionId   String
+  motion     Motion @relation(fields: [motionId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId, motionId])
+}
+
+model EvidenceDocumentLink {
+  id         String   @id @default(cuid())
+  evidenceId String
+  evidence   EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page       String?
+
+  @@unique([evidenceId, documentId])
 }
 
 model Authority {
-  id          String   @id @default(cuid())
-  caseId      String
-  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  citation    String
-  summary     String?
-  url         String?
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  caseId       String
+  case         Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  citation     String
+  court        String?
+  jurisdiction String?
+  year         Int?
+  proposition  String? // proposition supported
+  summary      String?
+  url          String?
+  pinpoint     String?
+  quotedText   String?
+  treatment    String? // followed|distinguished|criticized|overruled
+  verificationStatus String @default("unverified") // AI citations stay unverified until opened
+  dateVerified DateTime?
+  createdAt    DateTime @default(now())
+
+  issueLinks LegalIssueAuthorityLink[]
 }
 
 // ----------------------------------------------------------------------------
@@ -429,18 +589,49 @@ model EvidenceItem {
   caseId             String
   case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
   title              String
+  proposition        String? // concise factual proposition
   description        String?
   source             String?
   sha256             String?
-  documentId         String?
+  documentId         String? // primary source document
   document           Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourcePage         String? // page or page range, e.g. "12-14"
+  quotedText         String? // extracted/quoted passage
+  eventDate          DateTime? // date of underlying event
+  // Phase 2 classifications (see lib/enums)
+  evidenceType       String? // documentary|testimonial|admission|...
+  posture            String? // supports-user|adverse|mixed|neutral|unknown
+  evidentiaryStatus  String? // identified|collected|reviewed|needs-authentication|...
+  authenticationStatus String? // not-started|needs-authentication|authenticated|...
+  relatedWitnessId   String?
+  relatedWitness     Witness? @relation(fields: [relatedWitnessId], references: [id], onDelete: SetNull)
+  // Exhibit prep (extends evidence per spec §29)
+  exhibitStatus      String   @default("not-selected")
+  exhibitLabel       String?
+  privilegeStatus    String? // none|privileged|confidential
+  anticipatedObjections String?
+  objectionResponse  String?
   authenticationNote String?
   foundationNote     String?
+  notes              String?
+  // Provenance / trust
+  createdBy          String? // "user" | "ai"
+  creationSource     String? // "manual" | "document" | "ai-extraction"
+  aiProvider         String?
   confidence         Float?
+  disputed           Boolean  @default(false)
+  reviewStatus       String   @default("none") // none|queued|reviewed
   verificationStatus String   @default("proposed")
   createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
 
-  exhibits Exhibit[]
+  exhibits            Exhibit[]
+  legalIssueLinks     EvidenceLegalIssueLink[]
+  discoveryLinks      EvidenceDiscoveryLink[]
+  timelineLinks       EvidenceTimelineLink[]
+  motionLinks         EvidenceMotionLink[]
+  documentLinks       EvidenceDocumentLink[]
+  authenticationRecords AuthenticationRecord[]
 }
 
 model Exhibit {
@@ -455,44 +646,139 @@ model Exhibit {
 }
 
 model Admission {
-  id        String   @id @default(cuid())
-  caseId    String
-  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  statement String
-  byParty   String?
-  sourceRef String?
-  createdAt DateTime @default(now())
+  id               String   @id @default(cuid())
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title            String?
+  statement        String // exact admission or concise paraphrase
+  verbatimText     String? // verbatim source text where available
+  category         String? // rfa-response|pleading|affidavit|deposition|...
+  admittingParty   String?
+  byParty          String? // legacy alias
+  sourceRef        String?
+  documentId       String?
+  document         Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourcePage       String?
+  admissionDate    DateTime?
+  scope            String? // scope or qualification
+  disputed         Boolean  @default(false)
+  withdrawn        Boolean  @default(false)
+  significance     String?
+  createdBy        String?
+  aiProvider       String?
+  confidence       Float?
+  verificationStatus String @default("proposed")
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
 }
 
 model Contradiction {
-  id         String   @id @default(cuid())
-  caseId     String
-  case       Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  summary    String
-  statementA String?
-  statementB String?
-  confidence Float?
+  id               String   @id @default(cuid())
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title            String?
+  summary          String
+  // Legacy quick fields kept for back-compat; richer statements live in ContradictionStatement.
+  statementA       String?
+  statementB       String?
+  explanation      String? // why they conflict
+  materiality      String? // high|medium|low
+  significance     String? // legal/strategic significance
+  status           String   @default("proposed") // proposed|confirmed|disputed|explained|resolved|immaterial|rejected
+  impeachment      Boolean  @default(false)
+  relatedWitnessId String?
+  relatedWitness   Witness? @relation(fields: [relatedWitnessId], references: [id], onDelete: SetNull)
+  createdBy        String?
+  aiProvider       String?
+  confidence       Float?
   verificationStatus String @default("proposed")
-  createdAt  DateTime @default(now())
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
+
+  statements       ContradictionStatement[]
+}
+
+model ContradictionStatement {
+  id              String   @id @default(cuid())
+  contradictionId String
+  contradiction   Contradiction @relation(fields: [contradictionId], references: [id], onDelete: Cascade)
+  label           String // "A", "B", "C" ...
+  text            String
+  documentId      String?
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourcePage      String?
+  author          String? // speaker / author / entity
+  statementDate   DateTime?
+  createdAt       DateTime @default(now())
 }
 
 // ----------------------------------------------------------------------------
 // Discovery
 // ----------------------------------------------------------------------------
 
+model DiscoverySet {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title           String
+  discoveryType   String // interrogatories|rfp|rfa|subpoena|deposition-notice|...
+  servingParty    String?
+  respondingParty String?
+  servedDate      DateTime?
+  serviceMethod   String?
+  responseDeadline DateTime?
+  status          String   @default("served") // draft|served|received|response-due|partially-answered|completed|deficient|subject-to-motion|closed
+  sourceDocumentId String?
+  sourceDocument  Document? @relation("DiscoverySetSource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  certificateOfService Boolean @default(false)
+  governingRule   String?
+  createdBy       String?
+  aiProvider      String?
+  verificationStatus String @default("proposed")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+
+  requests DiscoveryRequest[]
+}
+
 model DiscoveryRequest {
   id          String   @id @default(cuid())
   caseId      String
   case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  setId       String?
+  set         DiscoverySet? @relation(fields: [setId], references: [id], onDelete: SetNull)
   kind        String // interrogatory|rfp|rfa|deposition|subpoena
   title       String
+  shortTitle  String?
+  requestNumber Int?
+  requestText String? // exact request text
   direction   String   @default("outgoing") // outgoing|incoming
+  servingParty String?
+  respondingParty String?
   servedDate  DateTime?
   dueDate     DateTime?
+  // Response captured inline for quick comparison; richer history in DiscoveryResponse.
+  responseText String?
+  objections  String?
+  admissionResponse String? // admit|deny|qualified (for RFAs)
+  batesRange  String?
+  deficiencyStatus String? // none|suspected|confirmed
+  supplementationStatus String?
+  meetConferStatus String?
+  motionStatus String?
+  sourcePage  String?
   status      String   @default("open")
+  verificationStatus String @default("proposed")
+  notes       String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
 
-  responses DiscoveryResponse[]
+  responses     DiscoveryResponse[]
+  deficiencies  DiscoveryDeficiency[]
+  evidenceLinks EvidenceDiscoveryLink[]
 }
 
 model DiscoveryResponse {
@@ -500,10 +786,132 @@ model DiscoveryResponse {
   discoveryRequestId String
   discoveryRequest   DiscoveryRequest @relation(fields: [discoveryRequestId], references: [id], onDelete: Cascade)
   summary            String?
+  responseText       String?
+  objections         String?
+  verificationText   String? // signed verification present?
+  batesRange         String?
+  supplemental       Boolean  @default(false)
   servedDate         DateTime?
   hasDeficiencies    Boolean  @default(false)
   deficiencyNote     String?
   createdAt          DateTime @default(now())
+}
+
+model DiscoveryDeficiency {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  discoveryRequestId String?
+  discoveryRequest   DiscoveryRequest? @relation(fields: [discoveryRequestId], references: [id], onDelete: SetNull)
+  title              String
+  category           String // no-response|late-response|incomplete|evasive|boilerplate-objection|...
+  explanation        String?
+  responseText       String?
+  sourceDocumentId   String?
+  sourceDocument     Document? @relation("DeficiencySource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourcePage         String?
+  missingInformation String?
+  governingRule      String?
+  dateIdentified     DateTime?
+  cureRequested      Boolean  @default(false)
+  cureDeadline       DateTime?
+  meetConferStatus   String?
+  opposingResponse   String?
+  resolutionStatus   String   @default("proposed") // proposed|confirmed|raised|awaiting-cure|partially-cured|cured|disputed|included-in-motion|waived|closed
+  motionStatus       String?
+  createdBy          String?
+  aiProvider         String?
+  confidence         Float?
+  verificationStatus String   @default("proposed")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model MeetAndConferRecord {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title           String
+  communicationDate DateTime?
+  communicationType String? // letter|email|telephone|certification|follow-up
+  participants    String?
+  summary         String?
+  demand          String? // requested cure
+  cureDeadline    DateTime?
+  responseReceived String?
+  status          String   @default("open") // open|awaiting-response|resolved|escalated
+  communicationId String?
+  communication   Communication? @relation(fields: [communicationId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+}
+
+model Subpoena {
+  id               String   @id @default(cuid())
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  subpoenaType     String // documents|testimony|both
+  issuingCourt     String?
+  recipient        String
+  requested        String? // documents or testimony requested
+  dateIssued       DateTime?
+  dateServed       DateTime?
+  serviceMethod    String?
+  complianceDate   DateTime?
+  objectionsDeadline DateTime?
+  objectionsReceived String?
+  productionReceived Boolean @default(false)
+  custodianInfo    String?
+  status           String   @default("draft") // draft|issued|served|objected|complied|enforcement|closed
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
+}
+
+model Deposition {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  witnessId      String?
+  witness        Witness? @relation(fields: [witnessId], references: [id], onDelete: SetNull)
+  noticeDate     DateTime?
+  depositionDate DateTime?
+  location       String?
+  examiningParty String?
+  defendingParty String?
+  topics         String?
+  transcriptPages String?
+  keyAdmissions  String?
+  status         String   @default("noticed") // noticed|scheduled|taken|transcript-pending|complete
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model AuthenticationRecord {
+  id                  String   @id @default(cuid())
+  caseId              String
+  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidenceId          String?
+  evidence            EvidenceItem? @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+  documentId          String?
+  document            Document? @relation("AuthDocument", fields: [documentId], references: [id], onDelete: SetNull)
+  authenticatingWitness String?
+  businessRecordCert  Boolean  @default(false)
+  publicRecordBasis   Boolean  @default(false)
+  selfAuthTheory      String?
+  custodianDeclaration Boolean @default(false)
+  chainOfCustody      String?
+  originalVsCopy      String?
+  hearsayConcern      String?
+  hearsayException    String?
+  bestEvidenceConcern String?
+  completenessConcern String?
+  foundationChecklist String? // JSON list
+  status              String   @default("unresolved") // unresolved|in-progress|resolved
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt @default(now())
 }
 
 // ----------------------------------------------------------------------------
@@ -520,6 +928,8 @@ model Motion {
   filedDate DateTime?
   hearingDate DateTime?
   createdAt DateTime @default(now())
+
+  evidenceLinks EvidenceMotionLink[]
 }
 
 model Filing {
@@ -547,6 +957,8 @@ model Communication {
   withParty String?
   occurredAt DateTime?
   createdAt DateTime @default(now())
+
+  meetAndConfers MeetAndConferRecord[]
 }
 
 // ----------------------------------------------------------------------------

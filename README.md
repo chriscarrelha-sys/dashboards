@@ -80,7 +80,15 @@ npm run db:reset    # drop, re-migrate, re-seed
 - **AI Workspace** — persistent conversation with a provider router; responses come from a built-in **mock** unless a provider key is configured. Active provider is always shown before sending.
 - **Integrations hub** — honest connected / mock / unavailable status for AI, storage, calendars, court systems, and PDF tools.
 
-See [`docs/`](docs/) for architecture, data model, integration status, roadmap, and limitations.
+### Phase 2 — Evidence → structured work product
+- **Evidence Command Center** — table/card views, filters (type, posture, AI-vs-user), search; create evidence directly from a document (source page + quoted text), cross-linked to legal issues and discovery.
+- **Legal Issues** (unified: claims/counterclaims/defenses/affirmative/procedural) with an **Elements & Burdens matrix** that shows supporting, adverse, and missing evidence per element.
+- **Contradiction Tracker** — side-by-side source statements with confirm/reject; **Admissions Tracker** with exact source + page.
+- **Discovery Command Center** — sets → numbered requests, response comparison, **Deficiency Tracker**, **Meet-and-Confer**, Subpoenas, Witnesses.
+- **Verification Queue** — every AI proposal (evidence, contradiction, admission, legal issue, discovery import, deficiency) is confirmed here; **approval creates the structured record and writes the audit log**. Mock extraction never fabricates pages.
+- **Audit History** at Administration → Audit History.
+
+See [`docs/`](docs/) for architecture, data model, integration status, the [verification workflow](docs/VERIFICATION-WORKFLOW.md), roadmap, and limitations.
 
 ## Documentation
 

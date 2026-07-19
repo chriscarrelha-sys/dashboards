@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth/session';
 import { TrustBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ReclassifyForm } from '@/components/modules/ReclassifyForm';
+import { DocumentEvidenceActions } from '@/components/phase2/DocumentEvidenceActions';
 import { formatDate, formatDateTime } from '@/lib/utils';
 import type { VerificationStatus } from '@/lib/enums';
 import { ArrowLeft, Download } from 'lucide-react';
@@ -22,6 +23,16 @@ export default async function DocumentWorkspace({
     where: { id: docId, caseId: id, case: { userId: user.id } },
   });
   if (!doc) notFound();
+
+  // Records extracted from / linked to this document (source-linked, no duplication).
+  const [relatedEvidence, allDocuments, legalIssues] = await Promise.all([
+    prisma.evidenceItem.findMany({
+      where: { caseId: id, OR: [{ documentId: docId }, { documentLinks: { some: { documentId: docId } } }] },
+      select: { id: true, title: true, evidenceType: true, verificationStatus: true }, orderBy: { updatedAt: 'desc' },
+    }),
+    prisma.document.findMany({ where: { caseId: id }, select: { id: true, title: true, standardizedName: true } }),
+    prisma.legalIssue.findMany({ where: { caseId: id }, select: { id: true, title: true }, orderBy: { createdAt: 'asc' } }),
+  ]);
 
   const fileUrl = `/case/${id}/document/${docId}/file`;
   const isPdf = (doc.mimeType || '').includes('pdf');
@@ -101,6 +112,29 @@ export default async function DocumentWorkspace({
               {doc.aiSummary}
             </div>
           )}
+
+          <DocumentEvidenceActions
+            caseId={id}
+            documentId={docId}
+            documents={allDocuments.map((d) => ({ id: d.id, title: d.title || d.standardizedName }))}
+            legalIssues={legalIssues.map((i) => ({ id: i.id, title: i.title }))}
+          />
+
+          <div className="rounded-lg border bg-card p-4">
+            <h2 className="mb-2 text-sm font-semibold">Related evidence ({relatedEvidence.length})</h2>
+            {relatedEvidence.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No evidence linked to this document yet.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {relatedEvidence.map((e) => (
+                  <li key={e.id} className="flex items-center gap-2 text-sm">
+                    <Link href={`/case/${id}/evidence`} className="hover:underline">{e.title}</Link>
+                    <TrustBadge status={e.verificationStatus as VerificationStatus} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <div className="rounded-lg border bg-card p-4">
             <h2 className="mb-3 text-sm font-semibold">Rename / reclassify</h2>

@@ -44,6 +44,18 @@ conventions that matter.
 | `Contradiction`, `EvidenceItem` | AI-surfaced items start `proposed`. |
 | `AIOutput` | every AI output starts `proposed` and must be routed through review before it becomes case record. |
 
+## Phase 2 additions (evidence, legal issues, discovery)
+
+Extended existing models with nullable Phase 2 fields (non-destructive) and added:
+
+- **Evidence links:** `EvidenceLegalIssueLink` (with optional `elementId` + `relation` = supporting/adverse/impeachment), `EvidenceDiscoveryLink`, `EvidenceTimelineLink`, `EvidenceMotionLink`, `EvidenceDocumentLink` — many-to-many so one source document backs many issues **without file duplication**.
+- **Legal issues:** unified `LegalIssue` (`issueType` = claim/counterclaim/defense/affirmative-defense/procedural/evidentiary/remedy) + `LegalIssueElement` (the Elements & Burdens matrix) + `LegalIssueAuthorityLink`.
+- **Contradictions:** `ContradictionStatement` (2+ source statements per contradiction, each with document + page + author).
+- **Discovery:** `DiscoverySet` → `DiscoveryRequest` (belongs to a set, retains individual records) → `DiscoveryResponse`; plus `DiscoveryDeficiency`, `MeetAndConferRecord`, `Subpoena`, `Deposition`.
+- **Authentication:** `AuthenticationRecord` (foundation/hearsay/best-evidence tracking on evidence or documents).
+
+Migration: `20260719114745_phase2_evidence_discovery` (additive; Phase 1 data preserved).
+
 ## Notes on relationships
 
 Relationships are intentionally simple in this first migration (foreign keys +
