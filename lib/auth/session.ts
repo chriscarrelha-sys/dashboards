@@ -22,14 +22,25 @@ export function isDevMode(): boolean {
   return process.env.AUTH_DEV_MODE !== 'false';
 }
 
-/** Returns the signed-in user, provisioning the dev user on first run. */
+/** Returns the signed-in user, provisioning the owner on first run.
+ *
+ * Dev mode (default): a single fixed local owner, no password.
+ * Hosted mode (AUTH_DEV_MODE=false): resolve the owner from the signed session
+ * cookie (set by lib/actions/auth signIn). Middleware blocks unauthenticated
+ * requests before they reach here; this is the defense-in-depth check. */
 export async function getCurrentUser(): Promise<SessionUser> {
   if (!isDevMode()) {
-    // Production auth not wired yet — fail loudly rather than pretend.
-    throw new Error(
-      'Real authentication is not configured. Set AUTH_DEV_MODE=true for local development, ' +
-        'or implement the NextAuth provider in lib/auth.',
-    );
+    const { cookies } = await import('next/headers');
+    const { verifySession, SESSION_COOKIE } = await import('@/lib/auth/token');
+    const token = (await cookies()).get(SESSION_COOKIE)?.value ?? '';
+    const session = await verifySession(token, process.env.AUTH_SECRET ?? '');
+    if (!session) throw new Error('Not authenticated');
+    const user = await prisma.user.upsert({
+      where: { email: session.sub },
+      update: {},
+      create: { email: session.sub, name: DEV_USER_NAME },
+    });
+    return { id: user.id, email: user.email, name: user.name };
   }
   const user = await prisma.user.upsert({
     where: { email: DEV_USER_EMAIL },

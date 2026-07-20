@@ -20,6 +20,7 @@
     "db:studio": "prisma studio",
     "validate:env": "node scripts/validate-env.mjs",
     "launch:check": "node scripts/launch-check.mjs",
+    "make:password": "node scripts/make-password.mjs",
     "migrate:inventory": "node scripts/migrate-inventory.mjs"
   },
   "prisma": {

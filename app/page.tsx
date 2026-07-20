@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { listCasesForLanding } from '@/lib/services/cases';
+import { isDevMode } from '@/lib/auth/session';
+import { SignOutButton } from '@/components/auth/SignOutButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +14,11 @@ export default async function LandingPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 py-16">
+      {!isDevMode() && (
+        <div className="mb-4 flex w-full justify-end">
+          <SignOutButton />
+        </div>
+      )}
       <div className="mb-12 text-center">
         <div className="mb-3 inline-flex items-center gap-2 text-2xl font-semibold tracking-tight">
           <span aria-hidden className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">

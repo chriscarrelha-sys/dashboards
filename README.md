@@ -145,6 +145,8 @@ See [`docs/`](docs/) for [architecture](docs/ARCHITECTURE.md), [data model](docs
 - [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) — every connector's real status
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — phased build plan
 - [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md) — completed / mocked / unimplemented + security notes
+- [`docs/PERSONAL-SETUP.md`](docs/PERSONAL-SETUP.md) — run your own private copy on a Mac (free, local)
+- [`docs/HOSTING.md`](docs/HOSTING.md) — phone access: the owner login + a private hosted deploy
 
 ## Security & privacy
 
