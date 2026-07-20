@@ -1,0 +1,2601 @@
+// Pro Se Wins — data model.
+//
+// Dev uses SQLite for zero-setup runnability; the schema deliberately avoids
+// Postgres-only features (native enums, scalar arrays) so it ports cleanly to
+// PostgreSQL in production. "Enums" are modeled as validated string fields
+// (see lib/enums.ts) and user-configurable categories are relational tables,
+// per the product spec.
+//
+// Trust model: every record that can originate from AI extraction or date
+// calculation carries `confidence` and `verificationStatus`, so the UI can
+// clearly separate confirmed facts from proposed / unverified ones.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Identity
+// ----------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cases     Case[]
+  auditLogs AuditLog[]
+}
+
+// ----------------------------------------------------------------------------
+// Case & court identity
+// ----------------------------------------------------------------------------
+
+model Case {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  shortName      String // working name, e.g. "Regions"
+  caption        String // full formal caption
+  captionShort   String? // abbreviated caption
+  caseNumber     String
+  caseType       String? // see lib/enums CaseType
+  forum          String // "state" | "federal" | "arbitration"
+  status         String   @default("active")
+
+  courtId        String?
+  court          Court?   @relation(fields: [courtId], references: [id])
+  judgeId        String?
+  judge          Judge?   @relation(fields: [judgeId], references: [id])
+
+  // Per-matter external court-system link (PeachCourt / PACER).
+  portal         CourtPortal?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  parties           Party[]
+  attorneys         Attorney[]
+  contacts          Contact[]
+  witnesses         Witness[]
+  documents         Document[]
+  uploadJobs        UploadJob[]
+  reviewQueueItems  ReviewQueueItem[]
+  timelineEvents    TimelineEvent[]
+  deadlines         Deadline[]
+  tasks             Task[]
+  claims            Claim[]
+  defenses          Defense[]
+  legalIssues       LegalIssue[]
+  authorities       Authority[]
+  evidenceItems     EvidenceItem[]
+  exhibits          Exhibit[]
+  admissions        Admission[]
+  contradictions    Contradiction[]
+  discoveryRequests DiscoveryRequest[]
+  discoverySets     DiscoverySet[]
+  discoveryDeficiencies DiscoveryDeficiency[]
+  meetAndConfers    MeetAndConferRecord[]
+  subpoenas         Subpoena[]
+  depositions       Deposition[]
+  authenticationRecords AuthenticationRecord[]
+  motions           Motion[]
+  filings           Filing[]
+  communications    Communication[]
+  strategyNotes     StrategyNote[]
+  decisionLog       DecisionLogEntry[]
+  damageItems       DamageItem[]
+  researchItems     ResearchItem[]
+  aiConversations   AIConversation[]
+  storageLocations  StorageLocation[]
+  caseNotes         CaseNote[]
+  // Phase 3
+  filingPackages    FilingPackage[]
+  certificates      CertificateOfService[]
+  serviceRecipients ServiceRecipient[]
+  serviceEvents     ServiceEvent[]
+  citationOccurrences CitationOccurrence[]
+  researchQuestions ResearchQuestion[]
+  researchMemoranda ResearchMemorandum[]
+  strategyItems     StrategyItem[]
+  strategySnapshots StrategySnapshot[]
+  opposingPositions OpposingPosition[]
+  settlements       SettlementRecord[]
+  remedies          Remedy[]
+  aiDraftRuns       AIDraftRun[]
+  draftReviewIssues DraftReviewIssue[]
+  // Phase 4
+  searchIndex       SearchIndexEntry[]
+  savedSearches     SavedSearch[]
+  exhibitSets       ExhibitSet[]
+  batesJobs         BatesJob[]
+  binders           Binder[]
+  notifications     Notification[]
+  caseExports       CaseExport[]
+  // Phase 5
+  caseReviews       CaseReview[]
+  docketSources     DocketSource[]
+  docketEntries     DocketEntry[]
+  docketMonitor     DocketMonitor?
+  aiSetting         CaseAiSetting?
+
+  @@index([userId])
+}
+
+model Court {
+  id        String   @id @default(cuid())
+  name      String // e.g. "Superior Court of Forsyth County"
+  system    String // "state" | "federal" | "arbitration"
+  division  String? // division or county
+  state     String?
+  createdAt DateTime @default(now())
+
+  cases  Case[]
+  judges Judge[]
+}
+
+model CourtPortal {
+  id        String   @id @default(cuid())
+  caseId    String   @unique
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind      String // "peachcourt" | "pacer" | "other"
+  label     String?
+  url       String
+  createdAt DateTime @default(now())
+}
+
+model Judge {
+  id        String  @id @default(cuid())
+  name      String
+  title     String? // "Superior Court Judge" | "U.S. District Judge"
+  courtId   String?
+  court     Court?  @relation(fields: [courtId], references: [id])
+  cases     Case[]
+}
+
+// ----------------------------------------------------------------------------
+// People
+// ----------------------------------------------------------------------------
+
+model Party {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  role      String // "plaintiff" | "defendant" | "petitioner" | "respondent" | "third-party"
+  isSelf    Boolean  @default(false) // the pro se user's own party
+  notes     String?
+  createdAt DateTime @default(now())
+
+  attorneys Attorney[]
+}
+
+model Attorney {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  firm      String?
+  email     String?
+  phone     String?
+  barNumber String?
+  partyId   String?
+  party     Party?   @relation(fields: [partyId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+}
+
+model Witness {
+  id                String   @id @default(cuid())
+  caseId            String
+  case              Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name              String
+  kind              String   @default("fact") // "fact" | "expert"
+  role              String?
+  party             String? // party affiliation
+  employer          String?
+  contact           String?
+  expectedTestimony String?
+  relevantIssues    String?
+  credibilityNotes  String?
+  authenticationRole String?
+  subpoenaStatus    String?
+  depositionStatus  String?
+  summary           String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+
+  evidenceItems  EvidenceItem[]
+  contradictions Contradiction[]
+  depositions    Deposition[]
+}
+
+// ----------------------------------------------------------------------------
+// Documents
+// ----------------------------------------------------------------------------
+
+model Document {
+  id                String   @id @default(cuid())
+  caseId            String
+  case              Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  standardizedName  String
+  originalName      String
+  title             String?
+  docType           String? // see lib/enums DocumentType
+  category          String? // IA bucket: drafts/filed/orders/correspondence/research
+  docDate           DateTime?
+  party             String? // filing/sending party
+  docStatus         String? // "draft" | "filed" | "served" | "received" | "entered"
+
+  mimeType          String?
+  sizeBytes         Int?
+  sha256            String?
+  storageKey        String? // opaque key resolved by StorageProvider
+  storageProvider   String   @default("local")
+  sourceLabel       String? // "upload" | "icloud" | "email" ...
+
+  aiSummary         String?
+  confidence        Float?   // 0..1 classification confidence
+  verificationStatus String  @default("proposed") // proposed|confirmed|disputed|corrected
+  reviewStatus      String   @default("none") // none|queued|reviewed
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  versions          DocumentVersion[]
+  tags              DocumentTag[]
+  fromRelationships DocumentRelationship[] @relation("fromDoc")
+  toRelationships   DocumentRelationship[] @relation("toDoc")
+  timelineEvents    TimelineEvent[]
+  deadlines         Deadline[]
+  extractionResults ExtractionResult[]
+  evidenceItems     EvidenceItem[]
+  aiConversations   AIConversation[]
+  // Phase 2 back-relations
+  admissions            Admission[]
+  evidenceDocumentLinks EvidenceDocumentLink[]
+  contradictionStatements ContradictionStatement[]
+  discoverySetSources   DiscoverySet[] @relation("DiscoverySetSource")
+  deficiencySources     DiscoveryDeficiency[] @relation("DeficiencySource")
+  authDocuments         AuthenticationRecord[] @relation("AuthDocument")
+  // Phase 3 back-relations
+  filingDocumentLinks   FilingDocumentLink[]
+  filingPackageItems    FilingPackageItem[]
+  filingVersions        FilingVersion[]
+  communicationAttachments CommunicationAttachment[]
+  citationOccurrences   CitationOccurrence[]
+  // Phase 4
+  deletedAt             DateTime? // soft-delete (Trash)
+  exhibitItems          ExhibitItem[]
+  binderItems           BinderItem[]
+  // Phase 5
+  docketSources         DocketSource[]
+
+  @@index([caseId])
+}
+
+model DocumentVersion {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version      Int
+  storageKey   String?
+  note         String?
+  createdAt    DateTime @default(now())
+}
+
+model DocumentCategory {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  label     String
+  order     Int      @default(0)
+}
+
+model DocumentTag {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  label      String
+}
+
+model DocumentRelationship {
+  id        String   @id @default(cuid())
+  fromId    String
+  from      Document @relation("fromDoc", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String
+  to        Document @relation("toDoc", fields: [toId], references: [id], onDelete: Cascade)
+  kind      String // "supersedes" | "exhibit-of" | "responds-to" | "relates-to"
+}
+
+// ----------------------------------------------------------------------------
+// Ingestion / extraction / review
+// ----------------------------------------------------------------------------
+
+model UploadJob {
+  id         String   @id @default(cuid())
+  caseId     String?
+  case       Case?    @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  originalName String
+  status     String   @default("received") // received|processing|classified|needs-review|failed
+  sourceLabel String?
+  createdAt  DateTime @default(now())
+
+  extractionResults ExtractionResult[]
+}
+
+model ExtractionResult {
+  id         String   @id @default(cuid())
+  uploadJobId String?
+  uploadJob  UploadJob? @relation(fields: [uploadJobId], references: [id], onDelete: SetNull)
+  documentId String?
+  document   Document?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  kind       String // "classification" | "deadline" | "hearing" | "fact" | "issue" | "task"
+  payload    String // JSON-encoded proposal
+  confidence Float?
+  provider   String? // AI provider that produced it (or "mock")
+  createdAt  DateTime @default(now())
+}
+
+model ReviewQueueItem {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind        String // document-classification|evidence|contradiction|admission|legal-issue|legal-element|discovery-extraction|discovery-deficiency|witness|authentication
+  title       String
+  proposal    String // JSON-encoded
+  confidence  Float?
+  provider    String?
+  sourceDocId String?
+  sourcePage  String?
+  reason      String? // why this needs review
+  status      String   @default("pending") // pending|approved|rejected|edited|deferred
+  createdAt   DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// Timeline, deadlines, tasks
+// ----------------------------------------------------------------------------
+
+model TimelineEvent {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  date               DateTime
+  time               String?
+  title              String
+  eventType          String // filing|service|hearing|order|discovery|communication|payment|fact|procedural|settlement
+  timelineType       String   @default("combined") // combined|procedural|factual|discovery|settlement
+  description        String?
+  sourceDocumentId   String?
+  sourceDocument     Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourcePage         Int?
+  relatedParty       String?
+  confidence         Float?
+  verificationStatus String   @default("confirmed") // proposed|confirmed|disputed|corrected
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  evidenceLinks EvidenceTimelineLink[]
+}
+
+model Deadline {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title              String
+  source             String // "extracted" | "calculated" | "manual"
+  triggeringEvent    String?
+  governingRule      String? // rule/authority; labeled as example when mocked
+  calcMethod         String? // "calendar" | "business"
+  weekendHolidayRule String?
+  serviceAdjustment  String?
+  dueDate            DateTime?
+  isMilestone        Boolean  @default(false)
+  confidence         Float?
+  verificationStatus String   @default("unverified") // unverified|confirmed|disputed
+  sourceDocumentId   String?
+  sourceDocument     Document? @relation(fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourcePage         Int?
+  done               Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  tasks              Task[]
+  calendarLinks      CalendarEventLink[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  why         String? // why it matters
+  priority    String   @default("normal") // low|normal|high|critical
+  dueDate     DateTime?
+  status      String   @default("open") // open|in-progress|blocked|done
+  isNextAction Boolean @default(false)
+  deadlineId  String?
+  deadline    Deadline? @relation(fields: [deadlineId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CalendarEventLink {
+  id         String   @id @default(cuid())
+  deadlineId String
+  deadline   Deadline @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
+  provider   String // "apple" | "google" | "outlook"
+  externalId String?
+  status     String   @default("pending") // pending|synced|failed
+  createdAt  DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// Legal issues
+// ----------------------------------------------------------------------------
+
+model Claim {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title       String
+  kind        String   @default("claim") // claim|counterclaim
+  byParty     String?
+  elements    String? // JSON list of elements/burdens
+  status      String   @default("active")
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Defense {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title       String
+  kind        String   @default("defense") // defense|affirmative-defense
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+// Unified legal-issue model backing Claims, Counterclaims, Defenses,
+// Affirmative Defenses, Procedural/Evidentiary issues, and Remedies. The
+// separate nav pages filter this model by `issueType`.
+model LegalIssue {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title          String
+  category       String   @default("substantive") // legacy: procedural|substantive|risk
+  issueType      String   @default("claim") // claim|counterclaim|defense|affirmative-defense|procedural|evidentiary|remedy
+  description    String?
+  summary        String?
+  assertingParty String?
+  opposingParty  String?
+  jurisdiction   String?
+  status         String   @default("asserted") // asserted|disputed|pending|dismissed|withdrawn|resolved|preserved|undecided
+  posture        String?
+  burdenHolder   String?
+  standard       String? // standard or burden of proof
+  requestedRelief String?
+  strengths      String?
+  weaknesses     String?
+  missingProof   String?
+  opposingPosition String?
+  assessment     String?
+  createdBy      String?
+  aiProvider     String?
+  confidence     Float?
+  verificationStatus String @default("proposed")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+
+  elements       LegalIssueElement[]
+  evidenceLinks  EvidenceLegalIssueLink[]
+  authorityLinks LegalIssueAuthorityLink[]
+  filingLinks    FilingLegalIssueLink[]
+}
+
+model LegalIssueElement {
+  id           String   @id @default(cuid())
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  number       Int
+  title        String
+  standard     String?
+  burdenHolder String?
+  status       String   @default("unsupported") // supported|partially-supported|disputed|unsupported|missing-evidence|legal-issue-unresolved|not-applicable
+  assessment   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+
+  evidenceLinks  EvidenceLegalIssueLink[]
+  authorityLinks LegalIssueAuthorityLink[]
+}
+
+// ---- Legal-issue join tables ----
+
+model EvidenceLegalIssueLink {
+  id           String   @id @default(cuid())
+  evidenceId   String
+  evidence     EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  elementId    String?
+  element      LegalIssueElement? @relation(fields: [elementId], references: [id], onDelete: SetNull)
+  relation     String   @default("supporting") // supporting|adverse|impeachment
+  createdAt    DateTime @default(now())
+
+  @@unique([evidenceId, legalIssueId, elementId, relation])
+}
+
+model LegalIssueAuthorityLink {
+  id           String   @id @default(cuid())
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  authorityId  String
+  authority    Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  elementId    String?
+  element      LegalIssueElement? @relation(fields: [elementId], references: [id], onDelete: SetNull)
+  proposition  String?
+  pinpoint     String?
+  createdAt    DateTime @default(now())
+}
+
+model EvidenceDiscoveryLink {
+  id                 String   @id @default(cuid())
+  evidenceId         String
+  evidence           EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  discoveryRequestId String
+  discoveryRequest   DiscoveryRequest @relation(fields: [discoveryRequestId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+
+  @@unique([evidenceId, discoveryRequestId])
+}
+
+model EvidenceTimelineLink {
+  id              String   @id @default(cuid())
+  evidenceId      String
+  evidence        EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  timelineEventId String
+  timelineEvent   TimelineEvent @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId, timelineEventId])
+}
+
+model EvidenceMotionLink {
+  id         String   @id @default(cuid())
+  evidenceId String
+  evidence   EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  motionId   String
+  motion     Motion @relation(fields: [motionId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId, motionId])
+}
+
+model EvidenceDocumentLink {
+  id         String   @id @default(cuid())
+  evidenceId String
+  evidence   EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page       String?
+
+  @@unique([evidenceId, documentId])
+}
+
+model Authority {
+  id           String   @id @default(cuid())
+  caseId       String
+  case         Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  citation     String
+  court        String?
+  jurisdiction String?
+  year         Int?
+  proposition  String? // proposition supported
+  summary      String?
+  url          String?
+  pinpoint     String?
+  quotedText   String?
+  treatment    String? // followed|distinguished|criticized|overruled
+  verificationStatus String @default("unverified") // AI citations stay unverified until opened
+  dateVerified DateTime?
+  createdAt    DateTime @default(now())
+
+  issueLinks LegalIssueAuthorityLink[]
+  filingLinks FilingAuthorityLink[]
+  verifications AuthorityVerification[]
+  citationOccurrences CitationOccurrence[]
+}
+
+// ----------------------------------------------------------------------------
+// Evidence
+// ----------------------------------------------------------------------------
+
+model EvidenceItem {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title              String
+  proposition        String? // concise factual proposition
+  description        String?
+  source             String?
+  sha256             String?
+  documentId         String? // primary source document
+  document           Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourcePage         String? // page or page range, e.g. "12-14"
+  quotedText         String? // extracted/quoted passage
+  eventDate          DateTime? // date of underlying event
+  // Phase 2 classifications (see lib/enums)
+  evidenceType       String? // documentary|testimonial|admission|...
+  posture            String? // supports-user|adverse|mixed|neutral|unknown
+  evidentiaryStatus  String? // identified|collected|reviewed|needs-authentication|...
+  authenticationStatus String? // not-started|needs-authentication|authenticated|...
+  relatedWitnessId   String?
+  relatedWitness     Witness? @relation(fields: [relatedWitnessId], references: [id], onDelete: SetNull)
+  // Exhibit prep (extends evidence per spec §29)
+  exhibitStatus      String   @default("not-selected")
+  exhibitLabel       String?
+  privilegeStatus    String? // none|privileged|confidential
+  anticipatedObjections String?
+  objectionResponse  String?
+  authenticationNote String?
+  foundationNote     String?
+  notes              String?
+  // Provenance / trust
+  createdBy          String? // "user" | "ai"
+  creationSource     String? // "manual" | "document" | "ai-extraction"
+  aiProvider         String?
+  confidence         Float?
+  disputed           Boolean  @default(false)
+  reviewStatus       String   @default("none") // none|queued|reviewed
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+
+  exhibits            Exhibit[]
+  legalIssueLinks     EvidenceLegalIssueLink[]
+  discoveryLinks      EvidenceDiscoveryLink[]
+  timelineLinks       EvidenceTimelineLink[]
+  motionLinks         EvidenceMotionLink[]
+  documentLinks       EvidenceDocumentLink[]
+  authenticationRecords AuthenticationRecord[]
+  filingLinks         FilingEvidenceLink[]
+  deletedAt           DateTime?
+}
+
+model Exhibit {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  label          String // "Exhibit A"
+  title          String?
+  evidenceItemId String?
+  evidenceItem   EvidenceItem? @relation(fields: [evidenceItemId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+}
+
+model Admission {
+  id               String   @id @default(cuid())
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title            String?
+  statement        String // exact admission or concise paraphrase
+  verbatimText     String? // verbatim source text where available
+  category         String? // rfa-response|pleading|affidavit|deposition|...
+  admittingParty   String?
+  byParty          String? // legacy alias
+  sourceRef        String?
+  documentId       String?
+  document         Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourcePage       String?
+  admissionDate    DateTime?
+  scope            String? // scope or qualification
+  disputed         Boolean  @default(false)
+  withdrawn        Boolean  @default(false)
+  significance     String?
+  createdBy        String?
+  aiProvider       String?
+  confidence       Float?
+  verificationStatus String @default("proposed")
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
+}
+
+model Contradiction {
+  id               String   @id @default(cuid())
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title            String?
+  summary          String
+  // Legacy quick fields kept for back-compat; richer statements live in ContradictionStatement.
+  statementA       String?
+  statementB       String?
+  explanation      String? // why they conflict
+  materiality      String? // high|medium|low
+  significance     String? // legal/strategic significance
+  status           String   @default("proposed") // proposed|confirmed|disputed|explained|resolved|immaterial|rejected
+  impeachment      Boolean  @default(false)
+  relatedWitnessId String?
+  relatedWitness   Witness? @relation(fields: [relatedWitnessId], references: [id], onDelete: SetNull)
+  createdBy        String?
+  aiProvider       String?
+  confidence       Float?
+  verificationStatus String @default("proposed")
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
+
+  statements       ContradictionStatement[]
+}
+
+model ContradictionStatement {
+  id              String   @id @default(cuid())
+  contradictionId String
+  contradiction   Contradiction @relation(fields: [contradictionId], references: [id], onDelete: Cascade)
+  label           String // "A", "B", "C" ...
+  text            String
+  documentId      String?
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourcePage      String?
+  author          String? // speaker / author / entity
+  statementDate   DateTime?
+  createdAt       DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// Discovery
+// ----------------------------------------------------------------------------
+
+model DiscoverySet {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title           String
+  discoveryType   String // interrogatories|rfp|rfa|subpoena|deposition-notice|...
+  servingParty    String?
+  respondingParty String?
+  servedDate      DateTime?
+  serviceMethod   String?
+  responseDeadline DateTime?
+  status          String   @default("served") // draft|served|received|response-due|partially-answered|completed|deficient|subject-to-motion|closed
+  sourceDocumentId String?
+  sourceDocument  Document? @relation("DiscoverySetSource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  certificateOfService Boolean @default(false)
+  governingRule   String?
+  createdBy       String?
+  aiProvider      String?
+  verificationStatus String @default("proposed")
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+
+  requests DiscoveryRequest[]
+}
+
+model DiscoveryRequest {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  setId       String?
+  set         DiscoverySet? @relation(fields: [setId], references: [id], onDelete: SetNull)
+  kind        String // interrogatory|rfp|rfa|deposition|subpoena
+  title       String
+  shortTitle  String?
+  requestNumber Int?
+  requestText String? // exact request text
+  direction   String   @default("outgoing") // outgoing|incoming
+  servingParty String?
+  respondingParty String?
+  servedDate  DateTime?
+  dueDate     DateTime?
+  // Response captured inline for quick comparison; richer history in DiscoveryResponse.
+  responseText String?
+  objections  String?
+  admissionResponse String? // admit|deny|qualified (for RFAs)
+  batesRange  String?
+  deficiencyStatus String? // none|suspected|confirmed
+  supplementationStatus String?
+  meetConferStatus String?
+  motionStatus String?
+  sourcePage  String?
+  status      String   @default("open")
+  verificationStatus String @default("proposed")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt @default(now())
+
+  responses     DiscoveryResponse[]
+  deficiencies  DiscoveryDeficiency[]
+  evidenceLinks EvidenceDiscoveryLink[]
+  filingLinks   FilingDiscoveryLink[]
+}
+
+model DiscoveryResponse {
+  id                 String   @id @default(cuid())
+  discoveryRequestId String
+  discoveryRequest   DiscoveryRequest @relation(fields: [discoveryRequestId], references: [id], onDelete: Cascade)
+  summary            String?
+  responseText       String?
+  objections         String?
+  verificationText   String? // signed verification present?
+  batesRange         String?
+  supplemental       Boolean  @default(false)
+  servedDate         DateTime?
+  hasDeficiencies    Boolean  @default(false)
+  deficiencyNote     String?
+  createdAt          DateTime @default(now())
+}
+
+model DiscoveryDeficiency {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  discoveryRequestId String?
+  discoveryRequest   DiscoveryRequest? @relation(fields: [discoveryRequestId], references: [id], onDelete: SetNull)
+  title              String
+  category           String // no-response|late-response|incomplete|evasive|boilerplate-objection|...
+  explanation        String?
+  responseText       String?
+  sourceDocumentId   String?
+  sourceDocument     Document? @relation("DeficiencySource", fields: [sourceDocumentId], references: [id], onDelete: SetNull)
+  sourcePage         String?
+  missingInformation String?
+  governingRule      String?
+  dateIdentified     DateTime?
+  cureRequested      Boolean  @default(false)
+  cureDeadline       DateTime?
+  meetConferStatus   String?
+  opposingResponse   String?
+  resolutionStatus   String   @default("proposed") // proposed|confirmed|raised|awaiting-cure|partially-cured|cured|disputed|included-in-motion|waived|closed
+  motionStatus       String?
+  createdBy          String?
+  aiProvider         String?
+  confidence         Float?
+  verificationStatus String   @default("proposed")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model MeetAndConferRecord {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title           String
+  communicationDate DateTime?
+  communicationType String? // letter|email|telephone|certification|follow-up
+  participants    String?
+  summary         String?
+  demand          String? // requested cure
+  cureDeadline    DateTime?
+  responseReceived String?
+  status          String   @default("open") // open|awaiting-response|resolved|escalated
+  communicationId String?
+  communication   Communication? @relation(fields: [communicationId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+}
+
+model Subpoena {
+  id               String   @id @default(cuid())
+  caseId           String
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  subpoenaType     String // documents|testimony|both
+  issuingCourt     String?
+  recipient        String
+  requested        String? // documents or testimony requested
+  dateIssued       DateTime?
+  dateServed       DateTime?
+  serviceMethod    String?
+  complianceDate   DateTime?
+  objectionsDeadline DateTime?
+  objectionsReceived String?
+  productionReceived Boolean @default(false)
+  custodianInfo    String?
+  status           String   @default("draft") // draft|issued|served|objected|complied|enforcement|closed
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
+}
+
+model Deposition {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  witnessId      String?
+  witness        Witness? @relation(fields: [witnessId], references: [id], onDelete: SetNull)
+  noticeDate     DateTime?
+  depositionDate DateTime?
+  location       String?
+  examiningParty String?
+  defendingParty String?
+  topics         String?
+  transcriptPages String?
+  keyAdmissions  String?
+  status         String   @default("noticed") // noticed|scheduled|taken|transcript-pending|complete
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model AuthenticationRecord {
+  id                  String   @id @default(cuid())
+  caseId              String
+  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidenceId          String?
+  evidence            EvidenceItem? @relation(fields: [evidenceId], references: [id], onDelete: SetNull)
+  documentId          String?
+  document            Document? @relation("AuthDocument", fields: [documentId], references: [id], onDelete: SetNull)
+  authenticatingWitness String?
+  businessRecordCert  Boolean  @default(false)
+  publicRecordBasis   Boolean  @default(false)
+  selfAuthTheory      String?
+  custodianDeclaration Boolean @default(false)
+  chainOfCustody      String?
+  originalVsCopy      String?
+  hearsayConcern      String?
+  hearsayException    String?
+  bestEvidenceConcern String?
+  completenessConcern String?
+  foundationChecklist String? // JSON list
+  status              String   @default("unresolved") // unresolved|in-progress|resolved
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// Motions & filings
+// ----------------------------------------------------------------------------
+
+model Motion {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title     String
+  kind      String // motion|response|reply|notice|proposed-order
+  status    String   @default("pending") // pending|filed|granted|denied|withdrawn
+  filedDate DateTime?
+  hearingDate DateTime?
+  createdAt DateTime @default(now())
+
+  evidenceLinks EvidenceMotionLink[]
+}
+
+model Filing {
+  id            String   @id @default(cuid())
+  caseId        String
+  case          Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title         String
+  formalTitle   String?
+  shortTitle    String?
+  filingType    String? // see lib/enums FILING_TYPES
+  filingParty   String?
+  respondingParty String?
+  motionId      String?
+  deadlineId    String?
+  dueDate       DateTime?
+  plannedFilingDate DateTime?
+  actualFilingDate  DateTime?
+  filedDate     DateTime?
+  status        String   @default("draft") // draft|filed|served (legacy)
+  stage         String   @default("planned") // lifecycle stage — see lib/enums FILING_STAGES
+  portalType    String? // peachcourt|pacer|other
+  portalUrl     String?
+  docketNumber  String?
+  description   String?
+  purpose       String?
+  requestedRelief String?
+  governingRules String?
+  confidentiality String @default("public")
+  certificateOfService Boolean @default(false)
+  createdBy     String?
+  aiProvenance  String?
+  verificationStatus String @default("confirmed")
+  deletedAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+
+  stageHistory      FilingStageHistory[]
+  legalIssueLinks   FilingLegalIssueLink[]
+  evidenceLinks     FilingEvidenceLink[]
+  authorityLinks    FilingAuthorityLink[]
+  discoveryLinks    FilingDiscoveryLink[]
+  documentLinks     FilingDocumentLink[]
+  checklistItems    FilingChecklistItem[]
+  versions          FilingVersion[]
+  submissions       FilingSubmission[]
+  packages          FilingPackage[]
+  certificates      CertificateOfService[]
+  serviceEvents     ServiceEvent[]
+  communications    Communication[] @relation("FilingComms")
+  citationOccurrences CitationOccurrence[]
+  aiDraftRuns       AIDraftRun[]
+  draftReviewIssues DraftReviewIssue[]
+}
+
+// ----------------------------------------------------------------------------
+// Communications
+// ----------------------------------------------------------------------------
+
+model Communication {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  kind      String // email|letter|call|voicemail|text|meeting|video|court|clerk|process-server|opposing-counsel|settlement|meet-confer|internal|other
+  direction String   @default("outbound") // inbound|outbound|internal|court-originated|third-party
+  sender    String?
+  recipients String?
+  cc        String?
+  subject   String?
+  summary   String?
+  fullText  String?
+  withParty String?
+  occurredAt DateTime?
+  relatedFilingId String?
+  filing    Filing?  @relation("FilingComms", fields: [relatedFilingId], references: [id], onDelete: SetNull)
+  followUpRequired Boolean @default(false)
+  followUpDate DateTime?
+  confidentiality String @default("public") // public|confidential|privileged|work-product|settlement|...
+  privilege String?
+  settlementComm Boolean @default(false)
+  createdBy String?
+  verificationStatus String @default("confirmed")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  meetAndConfers MeetAndConferRecord[]
+  attachments    CommunicationAttachment[]
+  deletedAt      DateTime?
+}
+
+// ----------------------------------------------------------------------------
+// Strategy
+// ----------------------------------------------------------------------------
+
+model StrategyNote {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  category  String // objective|next-move|leverage|settlement|opposing-position|general
+  title     String
+  body      String?
+  createdAt DateTime @default(now())
+}
+
+// Immutable-by-convention: never edit substance; supersede with a new entry.
+model DecisionLogEntry {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title           String?
+  decision        String
+  issueConsidered String?
+  options         String?
+  selectedOption  String?
+  rationale       String?
+  risks           String?
+  counterarguments String?
+  assumptions     String?
+  expectedResult  String?
+  actualResult    String?
+  reviewDate      DateTime?
+  supersededById  String?
+  decidedBy       String?
+  aiContribution  String?
+  decidedAt       DateTime @default(now())
+}
+
+model DamageItem {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  label          String
+  category       String? // see lib/enums DAMAGE_CATEGORIES
+  amount         Float?
+  currency       String   @default("USD")
+  dateRange      String?
+  calculationMethod String?
+  formula        String?
+  assumptions    String?
+  causationTheory String?
+  mitigation     String?
+  amountsRecovered Float?
+  duplicationConcern String?
+  basis          String?
+  verificationStatus String @default("proposed")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// Research
+// ----------------------------------------------------------------------------
+
+model ResearchItem {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  question  String
+  findings  String?
+  sourceUrl String?
+  provider  String? // e.g. "perplexity" | "mock"
+  createdAt DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// AI
+// ----------------------------------------------------------------------------
+
+model AIConversation {
+  id         String   @id @default(cuid())
+  caseId     String
+  case       Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  scope      String   @default("case") // "case" | "document"
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  title      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  messages AIMessage[]
+  runs     AIProviderRun[]
+}
+
+model AIMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // "user" | "assistant" | "system"
+  content        String
+  provider       String?
+  createdAt      DateTime @default(now())
+
+  output AIOutput?
+}
+
+model AIProviderRun {
+  id             String   @id @default(cuid())
+  conversationId String?
+  conversation   AIConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  provider       String
+  task           String // "strategy" | "review" | "research" | "extraction" | ...
+  prompt         String
+  status         String   @default("completed") // queued|running|completed|failed
+  sourceRefs     String? // JSON: [{documentId, page}]
+  createdAt      DateTime @default(now())
+}
+
+model AIOutput {
+  id                 String   @id @default(cuid())
+  messageId          String   @unique
+  message            AIMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  destination        String? // evidence|timeline|task|strategy|draft|contradiction|research|note
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// Integrations, storage, audit, notes
+// ----------------------------------------------------------------------------
+
+model Integration {
+  id           String   @id @default(cuid())
+  key          String   @unique // "openai" | "peachcourt" | "google-calendar" ...
+  name         String
+  category     String // "ai" | "storage" | "calendar" | "court" | "pdf"
+  status       String   @default("unavailable") // connected|mock|unavailable
+  config       String? // JSON, non-secret config only
+  lastSyncedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model StorageLocation {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  provider  String // "local" | "icloud" | "onedrive"
+  label     String
+  path      String?
+  createdAt DateTime @default(now())
+}
+
+model CaseNote {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String?
+  entityId  String?
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+// ============================================================================
+// PHASE 3 — Filing, Service, Communications, Research, Strategy, Settlement
+// (Additive. Existing models extended separately with nullable fields.)
+// ============================================================================
+
+model FilingStageHistory {
+  id        String   @id @default(cuid())
+  filingId  String
+  filing    Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  fromStage String?
+  toStage   String
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model FilingLegalIssueLink {
+  id           String   @id @default(cuid())
+  filingId     String
+  filing       Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  legalIssueId String
+  legalIssue   LegalIssue @relation(fields: [legalIssueId], references: [id], onDelete: Cascade)
+  @@unique([filingId, legalIssueId])
+}
+
+model FilingEvidenceLink {
+  id         String   @id @default(cuid())
+  filingId   String
+  filing     Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  evidenceId String
+  evidence   EvidenceItem @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  relation   String   @default("supporting") // supporting|adverse
+  @@unique([filingId, evidenceId, relation])
+}
+
+model FilingAuthorityLink {
+  id          String   @id @default(cuid())
+  filingId    String
+  filing      Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  authorityId String
+  authority   Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  pinpoint    String?
+  @@unique([filingId, authorityId])
+}
+
+model FilingDiscoveryLink {
+  id                 String   @id @default(cuid())
+  filingId           String
+  filing             Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  discoveryRequestId String
+  discoveryRequest   DiscoveryRequest @relation(fields: [discoveryRequestId], references: [id], onDelete: Cascade)
+  @@unique([filingId, discoveryRequestId])
+}
+
+model FilingDocumentLink {
+  id         String   @id @default(cuid())
+  filingId   String
+  filing     Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  role       String?  // primary|brief|exhibit|proposed-order|certificate|form
+  pageRange  String?
+  @@unique([filingId, documentId, role])
+}
+
+model FilingChecklistItem {
+  id            String   @id @default(cuid())
+  filingId      String
+  filing        Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  category      String   // case-identity|document-identity|timing|content|format|components|service
+  label         String
+  status        String   @default("incomplete") // not-applicable|incomplete|needs-review|complete|blocked|waived
+  overrideReason String?
+  custom        Boolean  @default(false)
+  isWarning     Boolean  @default(false) // auto QC warning vs. manual checklist item
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+}
+
+model FilingVersion {
+  id             String   @id @default(cuid())
+  filingId       String
+  filing         Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  label          String   // initial-draft|revised-draft|citation-reviewed|final-for-filing|filed-copy|filed-stamped|served-copy|...
+  contentText    String?  // in-app rich/plain draft text
+  storageKey     String?  // uploaded revision blob
+  documentId     String?
+  document       Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  changesSummary String?
+  reviewStatus   String   @default("draft") // draft|reviewed|approved
+  approvalStatus String   @default("pending") // pending|final-for-filing
+  hash           String?
+  createdBy      String?
+  sourceVersionId String?
+  createdAt      DateTime @default(now())
+}
+
+model FilingSubmission {
+  id                 String   @id @default(cuid())
+  filingId           String
+  filing             Filing   @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  portal             String?
+  submittedAt        DateTime?
+  confirmationNumber String?
+  filingFee          String?
+  docketNumber       String?
+  status             String   @default("submitted") // submitted|accepted|rejected|correction-required|corrected|filed
+  receiptNote        String?
+  createdAt          DateTime @default(now())
+}
+
+model FilingPackage {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId  String?
+  filing    Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  title     String
+  portal    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  items     FilingPackageItem[]
+}
+
+model FilingPackageItem {
+  id              String   @id @default(cuid())
+  packageId       String
+  package         FilingPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  order           Int      @default(0)
+  label           String
+  documentId      String?
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  pageRange       String?
+  confidentiality String   @default("public")
+  separateUpload  Boolean  @default(false)
+  exhibitDesignation String?
+}
+
+model CertificateOfService {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  filing             Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  serviceDate        DateTime?
+  servingParty       String?
+  method             String?
+  recipientsText     String?
+  statementText      String?
+  filedStatus        String   @default("draft") // draft|final|filed
+  verificationStatus String   @default("proposed")
+  createdBy          String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model ServiceRecipient {
+  id              String   @id @default(cuid())
+  caseId          String
+  case            Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  name            String
+  organization    String?
+  role            String?
+  representedParty String?
+  mailingAddress  String?
+  serviceAddress  String?
+  email           String?
+  efileParticipant Boolean @default(false)
+  preferredMethod String?
+  lastVerified    DateTime?
+  sourceOfAddress String?
+  active          Boolean  @default(true)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt @default(now())
+  serviceEvents   ServiceEvent[]
+}
+
+model ServiceEvent {
+  id            String   @id @default(cuid())
+  caseId        String
+  case          Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId      String?
+  filing        Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  recipientId   String?
+  recipient     ServiceRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+  recipientName String
+  servingParty  String?
+  serviceDate   DateTime?
+  serviceMethod String?
+  address       String?
+  trackingNumber String?
+  deliveryStatus String  @default("sent") // sent|delivered|accepted|refused|disputed|returned
+  disputed      Boolean  @default(false)
+  deadlineId    String?  // soft link
+  verificationStatus String @default("proposed")
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model CommunicationAttachment {
+  id              String   @id @default(cuid())
+  communicationId String
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  documentId      String?
+  document        Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  name            String
+  createdAt       DateTime @default(now())
+}
+
+model AuthorityVerification {
+  id          String   @id @default(cuid())
+  authorityId String
+  authority   Authority @relation(fields: [authorityId], references: [id], onDelete: Cascade)
+  step        String // exists|court-year|quotation|pinpoint|proposition|treatment|controlling
+  status      String   @default("pending") // pending|confirmed|failed
+  note        String?
+  createdAt   DateTime @default(now())
+}
+
+model CitationOccurrence {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  filing             Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  documentId         String?
+  document           Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  citationText       String
+  location           String?
+  authorityId        String?
+  authority          Authority? @relation(fields: [authorityId], references: [id], onDelete: SetNull)
+  quotedProposition  String?
+  confidence         Float?
+  provider           String?
+  flags              String? // JSON list of warnings
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+}
+
+model ResearchQuestion {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  question           String
+  legalIssueId       String?
+  jurisdiction       String?
+  priority           String   @default("normal")
+  status             String   @default("open") // open|researching|preliminary-answer|verification-needed|complete|superseded|abandoned
+  searchTerms        String?
+  conclusion         String?
+  contraryAuthority  String?
+  verificationStatus String   @default("proposed")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model ResearchMemorandum {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  title              String
+  issuePresented     String?
+  briefAnswer        String?
+  facts              String?
+  jurisdiction       String?
+  analysis           String?
+  conclusion         String?
+  unresolved         String?
+  createdBy          String?
+  aiProvider         String?
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model StrategyItem {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  recordType         String   @default("objective") // objective|next-move|leverage|vulnerability|risk|opportunity|opposing-move|contingency|settlement|hearing|discovery|filing|evidentiary|appeal|unresolved
+  title              String
+  description        String?
+  priority           String   @default("normal")
+  status             String   @default("active") // proposed|active|monitoring|blocked|completed|rejected|superseded|contingency|unresolved
+  timeframe          String?
+  assumptions        String?
+  risks              String?
+  counterarguments   String?
+  confidence         Float?
+  sourceType         String?  // user|ai
+  aiProvider         String?
+  relatedLegalIssueId String?
+  relatedEvidenceId  String?
+  relatedFilingId    String?
+  supersededById     String?
+  verificationStatus String   @default("confirmed")
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model StrategySnapshot {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  label     String
+  summary   String   // JSON snapshot of strategy items at a point in time
+  createdAt DateTime @default(now())
+}
+
+model OpposingPosition {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  party              String?
+  issue              String
+  positionSummary    String?
+  exactStatement     String?
+  sourceDocumentId   String?
+  sourcePage         String?
+  positionDate       DateTime?
+  weaknesses         String?
+  userResponse       String?
+  status             String   @default("active")
+  relatedFilingId    String?
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model SettlementRecord {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  offerType          String // demand|offer|counteroffer|mediation|informal|nonmonetary|consent-order|withdrawn|expired
+  direction          String   @default("outbound")
+  sender             String?
+  recipient          String?
+  offerDate          DateTime?
+  monetaryAmount     Float?
+  nonmonetaryTerms   String?
+  releaseScope       String?
+  confidentiality    String?
+  dismissalTerms     String?
+  paymentTerms       String?
+  creditReportingTerms String?
+  taxTerms           String?
+  deadline           DateTime?
+  status             String   @default("open") // open|pending|accepted|rejected|withdrawn|expired|superseded
+  sourceCommunicationId String?
+  strategicAssessment String?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt @default(now())
+  terms              SettlementTerm[]
+}
+
+model SettlementTerm {
+  id           String   @id @default(cuid())
+  settlementId String
+  settlement   SettlementRecord @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  label        String
+  value        String?
+  category     String?
+}
+
+model Remedy {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  remedyType     String
+  description    String?
+  legalBasis     String?
+  legalIssueId   String?
+  status         String   @default("requested")
+  opposingPosition String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model AIDraftRun {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId           String?
+  filing             Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  provider           String
+  task               String
+  sourceScope        String   // JSON describing the approved source scope
+  prompt             String
+  output             String
+  userEdits          String?
+  destinationFilingId String?
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+}
+
+model DraftReviewIssue {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  filingId    String?
+  filing      Filing?  @relation(fields: [filingId], references: [id], onDelete: SetNull)
+  location    String?
+  issueType   String
+  explanation String?
+  severity    String   @default("warning") // info|warning|high
+  confidence  Float?
+  status      String   @default("open") // open|resolved|overridden
+  createdAt   DateTime @default(now())
+}
+
+// ============================================================================
+// PHASE 4 — Search, Exhibits/Binders, Calendar, Notifications, Backup/Export,
+// Trash, Security. (Additive. deletedAt added to a few models separately.)
+// ============================================================================
+
+model SearchIndexEntry {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  recordType         String   // document|evidence|filing|discovery|deadline|task|communication|authority|strategy|admission|contradiction|legal-issue|timeline|research
+  recordId           String
+  title              String
+  body               String?  // searchable text (page-level for docs)
+  page               Int?     // page-level results
+  confidentiality    String   @default("public")
+  createdBy          String?  // user|ai
+  verificationStatus String?
+  indexedAt          DateTime @default(now())
+
+  @@index([caseId, recordType])
+}
+
+model SavedSearch {
+  id                String   @id @default(cuid())
+  caseId            String?  // null = global scope
+  case              Case?    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title             String
+  description       String?
+  scope             String   @default("case") // case|global
+  query             String
+  filters           String?  // JSON
+  sort              String?
+  isSmartCollection Boolean  @default(false)
+  pinned            Boolean  @default(false)
+  notify            Boolean  @default(false)
+  lastRunAt         DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+}
+
+model ExhibitSet {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title          String
+  purpose        String?
+  kind           String   @default("hearing") // hearing|motion|deposition|discovery|trial|settlement|custom
+  numberingStyle String   @default("numeric") // numeric|alpha|plaintiff-numeric|defendant-alpha|px|dx|joint|custom
+  relatedFilingId String?
+  confidentiality String  @default("public")
+  status         String   @default("draft")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+  items          ExhibitItem[]
+}
+
+model ExhibitItem {
+  id                   String   @id @default(cuid())
+  exhibitSetId         String
+  exhibitSet           ExhibitSet @relation(fields: [exhibitSetId], references: [id], onDelete: Cascade)
+  documentId           String?
+  document             Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  sourceVersionLabel   String?
+  pageRange            String?
+  exhibitNumber        String
+  title                String?
+  description          String?
+  relatedEvidenceId    String?
+  authenticationStatus String   @default("not-started")
+  redactionStatus      String   @default("no-redaction-needed")
+  confidentiality      String   @default("public")
+  included             Boolean  @default(true)
+  pageCount            Int?
+  outputFilename       String?
+  notes                String?
+  createdAt            DateTime @default(now())
+}
+
+model BatesJob {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  prefix         String
+  startNumber    Int      @default(1)
+  digitCount     Int      @default(6)
+  suffix         String?
+  scope          String   @default("document") // document|exhibit-set|binder
+  firstNumber    String?
+  lastNumber     String?
+  totalPages     Int?
+  derivativeDocumentId String? // new derivative; source never altered
+  status         String   @default("completed")
+  createdAt      DateTime @default(now())
+}
+
+model Binder {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  title          String
+  kind           String   @default("hearing") // complete|hearing|motion|discovery|evidence|deposition|settlement|research|custom
+  purpose        String?
+  relatedFilingId String?
+  coverPage      Boolean  @default(true)
+  tableOfContents Boolean @default(true)
+  batesEnabled   Boolean  @default(false)
+  confidentiality String  @default("public")
+  outputFormat   String   @default("manifest") // pdf|manifest|zip
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
+  sections       BinderSection[]
+}
+
+model BinderSection {
+  id        String   @id @default(cuid())
+  binderId  String
+  binder    Binder   @relation(fields: [binderId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int      @default(0)
+  items     BinderItem[]
+}
+
+model BinderItem {
+  id         String   @id @default(cuid())
+  sectionId  String
+  section    BinderSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  label      String
+  pageRange  String?
+  order      Int      @default(0)
+}
+
+model CalendarConnection {
+  id               String   @id @default(cuid())
+  provider         String   // apple|google|outlook
+  status           String   @default("mocked") // not-configured|mocked|connected|error|disabled
+  isDefault        Boolean  @default(false)
+  defaultCalendarId String?
+  syncMode         String   @default("confirmed-auto") // manual|confirmed-auto|selected-category|no-sync
+  categories       String?  // JSON list of event types
+  lastSyncedAt     DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt @default(now())
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  scope     String   @default("global") // global|case
+  caseId    String?
+  channels  String   // JSON: {dashboard, email, push, digestDaily, digestWeekly}
+  schedule  String?  // JSON reminder offsets
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+model Notification {
+  id           String   @id @default(cuid())
+  caseId       String?
+  case         Case?    @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  notifKey     String   // dedupe key
+  title        String
+  body         String?
+  priority     String   @default("normal") // critical|high|normal|low|informational
+  channel      String   @default("dashboard")
+  status       String   @default("unread") // unread|read|acknowledged|snoozed|dismissed
+  relatedType  String?
+  relatedId    String?
+  snoozeUntil  DateTime?
+  sentAt       DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model NotificationDigest {
+  id        String   @id @default(cuid())
+  period    String   // daily|weekly
+  content   String   // JSON
+  createdAt DateTime @default(now())
+}
+
+model Backup {
+  id               String   @id @default(cuid())
+  type             String   // database|full|manual|pre-migration|pre-import|pre-restore
+  scope            String   @default("full")
+  startedAt        DateTime @default(now())
+  completedAt      DateTime?
+  status           String   @default("completed") // running|completed|failed
+  sizeBytes        Int?
+  location         String?
+  encrypted        Boolean  @default(true)
+  checksum         String?
+  retentionAt      DateTime?
+  verifiedAt       DateTime?
+  restoreTestStatus String  @default("untested") // untested|passed|failed
+  error            String?
+}
+
+model RestorePreview {
+  id        String   @id @default(cuid())
+  backupId  String
+  summary   String   // JSON
+  createdAt DateTime @default(now())
+}
+
+model CaseExport {
+  id                     String   @id @default(cuid())
+  caseId                 String
+  case                   Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  scope                  String   @default("full") // full|external-sharing|documents-only
+  status                 String   @default("completed")
+  manifest               String?  // JSON
+  includesConfidential   Boolean  @default(false)
+  encrypted              Boolean  @default(false)
+  createdAt              DateTime @default(now())
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String   // login|failed-login|2fa-failure|new-device|session-revoked|integration-connected|integration-disconnected|export-created|backup-created|restore-initiated|permanent-deletion|suspicious-upload|authorization-failure|rate-limit
+  detail    String?
+  ip        String?
+  device    String?
+  createdAt DateTime @default(now())
+}
+
+model AppSession {
+  id           String   @id @default(cuid())
+  userId       String
+  device       String?
+  ip           String?
+  lastActiveAt DateTime @default(now())
+  revokedAt    DateTime?
+  createdAt    DateTime @default(now())
+}
+
+model SelectedFolder {
+  id         String   @id @default(cuid())
+  provider   String   // icloud|local|onedrive
+  path       String
+  status     String   @default("mock") // mock|monitoring|error|disconnected
+  lastScanAt DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model BackgroundJob {
+  id          String   @id @default(cuid())
+  type        String   // indexing|ocr|ai-extraction|binder|bates|backup|export|calendar-sync|notification|integration-sync|cleanup
+  status      String   @default("queued") // queued|running|completed|failed|canceled
+  priority    String   @default("normal")
+  payloadRef  String?
+  progress    Int      @default(0)
+  attempts    Int      @default(0)
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+}
+
+// ============================================================================
+// PHASE 5 — Advanced AI analysis, Docket monitoring, Mac companion, 2FA,
+// AI privacy modes, provider usage. (Additive.)
+// ============================================================================
+
+model CaseReview {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  version   Int      @default(1)
+  status    String   @default("complete") // running|complete|failed
+  provider  String   @default("mock")
+  sections  String   // JSON: [{key,title,findings:[{text, sourceType, sourceRefs, verificationStatus}]}]
+  summary   String?
+  createdAt DateTime @default(now())
+
+  @@index([caseId])
+}
+
+model DocketSource {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  sourceType         String   // manual|docket-sheet|court-notice|filing-confirmation|pacer|peachcourt|public|rss|third-party|clerk
+  retrievalMethod    String?  // upload|external-link|manual|email
+  retrievalDate      DateTime @default(now())
+  externalReference  String?
+  reliability        String   @default("user-entered") // official|user-entered|third-party
+  documentId         String?
+  document           Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  verificationStatus String   @default("proposed")
+  createdAt          DateTime @default(now())
+
+  entries DocketEntry[]
+}
+
+model DocketEntry {
+  id                 String   @id @default(cuid())
+  caseId             String
+  case               Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  entryNumber        String?
+  filingDate         DateTime?
+  enteredDate        DateTime?
+  title              String
+  description        String?
+  filingParty        String?
+  documentNumber     String?
+  sourceId           String?
+  source             DocketSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  courtLink          String?
+  relatedFilingId    String?
+  deadlineImplication String?
+  serviceImplication String?
+  reviewStatus       String   @default("pending") // pending|reviewed
+  verificationStatus String   @default("proposed")
+  createdBy          String?
+  notes              String?
+  createdAt          DateTime @default(now())
+
+  // Dedupe key components: case + entryNumber + documentNumber.
+  @@unique([caseId, entryNumber, documentNumber])
+  @@index([caseId])
+}
+
+model DocketMonitor {
+  id            String   @id @default(cuid())
+  caseId        String   @unique
+  case          Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  provider      String   @default("manual") // manual|pacer-external|peachcourt-external|public
+  schedule      String   @default("manual") // manual|daily|weekdays|weekly
+  status        String   @default("manual-only") // manual-only|active|error|unavailable
+  lastCheckedAt DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+}
+
+model CompanionDevice {
+  id               String   @id @default(cuid())
+  userId           String
+  deviceName       String
+  platform         String   @default("mac")
+  tokenHash        String   // SHA-256 of the device token; the token itself is never stored
+  permittedFolders String?  // JSON list of {path, caseId?, mode}
+  registeredAt     DateTime @default(now())
+  lastActiveAt     DateTime?
+  expiresAt        DateTime?
+  revokedAt        DateTime?
+
+  @@index([userId])
+}
+
+model DeviceRegistrationCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model TwoFactorSecret {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  secret        String   // TOTP secret (server-side only)
+  enabled       Boolean  @default(false)
+  recoveryCodes String?  // JSON list of hashed recovery codes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt @default(now())
+}
+
+model CaseAiSetting {
+  id               String   @id @default(cuid())
+  caseId           String   @unique
+  case             Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  mode             String   @default("manual") // disabled|manual|approved-automation|local-only
+  providerAllowlist String? // JSON list of allowed provider keys
+  allowConfidential Boolean @default(false)
+  updatedAt        DateTime @updatedAt @default(now())
+}
+
+model ProviderUsage {
+  id        String   @id @default(cuid())
+  caseId    String?
+  provider  String
+  task      String
+  tokens    Int?
+  costCents Int?
+  status    String   @default("completed")
+  createdAt DateTime @default(now())
+
+  @@index([provider])
+}
+
+/* ============================ PHASE 6 ============================ */
+
+// Launch-readiness gate runs — a log of every `npm run launch:check`.
+model LaunchCheckRun {
+  id         String   @id @default(cuid())
+  userId     String?
+  environment String  @default("development")
+  overall    String   // pass|warning|failure
+  passCount  Int      @default(0)
+  warnCount  Int      @default(0)
+  failCount  Int      @default(0)
+  results    String   // JSON: [{key,label,level,detail}]
+  appVersion String?
+  schemaVersion String?
+  acknowledgedWarnings String? // JSON list of acknowledged warning keys
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Production blocker register (Phase 6 §4).
+model ProductionBlocker {
+  id           String   @id @default(cuid())
+  title        String
+  subsystem    String   // authentication|authorization|database|storage|search|jobs|backup|restore|export|companion|mobile|ai-privacy|audit|security|performance|deployment|integrations
+  description  String
+  severity     String   @default("launch-blocker") // launch-blocker|high-post-launch|defect|enhancement|deferred|unsupported
+  impact       String?
+  reproduction String?
+  resolution   String?
+  owner        String   @default("owner")
+  status       String   @default("open") // open|in-progress|resolved|accepted-risk|deferred
+  testingRequired String?
+  deploymentDependency String?
+  rollbackImpact String?
+  resolvedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+
+  @@index([status])
+  @@index([severity])
+}
+
+// A controlled real-case migration batch (Phase 6 §31–37). Non-destructive:
+// rollback removes only the app records this batch created; source files and
+// audit history are preserved.
+model MigrationBatch {
+  id           String   @id @default(cuid())
+  caseId       String
+  userId       String?
+  label        String
+  sourcePath   String?
+  mode         String   @default("dry-run") // dry-run|pilot|full
+  status       String   @default("planned") // planned|inventoried|importing|complete|rolled-back|failed
+  totalFiles   Int      @default(0)
+  processed    Int      @default(0)
+  duplicates   Int      @default(0)
+  needsReview  Int      @default(0)
+  unreadable   Int      @default(0)
+  failed       Int      @default(0)
+  backupRef    String?  // pre-migration backup reference (required before a real import)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+
+  items MigrationItem[]
+
+  @@index([caseId])
+  @@index([status])
+}
+
+// One source file in a migration batch — the preserved source inventory.
+model MigrationItem {
+  id            String   @id @default(cuid())
+  batchId       String
+  batch         MigrationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  fileName      String
+  sourcePath    String?
+  sizeBytes     Int?
+  extension     String?
+  hash          String?
+  likelyDate    DateTime?
+  likelyType    String?
+  duplicateGroup String?
+  versionGroup  String?
+  unreadable    Boolean  @default(false)
+  passwordProtected Boolean @default(false)
+  classification String  @default("pending") // pending|routine|needs-review|duplicate|version|quarantined|failed
+  confidence    Float?
+  // App records this item created (for rollback). JSON: {documentId?, versionId?, indexIds?}
+  createdRecords String?
+  migrationStatus String @default("pending") // pending|imported|skipped|rolled-back
+  createdAt     DateTime @default(now())
+
+  @@index([batchId])
+  @@index([hash])
+}
+
+/* ============================ COMMERCIAL SYSTEMS (single source of truth) ============================ */
+// All money is integer minor units (US cents). No floating-point currency.
+// Models are relation-free (plain userId/planCode + @@index) so the commercial
+// domain is fully additive and never disturbs litigation models. The DB-backed
+// CommercialPlan/PlanPrice/PlanEntitlement records are THE authoritative source
+// for the website, checkout, Stripe mappings, and entitlement enforcement.
+
+model PricingVersion {
+  id          String   @id @default(cuid())
+  version     String   @unique          // e.g. "2026.1"
+  name        String
+  active      Boolean  @default(true)    // is this offered to NEW customers?
+  effectiveFrom DateTime @default(now())
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model CommercialPlan {
+  id             String   @id @default(cuid())
+  code           String   @unique        // ESSENTIALS | PRO | COMMAND
+  name           String
+  tagline        String?
+  tierOrder      Int      @default(0)     // display + upgrade/downgrade ordering
+  badge          String?                  // "Most Popular" | "Best for Complex Litigation"
+  pricingVersion String   @default("2026.1")
+  trialEligible  Boolean  @default(true)
+  active         Boolean  @default(true)  // offered to new customers
+  createdAt      DateTime @default(now())
+
+  @@index([pricingVersion])
+}
+
+model PlanPrice {
+  id           String   @id @default(cuid())
+  planCode     String
+  interval     String   // monthly | annual
+  cadence      String   @default("standard") // standard | founding
+  amount       Int      // cents
+  currency     String   @default("USD")
+  stripePriceId String?
+  effectiveFrom DateTime @default(now())
+  active       Boolean  @default(true)
+
+  @@unique([planCode, interval, cadence, effectiveFrom])
+  @@index([planCode])
+}
+
+// Flexible entitlement rows. One key per limit/feature; value in the typed column.
+model PlanEntitlement {
+  id        String   @id @default(cuid())
+  planCode  String
+  key       String   // active-cases | storage-bytes | ai-actions | processing-pages |
+                     // advanced-workflows | mac-companion | folder-monitoring |
+                     // calendar-sync | priority-processing | support-tier
+  intValue  Int?
+  boolValue Boolean?
+  textValue String?
+  createdAt DateTime @default(now())
+
+  @@unique([planCode, key])
+  @@index([planCode])
+}
+
+model FeatureDefinition {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  category  String   @default("general")
+  createdAt DateTime @default(now())
+}
+
+// The account's subscription. account == User (single-user today; architecture kept).
+model AccountSubscription {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  planCode          String
+  interval          String   @default("monthly") // monthly | annual
+  cadence           String   @default("standard") // standard | founding
+  status            String   @default("trialing") // incomplete|trialing|active|past_due|payment_retry|restricted|read_only|paused|canceled|expired
+  foundingMember    Boolean  @default(false)
+  pricingVersion    String   @default("2026.1")
+  currentPeriodStart DateTime?
+  currentPeriodEnd  DateTime?
+  trialEndsAt       DateTime?
+  scheduledPlanCode String?  // pending downgrade at period end
+  scheduledInterval String?
+  cancelAt          DateTime?
+  canceledAt        DateTime?
+  restrictedAt      DateTime?
+  readOnlyAt        DateTime?
+  exportUntil       DateTime? // export grace window after cancel/expiry
+  stripeCustomerId  String?
+  stripeSubscriptionId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt @default(now())
+
+  @@index([planCode])
+  @@index([status])
+}
+
+model SubscriptionStatusHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  fromStatus String?
+  toStatus   String
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model FoundingMemberConfig {
+  id        String   @id @default(cuid())
+  cap       Int      @default(100)
+  updatedAt DateTime @updatedAt @default(now())
+}
+
+model FoundingMemberGrant {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  grantedAt  DateTime @default(now())
+  active     Boolean  @default(true) // false once the sub lapses/cancels
+  endedAt    DateTime?
+  endedReason String?
+
+  @@index([active])
+}
+
+model TrialConfig {
+  id                 String   @id @default(cuid())
+  planCode           String   @default("PRO")
+  days               Int      @default(7)
+  cardRequired       Boolean  @default(false)
+  maxCases           Int      @default(1)
+  maxDocuments       Int      @default(25)
+  maxAiActions       Int      @default(10)
+  maxBinders         Int      @default(1)
+  allowFolderMonitoring Boolean @default(false)
+  allowBulkImport    Boolean  @default(false)
+  allowCaseWideReview Boolean @default(false)
+  exportGraceDays    Int      @default(30)
+  onePerUser         Boolean  @default(true)
+  updatedAt          DateTime @updatedAt @default(now())
+}
+
+model Trial {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  planCode   String   @default("PRO")
+  startedAt  DateTime @default(now())
+  endsAt     DateTime
+  status     String   @default("active") // active | expired | converted
+  configJson String   // snapshot of TrialConfig at start
+  createdAt  DateTime @default(now())
+
+  @@index([status])
+}
+
+model TrialUsage {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  documentsUsed  Int      @default(0)
+  aiActionsUsed  Int      @default(0)
+  bindersUsed    Int      @default(0)
+  updatedAt      DateTime @updatedAt @default(now())
+}
+
+model AddOnProduct {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  kind         String   // ai-actions | storage | active-case | service
+  name         String
+  amount       Int      // cents
+  interval     String   @default("one-time") // one-time | monthly
+  grantAmount  Int?     // actions granted, or GB, or cases
+  grantUnit    String?  // actions | gb | cases
+  rolloverMonths Int?   // for action packs (12)
+  quoteRequired Boolean @default(false) // "starting at" services
+  stripePriceId String?
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model AccountAddOn {
+  id         String   @id @default(cuid())
+  userId     String
+  addOnCode  String
+  quantity   Int      @default(1)
+  status     String   @default("active") // active | canceled | fulfilled | quote-requested
+  stripeItemId String?
+  startedAt  DateTime @default(now())
+  endsAt     DateTime?
+
+  @@index([userId])
+}
+
+// Period-based usage meters (ai-actions, processing-pages, advanced-workflows).
+model UsageMeter {
+  id           String   @id @default(cuid())
+  userId       String
+  key          String   // ai-actions | processing-pages | advanced-workflows
+  periodStart  DateTime
+  periodEnd    DateTime
+  includedLimit Int     @default(0)
+  used         Int      @default(0) // included consumption this period
+  updatedAt    DateTime @updatedAt @default(now())
+
+  @@unique([userId, key, periodStart])
+  @@index([userId, key])
+}
+
+// Append-only usage ledger. Every grant/consume/reverse/expire is one row.
+// idempotencyKey makes webhook/retry double-processing impossible.
+model UsageLedgerEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  meterKey      String   // ai-actions | processing-pages | advanced-workflows | storage-bytes
+  kind          String   // include-grant | purchase-grant | consume | reverse | expire | adjust
+  delta         Int      // signed units (+grant, -consume)
+  balanceAfter  Int?     // optional snapshot for purchased-action grants
+  refType       String?
+  refId         String?
+  idempotencyKey String  @unique
+  expiresAt     DateTime? // for purchase grants (12mo rollover)
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, meterKey])
+}
+
+// Purchased AI-action grants (rollover, consumed after included; oldest-expiry first).
+model PurchasedActionGrant {
+  id         String   @id @default(cuid())
+  userId     String
+  granted    Int
+  remaining  Int
+  source     String   @default("addon") // addon | admin-grant | refund
+  purchasedAt DateTime @default(now())
+  expiresAt  DateTime
+  active     Boolean  @default(true)
+
+  @@index([userId, active])
+}
+
+model AIActionDefinition {
+  id                 String   @id @default(cuid())
+  code               String   @unique
+  name               String
+  description        String?
+  minCharge          Int      @default(1)
+  maxCharge          Int      @default(1)
+  pageWeight         Float    @default(0)
+  docCountWeight     Float    @default(0)
+  tokenWeight        Float    @default(0)   // per 1,000 estimated tokens
+  webResearchWeight  Float    @default(0)
+  premiumModelWeight Float    @default(0)
+  cachedDiscount     Float    @default(0)   // 0..1 fraction removed when cached
+  planAvailability   String   @default("[\"ESSENTIALS\",\"PRO\",\"COMMAND\"]") // JSON
+  trialAvailable     Boolean  @default(true)
+  manualApprovalThreshold Int @default(50)  // charge above this needs confirmation
+  enabled            Boolean  @default(true)
+  effectiveFrom      DateTime @default(now())
+}
+
+model AIProviderCostRecord {
+  id               String   @id @default(cuid())
+  userId           String
+  caseId           String?
+  actionCode       String?
+  provider         String
+  model            String
+  requestId        String?
+  inputTokens      Int      @default(0)
+  cachedInputTokens Int     @default(0)
+  outputTokens     Int      @default(0)
+  toolCalls        Int      @default(0)
+  searchCalls      Int      @default(0)
+  providerReportedCost Int? // cents
+  calculatedCost   Int      @default(0) // cents
+  currency         String   @default("USD")
+  success          Boolean  @default(true)
+  retry            Boolean  @default(false)
+  fallbackProvider String?
+  actionsCharged   Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([provider])
+  @@index([createdAt])
+}
+
+model ProcessingUsageRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  caseId    String?
+  category  String   // ocr | text-extract | render | classify | index | structured | pdf-repair
+  pages     Int      @default(0)
+  cost      Int      @default(0) // cents
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model WorkflowUsageRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  caseId       String?
+  workflowCode String
+  units        Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model StorageUsageSnapshot {
+  id             String   @id @default(cuid())
+  userId         String
+  totalBytes     BigInt   @default(0)
+  originalBytes  BigInt   @default(0)
+  derivativeBytes BigInt  @default(0)
+  tempBytes      BigInt   @default(0)
+  backupBytes    BigInt   @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Effective-dated vendor rates. Token prices are "cents per 1,000,000 tokens".
+model VendorPriceConfiguration {
+  id                 String   @id @default(cuid())
+  vendor             String
+  service            String
+  sku                String?  // model or SKU
+  unitType           String   // token | request | search | storage-gb-month | transfer-gb | ocr-page
+  inputPerMillion    Int?     // cents / 1M input tokens
+  cachedInputPerMillion Int?  // cents / 1M cached input tokens
+  outputPerMillion   Int?     // cents / 1M output tokens
+  requestPrice       Int?     // cents / request
+  searchCallPrice    Int?     // cents / search call
+  storagePerGbMonth  Int?     // cents / GB-month
+  transferPerGb      Int?     // cents / GB
+  ocrPagePrice       Int?     // cents / page
+  effectiveFrom      DateTime @default(now())
+  source             String?
+  lastVerifiedAt     DateTime?
+  active             Boolean  @default(true)
+
+  @@index([vendor, service])
+}
+
+model CostBudget {
+  id               String   @id @default(cuid())
+  planCode         String
+  aiBudget         Int      // cents
+  infraBudget      Int      // cents
+  supportBudget    Int      // cents
+  targetCogs       Int      // cents (nonpayment COGS)
+  minMarginBps     Int      @default(6000)
+  warnBps          Int      @default(7500)  // warn at 75% of budget
+  interventionBps  Int      @default(10000) // intervene at 100%
+  effectiveFrom    DateTime @default(now())
+  active           Boolean  @default(true)
+
+  @@unique([planCode, effectiveFrom])
+}
+
+model StripeFeeConfig {
+  id          String   @id @default(cuid())
+  cardRateBps Int      @default(290)  // 2.9%
+  cardFixed   Int      @default(30)   // $0.30
+  billingBps  Int      @default(70)   // 0.7% Stripe Billing
+  effectiveFrom DateTime @default(now())
+  active      Boolean  @default(true)
+}
+
+model StripeWebhookEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  type        String
+  processedAt DateTime?
+  payload     String?
+  createdAt   DateTime @default(now())
+}
+
+model CheckoutSessionRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  planCode   String
+  interval   String
+  cadence    String
+  mode       String   @default("mock") // mock | live
+  status     String   @default("created") // created | completed | expired
+  amount     Int?
+  stripeSessionId String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BillingPortalSessionRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  mode       String   @default("mock")
+  url        String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BillingEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  type       String   // subscription.created | invoice.paid | payment.failed | refund | ...
+  amount     Int?
+  feeAmount  Int?
+  feeKind    String?  // processing | billing | tax | dispute | refund | fx
+  detail     String?
+  stripeRef  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  percentOff  Int?
+  amountOff   Int?     // cents
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+model CommercialAuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  actorType String   @default("user") // user | admin | system | webhook
+  action    String
+  entity    String
+  entityId  String?
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+}

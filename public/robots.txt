@@ -1,0 +1,4 @@
+# Pro Se Wins is a private, single-user litigation tool. It must never be
+# indexed by public search engines.
+User-agent: *
+Disallow: /
