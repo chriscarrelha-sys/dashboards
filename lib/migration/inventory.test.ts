@@ -64,7 +64,8 @@ describe('launch readiness engine', () => {
     const report = await runLaunchReadiness({
       env: {
         NODE_ENV: 'production', DATABASE_URL: 'postgres://x', AUTH_SECRET: 's', AUTH_DEV_MODE: 'false',
-        STORAGE_PROVIDER: 's3', BACKUP_DESTINATION: 's3://b', ENCRYPTION_KEY: 'k',
+        STORAGE_PROVIDER: 's3', S3_ENDPOINT: 'https://x.r2.cloudflarestorage.com', S3_BUCKET: 'b',
+        S3_ACCESS_KEY_ID: 'k', S3_SECRET_ACCESS_KEY: 's', BACKUP_DESTINATION: 's3://b', ENCRYPTION_KEY: 'k',
       },
       latestMigration: '20260719_phase6',
     });

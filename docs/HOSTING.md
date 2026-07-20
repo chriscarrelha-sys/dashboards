@@ -27,11 +27,11 @@ those files persist* decides your hosting options:
 
 - **Free serverless hosts (e.g. Vercel Hobby) have no permanent disk** — a file
   written during one request can vanish on the next deploy. So on a free host,
-  documents must go to **object storage** (a bucket). That adapter is the one
-  remaining piece to wire (the app already routes all file I/O through a single
-  `StorageProvider` seam, so it's a contained change — ask me to add it).
-- **A host with a persistent disk** (Render/Railway/Fly, ~$5–7/mo) works with the
-  **current code today** (local-disk storage) — no extra wiring, but not free.
+  documents go to **object storage** (a bucket). This is **built and wired**: set
+  `STORAGE_PROVIDER=s3` plus the S3 credentials below and uploads persist to any
+  S3-compatible bucket (Cloudflare R2, Supabase, Backblaze, AWS).
+- **A host with a persistent disk** (Render/Railway/Fly, ~$5–7/mo) works with
+  `STORAGE_PROVIDER=local` — no bucket needed, but not free.
 
 Pick your path below.
 
@@ -43,8 +43,10 @@ Best if you want zero cost and don't mind me wiring object storage first.
 
 1. **Database (Neon, free):** create a project at neon.tech → copy the connection
    string → this is your `DATABASE_URL` (starts with `postgresql://`).
-2. **File storage (free bucket):** Cloudflare R2 (~10 GB free) or Vercel Blob
-   (~1 GB free). *Tell me which and I'll wire the storage adapter + test it.*
+2. **File storage (Cloudflare R2, ~10 GB free):** create an R2 bucket → create an
+   API token (Access Key ID + Secret) → note the S3 endpoint
+   `https://<accountid>.r2.cloudflarestorage.com`. Set `STORAGE_PROVIDER=s3` and
+   the four `S3_*` vars. (Supabase/Backblaze/AWS work identically.)
 3. **App (Vercel, free Hobby):** push this repo to GitHub → “Add New Project” in
    Vercel → import the repo → set the environment variables below → Deploy.
 4. **Migrate:** the build runs `prisma generate`; run `prisma migrate deploy`
@@ -77,7 +79,8 @@ Railway and Fly.io work the same way (volume mounted at `./storage`).
 | `AUTH_SECRET` | A long random string — `openssl rand -hex 32` |
 | `OWNER_PASSWORD` *or* `OWNER_PASSWORD_HASH` | Your login password (hash via `npm run make:password -- "yourpw"`) |
 | `OWNER_NAME`, `OWNER_EMAIL` | Personalize your account |
-| *(object storage keys)* | Only for Option A, once the adapter is wired |
+| `STORAGE_PROVIDER` | `s3` for a free host (bucket) · `local` for a disk host |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | Your bucket (Option A only) |
 
 Then confirm readiness before going live:
 
@@ -102,9 +105,12 @@ app-like icon; the PWA shell is already configured.
 
 ---
 
-## What I still need from you to finish the free path
-1. Which host (Vercel free, or a disk host like Render/Railway/Fly)?
-2. If free: which bucket (Cloudflare R2 or Vercel Blob)? — then I wire + test the
-   storage adapter.
-3. You create the accounts (I can't create accounts or spend money for you); I do
-   all the wiring and walk you through each screen.
+## What's left to go live
+The code is ready — login, S3 storage, Postgres-portable schema, and the readiness
+gate are all wired. The remaining steps need **your** accounts (I can't create
+accounts or spend money for you), but I'll walk you through each screen:
+1. Create the accounts (Neon + Cloudflare R2 + Vercel — all have free tiers).
+2. Paste the environment variables above into Vercel.
+3. Deploy, run `prisma migrate deploy` + `npm run db:seed:commercial` once.
+4. Run `npm run launch:check` against the production env — fix any failures — then
+   open the URL on your phone and sign in.

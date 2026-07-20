@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/session';
-import { getStorageProvider } from '@/lib/storage/local';
+import { getStorageProvider, defaultStorageProviderName } from '@/lib/storage/local';
 import { classifyByFilename } from '@/lib/documents/classify';
 import { generateStandardizedName, extFromName } from '@/lib/documents/filename';
 import { computeAdHoc, type CountMethod } from '@/lib/deadlines/rule-engine';
@@ -34,7 +34,8 @@ export async function uploadDocument(caseId: string, formData: FormData) {
   const bytes = Buffer.from(await file.arrayBuffer());
   const sha256 = createHash('sha256').update(bytes).digest('hex');
   const storageKey = randomUUID();
-  await getStorageProvider('local').put(storageKey, bytes);
+  const providerName = defaultStorageProviderName();
+  await getStorageProvider(providerName).put(storageKey, bytes);
 
   const c = await prisma.case.findUniqueOrThrow({ where: { id: caseId }, select: { shortName: true } });
   const cls = classifyByFilename(file.name);
@@ -68,7 +69,7 @@ export async function uploadDocument(caseId: string, formData: FormData) {
       sizeBytes: bytes.length,
       sha256,
       storageKey,
-      storageProvider: 'local',
+      storageProvider: providerName,
       sourceLabel: 'upload',
       confidence: cls.confidence,
       verificationStatus: cls.autoApply ? 'confirmed' : 'proposed',
