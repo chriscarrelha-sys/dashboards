@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion to Strike Dossier — 26SC-1103-B</title>
+<style>
+  :root{
+    --paper:#ffffff;
+    --ink:#14181f;
+    --navy:#1b2a44;
+    --navy-deep:#111c2e;
+    --brass:#a8823c;
+    --brass-soft:#f4edde;
+    --muted:#5c6675;
+    --rule:#e3e7ed;
+    --rule-strong:#c9d0da;
+    --wash:#f7f8fa;
+    --red:#8f2b2b;
+    --red-wash:#fbf1f1;
+    --green:#1f5c46;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:"Inter","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --mono:"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--wash);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+  }
+
+  .sheet{
+    max-width:1080px;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 1px 3px rgba(17,28,46,.08),0 12px 40px rgba(17,28,46,.06);
+  }
+
+  /* ---------- utility bar ---------- */
+  .toolbar{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:14px 40px;
+    font-size:12px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .toolbar button{
+    font:inherit;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--navy);
+    background:var(--paper);
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{background:var(--brass-soft);border-color:var(--brass)}
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    background:var(--navy-deep);
+    color:#fff;
+    padding:38px 48px 32px;
+    border-bottom:4px solid var(--brass);
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 18px;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-size:34px;
+    line-height:1.15;
+    margin:0 0 8px;
+    font-weight:600;
+  }
+  .masthead .kicker{
+    font-family:var(--serif);
+    font-size:16px;
+    font-style:italic;
+    color:#c3cbd8;
+    margin:0 0 26px;
+    max-width:62ch;
+  }
+  .facts{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:1px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .fact{background:var(--navy-deep);padding:12px 14px}
+  .fact dt{
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#8f9cb0;
+    margin:0 0 4px;
+  }
+  .fact dd{margin:0;font-size:14px;color:#fff;font-weight:500}
+
+  /* ---------- pillars ---------- */
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:1px;
+    background:var(--rule);
+    border-bottom:1px solid var(--rule);
+  }
+  .pillar{background:var(--paper);padding:22px 24px 24px}
+  .pillar .tag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    border:1px solid var(--brass);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-bottom:12px;
+  }
+  .pillar h3{
+    font-family:var(--mono);
+    font-size:15px;
+    margin:0 0 8px;
+    color:var(--navy);
+    letter-spacing:-.01em;
+  }
+  .pillar p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ---------- sections ---------- */
+  section{padding:34px 48px;border-bottom:1px solid var(--rule)}
+  section:last-of-type{border-bottom:none}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--brass);
+    letter-spacing:.1em;
+    padding-top:3px;
+  }
+  h2{
+    font-family:var(--serif);
+    font-size:23px;
+    font-weight:600;
+    margin:0;
+    color:var(--navy);
+  }
+  .sec-note{
+    margin:0 0 22px 34px;
+    font-size:13.5px;
+    color:var(--muted);
+    max-width:78ch;
+  }
+
+  /* ---------- matrix table ---------- */
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:840px}
+  thead th{
+    text-align:left;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--navy);
+    padding:10px 12px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:13px 12px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  tbody tr:nth-child(even) td{background:#fbfcfd}
+  td.cat{font-weight:600;color:var(--navy);white-space:nowrap}
+  td.sworn{color:var(--red)}
+  td.actual{color:var(--green)}
+  td.cite{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  td.impact{font-weight:500}
+
+  /* ---------- authority cards ---------- */
+  .stack{display:grid;gap:16px}
+  .auth{
+    border:1px solid var(--rule);
+    border-left:3px solid var(--brass);
+    background:#fcfcfd;
+    padding:18px 22px;
+  }
+  .auth h3{
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--navy);
+    margin:0 0 8px;
+  }
+  .auth p{margin:0;font-size:14px;color:#333a45}
+  .auth.distinguished{border-left-color:var(--red)}
+  .auth .flag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--red);
+    background:var(--red-wash);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-left:8px;
+    vertical-align:2px;
+  }
+
+  /* ---------- two column ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .col h3{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 16px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+
+  /* ---------- cross-exam tree ---------- */
+  .tree{list-style:none;margin:0;padding:0;counter-reset:q}
+  .tree li{
+    position:relative;
+    padding:0 0 20px 30px;
+    border-left:1px solid var(--rule-strong);
+  }
+  .tree li:last-child{border-left-color:transparent;padding-bottom:0}
+  .tree li::before{
+    counter-increment:q;
+    content:counter(q);
+    position:absolute;
+    left:-11px;
+    top:0;
+    width:21px;
+    height:21px;
+    border-radius:50%;
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .tree .label{
+    font-weight:600;
+    color:var(--navy);
+    font-size:13px;
+    display:block;
+    margin-bottom:6px;
+  }
+  .tree .ask{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .tree .effect{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0;
+  }
+  .tree .effect::before{content:"→ ";color:var(--brass)}
+
+  /* ---------- scripts ---------- */
+  .script{
+    background:var(--wash);
+    border:1px solid var(--rule);
+    padding:16px 18px;
+    margin-bottom:16px;
+  }
+  .script:last-child{margin-bottom:0}
+  .script .label{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    display:block;
+    margin-bottom:10px;
+  }
+  .script blockquote{
+    margin:0;
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:14px;
+  }
+
+  footer{
+    padding:20px 48px 28px;
+    background:var(--navy-deep);
+    color:#8f9cb0;
+    font-size:11.5px;
+    letter-spacing:.04em;
+  }
+  footer strong{color:#c3cbd8;font-weight:500}
+
+  @media (max-width:760px){
+    .toolbar,.masthead,section,footer{padding-left:22px;padding-right:22px}
+    .cols{grid-template-columns:1fr;gap:28px}
+    .masthead h1{font-size:26px}
+  }
+
+  @media print{
+    @page{size:letter;margin:.6in}
+    body{background:#fff;font-size:10.5pt}
+    .sheet{box-shadow:none;max-width:none}
+    .toolbar{display:none}
+    .masthead,footer{
+      background:#fff!important;
+      color:#000;
+      border-bottom:2px solid #000;
+      padding:0 0 14px;
+    }
+    .masthead h1,.fact dd{color:#000}
+    .masthead .kicker,.fact dt,footer{color:#333}
+    .eyebrow{color:#000}
+    .fact{background:#fff;border:1px solid #999}
+    .facts{background:#fff;border-color:#999}
+    thead th{background:#e8eaee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{padding:16px 0;page-break-inside:avoid}
+    .pillars{padding:0}
+    .pillar{padding:10px 12px}
+    .tree li,.auth,.script{page-break-inside:avoid}
+    footer{border-top:1px solid #000;border-bottom:none;margin-top:12px}
+    .scroll{overflow:visible}
+    table{min-width:0}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>Case File 26SC-1103-B &nbsp;|&nbsp; Executive Research Dossier</span>
+  <button type="button" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="eyebrow">Litigation Strategy &amp; Precedent Analysis</p>
+    <h1>Motion to Strike — Affidavit Compendium</h1>
+    <p class="kicker">Evidentiary vulnerabilities, statutory authorities, and cross-examination blueprint.</p>
+    <dl class="facts">
+      <div class="fact"><dt>Court</dt><dd>State Court of Forsyth County, GA</dd></div>
+      <div class="fact"><dt>Case No.</dt><dd>26SC-1103-B</dd></div>
+      <div class="fact"><dt>Judge</dt><dd>Chief Judge T. Russell McClelland</dd></div>
+      <div class="fact"><dt>Target Affiant</dt><dd>Trenna Farr (Feb. 10, 2026)</dd></div>
+    </dl>
+  </header>
+
+  <div class="pillars">
+    <div class="pillar">
+      <span class="tag">Primary Attack Pillar 1</span>
+      <h3>O.C.G.A. § 9-11-56(e)</h3>
+      <p>Lack of statutory personal knowledge of predecessor origination and data migration.</p>
+    </div>
+    <div class="pillar">
+      <span class="tag">Primary Attack Pillar 2</span>
+      <h3>O.C.G.A. § 24-8-803(6)</h3>
+      <p>Admitted database corruption (Clarence Hoyle mapping error) destroys trustworthiness.</p>
+    </div>
+    <div class="pillar">
+      <span class="tag">Primary Attack Pillar 3</span>
+      <h3>Prophecy Corp. Doctrine</h3>
+      <p>Sworn +$90 fee debt directly contradicted by Shaw ledger −$90 credit balance.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Forensic Numeric &amp; Evidentiary Conflict Matrix</h2></div>
+    <p class="sec-note">Side-by-side reconciliation between sworn statements in the Farr Affidavit and Plaintiff's formal discovery admissions.</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Sworn Assertion (Farr)</th>
+            <th>Actual Record / Admission</th>
+            <th>Bates / Citation</th>
+            <th>Legal Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cat">NSF Fee Balance</td>
+            <td class="sworn">Owes +$90.00 fee debt</td>
+            <td class="actual">Shaw Ledger: &ldquo;Fee Due: −90.00&rdquo; (credit)</td>
+            <td class="cite">Ex. L-1; RFA No. 3</td>
+            <td class="impact">Mandatory strike under <em>Prophecy Corp.</em></td>
+          </tr>
+          <tr>
+            <td class="cat">Account Debtor</td>
+            <td class="sworn">Clean single-debtor history</td>
+            <td class="actual">Header incorporates Clarence Hoyle</td>
+            <td class="cite">Ex. L-2; RFA Nos. 4 &amp; 5</td>
+            <td class="impact">Destroys trustworthiness (§ 24-8-803(6))</td>
+          </tr>
+          <tr>
+            <td class="cat">System Conversion</td>
+            <td class="sworn">Ordinary course business entry</td>
+            <td class="actual">Admitted &ldquo;system mapping error&rdquo;</td>
+            <td class="cite">RFA No. 4 Response</td>
+            <td class="impact">Distinguishes <em>Windham v. State</em></td>
+          </tr>
+          <tr>
+            <td class="cat">Ledger Processing</td>
+            <td class="sworn">Automated default accrual</td>
+            <td class="actual">Admitted manual reversals ($29.8k)</td>
+            <td class="cite">Ex. L-5 (CFPB Letter)</td>
+            <td class="impact">Rebuts ordinary course presumption</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Controlling Statutory Authorities</h2></div>
+    <p class="sec-note">The two statutory gates the Farr Affidavit must clear before it may support summary judgment.</p>
+    <div class="stack">
+      <div class="auth">
+        <h3>O.C.G.A. § 9-11-56(e)</h3>
+        <p>Affidavits supporting summary judgment must be made on personal knowledge, set forth facts as would be admissible in evidence, and show affirmatively that the affiant is competent to testify. Generic file-familiarity assertions are legally insufficient.</p>
+      </div>
+      <div class="auth">
+        <h3>O.C.G.A. § 24-8-803(6)</h3>
+        <p>Georgia's Business Records Exception excludes hearsay records if &ldquo;the source of information or the method or circumstances of preparation indicate lack of trustworthiness.&rdquo; Admitted database mapping errors fail this statutory gate.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Case Law Precedent &amp; Distinctions</h2></div>
+    <p class="sec-note">Controlling authority for exclusion, and the anticipated counter-authority with its neutralizing distinction.</p>
+    <div class="stack">
+      <div class="auth">
+        <h3>Prophecy Corp. v. Rossignol, 256 Ga. 27</h3>
+        <p>Contradictory testimony given by a party or witness must be construed against that party unless a reasonable explanation is offered under oath. Farr's +$90 fee claim versus the −$90 ledger credit mandates exclusion.</p>
+      </div>
+      <div class="auth distinguished">
+        <h3>Windham v. State, 344 Ga. App. 721 <span class="flag">Distinguished</span></h3>
+        <p>Opposing counsel will cite <em>Windham</em> to allow a successor bank officer to authenticate predecessor records. Neutralize this: <em>Windham</em> applies ONLY if records are integrated AND trustworthy. RFA No. 4 admits conversion errors.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Witness Cross-Examination Tree &amp; Podium Scripts</h2></div>
+    <p class="sec-note">Question sequence designed to lock in each admission before argument, paired with compressed oral-argument language.</p>
+    <div class="cols">
+      <div class="col">
+        <h3>Witness Subpoena Tree — Trenna Farr (O.C.G.A. § 24-13-21)</h3>
+        <ol class="tree">
+          <li>
+            <span class="label">Personal Knowledge Gap</span>
+            <p class="ask">&ldquo;Ms. Farr, were you employed by EnerBank USA on July 22, 2020, when this note was executed?&rdquo;</p>
+            <p class="effect">Locks in zero personal knowledge of origination.</p>
+          </li>
+          <li>
+            <span class="label">IT Conversion Knowledge Gap</span>
+            <p class="ask">&ldquo;Did you write, execute, or audit the IT migration scripts that transferred data from Shaw Systems to Spectrum?&rdquo;</p>
+            <p class="effect">Exposes lack of technical system foundation.</p>
+          </li>
+          <li>
+            <span class="label">Clarence Hoyle Data Commingling</span>
+            <p class="ask">&ldquo;Can you explain why the January 12, 2026 ledger incorporates non-party Clarence Hoyle in the header?&rdquo;</p>
+            <p class="effect">Locks in RFA No. 4 admission of database corruption.</p>
+          </li>
+        </ol>
+      </div>
+      <div class="col">
+        <h3>Oral Argument Compression — Judge McClelland</h3>
+        <div class="script">
+          <span class="label">15-Second Hearing Rescue</span>
+          <blockquote>&ldquo;Your Honor, this Motion to Strike comes down to one point: Plaintiff asks for a money judgment based on an affidavit swearing Defendants owe $90 in fees, while Plaintiff's own bank ledger shows a $90 credit balance, and Plaintiff's discovery admits the system suffered data mapping errors. The affidavit lacks foundation and is untrustworthy under O.C.G.A. § 24-8-803(6).&rdquo;</blockquote>
+        </div>
+        <div class="script">
+          <span class="label">Podium Objection — Attorney Argument</span>
+          <blockquote>&ldquo;Objection, Your Honor. Statements of counsel from the podium are not evidence (<em>Rankin v. Smith</em>). Plaintiff has offered zero sworn audit logs or live witnesses to explain away these system conversion errors.&rdquo;</blockquote>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Prepared for Civil Action File No. <strong>26SC-1103-B</strong> &nbsp;|&nbsp; State Court of Forsyth County, State of Georgia<br>
+    <strong>Chris Carrelha &amp; Kelsey D. Carrelha</strong>, Defendants Pro Se
+  </footer>
+
+</div>
+</body>
+</html>
