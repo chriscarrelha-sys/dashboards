@@ -6,12 +6,17 @@
 <title>Client Priorities Dashboard</title>
 </head>
 <body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 /* ============================================================
    TOKENS  — light is the base; dark redefines the same names.
    ============================================================ */
 :root {
   color-scheme: light;
+  /* One UI sans carries everything, figures included; the mono is reserved for the
+     small structural labels so the page's skeleton reads as chrome, not content. */
+  --font-ui:    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --page:        #f9f9f7;
   --surface:     #fcfcfb;
   --surface-2:   #f2f1ed;
@@ -81,7 +86,7 @@ body {
   margin: 0;
   background: var(--page);
   color: var(--ink);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-ui);
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -90,7 +95,7 @@ body {
 
 /* ---------- header ---------- */
 .masthead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; margin-bottom: 26px; }
-.masthead h1 { font-size: 27px; line-height: 1.2; font-weight: 640; margin: 0 0 4px; letter-spacing: -0.015em; }
+.masthead h1 { font-size: 27px; line-height: 1.18; font-weight: 600; margin: 0 0 5px; letter-spacing: -0.02em; text-wrap: balance; }
 .masthead p { margin: 0; color: var(--ink-2); font-size: 14.5px; max-width: 60ch; }
 .masthead .spacer { flex: 1 1 40px; }
 .mast-actions { display: flex; gap: 8px; align-items: center; }
@@ -112,10 +117,11 @@ body {
 .step { margin-bottom: 30px; }
 .step-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .step-num {
-  font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  font-family: var(--font-label);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
   color: var(--muted);
 }
-.step-head h2 { font-size: 18px; font-weight: 620; margin: 0; letter-spacing: -0.01em; }
+.step-head h2 { font-size: 18px; font-weight: 600; margin: 0; letter-spacing: -0.015em; text-wrap: balance; }
 .step-head .hint { font-size: 13.5px; color: var(--muted); margin-left: auto; }
 
 /* ---------- priority buttons (the pressable part) ---------- */
@@ -135,7 +141,7 @@ body {
 .prio:active { transform: translateY(0); }
 .prio .glyph { width: 22px; height: 22px; margin-bottom: 5px; color: var(--muted); }
 .prio .glyph svg { width: 100%; height: 100%; display: block; }
-.prio .name { font-weight: 620; font-size: 15px; letter-spacing: -0.005em; }
+.prio .name { font-weight: 600; font-size: 15px; letter-spacing: -0.005em; }
 .prio .say { font-size: 12.5px; color: var(--ink-2); line-height: 1.35; }
 .prio[aria-pressed="true"] {
   border-color: var(--accent); background: var(--accent-wash);
@@ -155,7 +161,7 @@ body {
   padding: 11px 14px; margin-bottom: 22px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
 }
-.filterbar .lab { font-size: 12px; font-weight: 640; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.filterbar .lab { font-family: var(--font-label); font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 2px; }
 .seg button {
   font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--ink-2);
@@ -170,14 +176,14 @@ body {
   box-shadow: var(--shadow); padding: 22px 24px; margin-bottom: 22px;
   display: grid; grid-template-columns: minmax(180px, 250px) 1fr; gap: 24px 30px; align-items: center;
 }
-.answer .hero-label { font-size: 12px; font-weight: 640; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
-.answer .hero-name { font-size: 21px; font-weight: 640; letter-spacing: -0.015em; line-height: 1.2; margin-bottom: 10px; }
-.answer .hero-fig { font-size: 52px; font-weight: 650; line-height: 1; letter-spacing: -0.03em; }
+.answer .hero-label { font-family: var(--font-label); font-size: 10.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.answer .hero-name { font-size: 21px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.2; margin-bottom: 10px; }
+.answer .hero-fig { font-size: 52px; font-weight: 600; line-height: 1; letter-spacing: -0.03em; }
 .answer .hero-fig span { font-size: 19px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
 .meter { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 12px; max-width: 220px; }
 .meter i { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
 .answer .talk { font-size: 15.5px; line-height: 1.62; color: var(--ink); }
-.answer .talk b { font-weight: 640; }
+.answer .talk b { font-weight: 600; }
 .answer .talk .sub { display: block; margin-top: 9px; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
 .empty-note { color: var(--ink-2); font-size: 14.5px; }
 
@@ -185,7 +191,7 @@ body {
 .tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(198px, 1fr)); margin-bottom: 24px; }
 .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 15px 16px 14px; }
 .tile .t-lab { font-size: 12.5px; color: var(--ink-2); margin-bottom: 6px; line-height: 1.3; }
-.tile .t-val { font-size: 30px; font-weight: 640; letter-spacing: -0.02em; line-height: 1.05; }
+.tile .t-val { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; }
 .tile .t-mean { font-size: 12.5px; color: var(--muted); margin-top: 7px; line-height: 1.4; }
 .tile .t-delta { font-size: 12.5px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
 .t-delta .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
@@ -202,18 +208,18 @@ body {
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   padding: 18px 20px 16px; margin-bottom: 16px;
 }
-.card h3 { font-size: 15.5px; font-weight: 620; margin: 0 0 3px; letter-spacing: -0.005em; }
+.card h3 { font-size: 15.5px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.005em; }
 .card .sub { font-size: 13px; color: var(--ink-2); margin: 0 0 14px; line-height: 1.45; max-width: 68ch; }
 .card .read { font-size: 13px; color: var(--ink-2); margin: 12px 0 0; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 11px; }
-.card .read b { font-weight: 620; color: var(--ink); }
+.card .read b { font-weight: 600; color: var(--ink); }
 .chart-scroll { overflow-x: auto; }
 svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
-svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+svg text { font-family: var(--font-ui); }
 .tick-txt { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
 .axis-line { stroke: var(--axis); stroke-width: 1; }
 .grid-line { stroke: var(--grid); stroke-width: 1; }
 .lbl-txt { font-size: 11.5px; fill: var(--ink-2); }
-.lbl-strong { font-size: 12px; fill: var(--ink); font-weight: 620; }
+.lbl-strong { font-size: 12px; fill: var(--ink); font-weight: 600; }
 
 /* ---------- legend ---------- */
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 12px; padding: 0; list-style: none; }
@@ -229,7 +235,7 @@ svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
   box-shadow: var(--shadow); padding: 9px 11px; font-size: 12.5px; line-height: 1.5;
   min-width: 150px; transition: opacity .08s ease;
 }
-.tt .tt-h { font-weight: 640; margin-bottom: 5px; font-size: 12.5px; }
+.tt .tt-h { font-weight: 600; margin-bottom: 5px; font-size: 12.5px; }
 .tt .row { display: flex; align-items: center; gap: 8px; }
 .tt .row .key { width: 9px; height: 9px; border-radius: 2px; flex: none; }
 .tt .row .nm { color: var(--ink-2); }
@@ -240,10 +246,10 @@ svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
 table.data { border-collapse: collapse; width: 100%; font-size: 13px; }
 table.data th, table.data td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; }
 table.data th:first-child, table.data td:first-child { text-align: left; font-variant-numeric: normal; }
-table.data thead th { font-size: 11.5px; font-weight: 640; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--axis); }
+table.data thead th { font-family: var(--font-label); font-size: 10.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid var(--axis); }
 table.data tbody tr:hover { background: var(--surface-2); }
 table.data tr.hot { background: var(--accent-wash); }
-table.data tr.hot td:first-child { font-weight: 640; }
+table.data tr.hot td:first-child { font-weight: 600; }
 table.data .why { font-size: 11.5px; color: var(--muted); font-weight: 400; display: block; }
 .tbl-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
 .datatable { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
@@ -266,7 +272,7 @@ table.data .why { font-size: 11.5px; color: var(--muted); font-weight: 400; disp
 /* ---------- talk track ---------- */
 details.talkbox { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0; margin-bottom: 16px; }
 details.talkbox > summary {
-  cursor: pointer; list-style: none; padding: 14px 20px; font-weight: 620; font-size: 15px;
+  cursor: pointer; list-style: none; padding: 14px 20px; font-weight: 600; font-size: 15px;
   display: flex; align-items: center; gap: 10px;
 }
 details.talkbox > summary::-webkit-details-marker { display: none; }
@@ -274,14 +280,14 @@ details.talkbox > summary::after { content: "＋"; margin-left: auto; color: var
 details.talkbox[open] > summary::after { content: "－"; }
 .talk-body { padding: 0 20px 18px; }
 .talk-item { border-top: 1px solid var(--border); padding: 13px 0 2px; }
-.talk-item h4 { margin: 0 0 5px; font-size: 13.5px; font-weight: 640; display: flex; align-items: center; gap: 8px; }
+.talk-item h4 { margin: 0 0 5px; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 .talk-item h4 .glyph { width: 15px; height: 15px; color: var(--accent); }
 .talk-item .quote { font-size: 14.5px; line-height: 1.55; margin: 0 0 5px; }
 .talk-item .proof { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0; }
 
 /* ---------- footer ---------- */
 .foot { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); line-height: 1.6; }
-.foot b { color: var(--ink-2); font-weight: 620; }
+.foot b { color: var(--ink-2); font-weight: 600; }
 
 @media (max-width: 720px) {
   .wrap { padding: 20px 16px 56px; }
@@ -752,7 +758,7 @@ const GLYPH = {
   coins: '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5v9M14.4 9.6c-.5-.7-1.4-1.1-2.4-1.1-1.4 0-2.4.7-2.4 1.8 0 2.5 4.9 1.2 4.9 3.7 0 1.1-1.1 1.8-2.5 1.8-1.1 0-2-.4-2.5-1.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
   net:   '<path d="M4 7h16M6 7v4a6 6 0 0 0 12 0V7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   flame: '<path d="M12 3s5 4.2 5 8.6A5 5 0 0 1 7 11.6C7 7.2 12 3 12 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 20a3 3 0 0 1-3-3c0-1.8 3-3.6 3-3.6s3 1.8 3 3.6a3 3 0 0 1-3 3z" fill="none" stroke="currentColor" stroke-width="1.5"/>',
-  drop:  '<path d="M12 3.5c3 3.6 5.5 6.4 5.5 9.4A5.5 5.5 0 0 1 6.5 12.9c0-3 2.5-5.8 5.5-9.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  drop:  '<path d="M12 3.5v10.5M8.2 10.3l3.8 3.8 3.8-3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 15.5v3.2a1.8 1.8 0 0 0 1.8 1.8h11.4a1.8 1.8 0 0 0 1.8-1.8v-3.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   tag:   '<path d="M4 11V5a1 1 0 0 1 1-1h6l8.5 8.5a1.4 1.4 0 0 1 0 2L14 20a1.4 1.4 0 0 1-2 0L4 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="8.3" cy="8.3" r="1.3" fill="currentColor"/>',
   scale: '<path d="M12 4v16M6 20h12M5 9h14M5 9l-2.5 5.5a3 3 0 0 0 5 0L5 9zM19 9l-2.5 5.5a3 3 0 0 0 5 0L19 9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
 };

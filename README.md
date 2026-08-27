@@ -5,9 +5,10 @@ actually matters to them. Press what they said — *stability*, *income*, *growt
 *don't lose money* — and the whole page rewrites itself around that answer: the
 headline, the numbers on screen, the ranking of every portfolio, and the words to say.
 
-Open `index.html` in any browser. No build step, no server, no dependencies, no
-network calls — one self-contained file you can email, put on a tablet, or run on a
-screen share.
+Open `index.html` in any browser. No build step, no server, no dependencies — one
+self-contained file you can email, put on a tablet, or run on a screen share. The
+only external request is the IBM Plex webfont; offline it falls back to the system
+sans and everything else still works.
 
 ## What it does
 
