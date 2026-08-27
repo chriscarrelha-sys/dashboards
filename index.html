@@ -107,6 +107,7 @@ body {
   padding: 7px 14px; cursor: pointer; white-space: nowrap;
   transition: background .12s ease, color .12s ease, border-color .12s ease;
 }
+a.btn { text-decoration: none; display: inline-block; }
 .btn:hover { background: var(--surface-2); color: var(--ink); }
 .btn[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); }
 .btn:focus-visible, .prio:focus-visible, .seg button:focus-visible {
@@ -204,6 +205,7 @@ body {
 
 /* ---------- cards & charts ---------- */
 .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 16px; }
+.grid2 > * { min-width: 0; }
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
   padding: 18px 20px 16px; margin-bottom: 16px;
@@ -213,7 +215,7 @@ body {
 .card .read { font-size: 13px; color: var(--ink-2); margin: 12px 0 0; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 11px; }
 .card .read b { font-weight: 600; color: var(--ink); }
 .chart-scroll { overflow-x: auto; }
-svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg.chart { display: block; width: 100%; max-width: 100%; height: auto; overflow: visible; }
 svg text { font-family: var(--font-ui); }
 .tick-txt { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
 .axis-line { stroke: var(--axis); stroke-width: 1; }
@@ -315,6 +317,7 @@ details.talkbox[open] > summary::after { content: "－"; }
     </div>
     <div class="spacer"></div>
     <div class="mast-actions">
+      <a class="btn" href="proposal.html">Proposal engine &rarr;</a>
       <button class="btn" id="themeBtn" type="button" title="Switch light / dark">Dark</button>
       <button class="btn" id="printBtn" type="button">Print</button>
       <button class="btn" id="resetBtn" type="button">Reset</button>

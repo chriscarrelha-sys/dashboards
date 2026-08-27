@@ -1,4 +1,12 @@
-# Client Priorities Dashboard
+# Advisor dashboards
+
+Two tools for two moments in a client meeting: **`index.html`** for discovery, and
+**`proposal.html`** for the formal proposal. Each is a single self-contained file, and
+they link to each other.
+
+---
+
+# 1. Client Priorities Dashboard — `index.html`
 
 An interactive dashboard for the moment in a client meeting when they tell you what
 actually matters to them. Press what they said — *stability*, *income*, *growth*,
@@ -85,3 +93,92 @@ separation and contrast in both light and dark modes), use a single hue with dir
 labels wherever more than three series would be needed, never use a second y-axis,
 and every chart has a data-table twin so no value is reachable by colour or hover
 alone.
+
+
+---
+
+# 2. Proposal Engine — `proposal.html`
+
+A full current-vs-proposed proposal tool. Load a client's holdings, build the proposal
+beside them, and run the whole case.
+
+## Getting data in
+
+Four ways, all local to the browser — nothing is uploaded anywhere:
+
+- **Drop an Excel file.** `.xlsx` is unzipped and parsed in the page itself (no library):
+  shared strings, header detection, Excel date serials. Header names are matched loosely,
+  so `Symbol` / `Current Weight` / `Target Weight` works, as does `Ticker,Current %,Proposed %`.
+  A second weight column becomes the proposed allocation.
+- **Drop a CSV/TSV.**
+- **Paste from Excel.** Every drop zone has a *Paste instead* box — copy the cells, paste,
+  done. This is the reliable path in sandboxed viewers where the file picker is blocked.
+- **Start from a model** and edit by hand.
+
+Return history loads the same way: a date column and one column per ticker. Daily, weekly,
+monthly or quarterly is **detected from the dates**, and every statistic annualises against
+it. Percent and decimal returns are both understood. A long `Date,Ticker,Return` layout is
+pivoted automatically.
+
+## Editing allocations
+
+Click any weight to open the picker: **0–23 are one click away without scrolling**, the grid
+scrolls to 100, there are − / + buttons, and you can type a value. Over the weight itself,
+the **mouse wheel** nudges it a point at a time; arrow keys and PageUp/PageDown work too.
+The picker flips above the row when there is no room below it.
+
+## Proxy data, and where it stops
+
+Tickers without uploaded returns run on a **proxy**: factor loadings for US, developed and
+emerging equity, Treasuries, credit, real assets and cash, derived from the holding's own
+duration, spread duration and equity beta, plus its own idiosyncratic volatility. Roughly 100
+common ETFs and funds are mapped out of the box; anything unrecognised gets an asset-class
+dropdown on its row.
+
+Proxy figures are **badged everywhere they appear**, and a banner counts them. Upload returns
+and those holdings flip to `Live`. Asset-class settings still drive the stress tests even when
+real returns are loaded, because duration and beta are not recoverable from a return series alone.
+
+The proxy carries **real crisis structure**. Annual asset-class results are spread across the
+periods inside each year, but named windows — the 2008 collapse, the 2009 rebound, the euro
+crisis, the taper tantrum, Q4 2018, the COVID crash and rebound, the 2022 rate shock — are
+pinned to their actual months first, and the rest of the year is then solved so the annual
+total still compounds exactly to the published figure. Without this, an episode measured over
+two months inside a positive year would be pure noise.
+
+## What it produces
+
+| Tab | What's there |
+|---|---|
+| **Build** | Holdings editor, five risk buckets (cash → bonds → credit → real assets → equity), and the exposure change: duration, spread duration, equity beta, inflation response, yield, cost |
+| **Performance** | Growth of $1,000,000, trailing returns (YTD through 10 years), calendar years, drawdowns |
+| **Risk & MPT** | Risk/return map, risk *contribution* vs capital weight, ~30 MPT statistics, return distribution, rolling 12-period returns |
+| **Stress & scenarios** | Seven historical episodes measured from the series; five live shock sliders (rates, spreads, equity, inflation, volatility) with scenario presets; down-period analysis |
+| **Optimization** | Long-only efficient frontier with a position cap, minimum-risk and best-Sharpe mixes, one click to adopt either |
+| **Proposal** | A print-ready summary: the case in a paragraph, return/risk and exposure tables, what actually changes, the bad years, and what to say |
+
+Every figure is scoped by the **date range** at the top, which rescopes all six tabs at once.
+
+### The statistics
+
+Return (compound, arithmetic, total, best/worst 12), risk (standard deviation, downside
+deviation, max drawdown, time under water, ulcer index, VaR95, CVaR95, worst period),
+risk-adjusted (Sharpe, Sortino, Calmar, Martin, Omega, M²), benchmark-relative (beta, Jensen's
+alpha, R², correlation, tracking error, information ratio, Treynor, up/down capture, batting
+average), and distribution shape (positive periods, skewness, excess kurtosis).
+
+### The stress model
+
+Historical episodes are measured straight from the return series. The live sliders are
+**first-order factor shocks**: duration × rate move, spread duration × spread move, beta ×
+market move, inflation sensitivity × surprise, plus a volatility term for the gap risk beta
+alone misses. They reprice instantly and say nothing about how long a loss lasts — the page
+says so on the card.
+
+### The optimiser
+
+Long-only, fully invested, with a position cap you choose. Solved by projected gradient ascent
+with an exact Euclidean projection onto the capped simplex, swept across risk aversion to trace
+the frontier, plus the max-return corner. Verified against an independent 20,000-iteration
+reference run: same weights, same volatility to seven significant figures. The tool ships four
+caveats about mean-variance optimisation next to the chart, because they matter more than the chart does.

@@ -1,0 +1,2799 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposal Engine</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --font-ui:    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --page:       #f9f9f7;
+  --surface:    #fcfcfb;
+  --surface-2:  #f2f1ed;
+  --surface-3:  #e9e8e3;
+  --ink:        #0b0b0b;
+  --ink-2:      #52514e;
+  --muted:      #898781;
+  --grid:       #e1e0d9;
+  --axis:       #c3c2b7;
+  --border:     rgba(11,11,11,0.10);
+  --border-2:   rgba(11,11,11,0.18);
+  --series-1:   #2a78d6;   /* Current  */
+  --series-2:   #eb6834;   /* Proposed */
+  --series-3:   #1baf7a;   /* Benchmark */
+  --accent:     #2a78d6;
+  --accent-wash:rgba(42,120,214,0.10);
+  --prop-wash:  rgba(235,104,52,0.10);
+  /* risk-ordered ordinal ramp: cash -> bonds -> credit -> real assets -> equity */
+  --risk-1: #86b6ef; --risk-2: #5598e7; --risk-3: #2a78d6; --risk-4: #1c5cab; --risk-5: #104281;
+  --risk-ink-1: #0b0b0b; --risk-ink-2: #0b0b0b; --risk-ink-3: #ffffff; --risk-ink-4: #ffffff; --risk-ink-5: #ffffff;
+  --good:      #0ca30c;
+  --good-ink:  #006300;
+  --warning:   #fab219;
+  --serious:   #ec835a;
+  --critical:  #d03b3b;
+  --shadow:    0 1px 2px rgba(11,11,11,0.05), 0 8px 24px rgba(11,11,11,0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232322; --surface-3:#2c2c2a;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835;
+    --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+    --accent:#3987e5; --accent-wash:rgba(57,135,229,0.16); --prop-wash:rgba(217,89,38,0.16);
+    --risk-1:#cde2fb; --risk-2:#9ec5f4; --risk-3:#6da7ec; --risk-4:#3987e5; --risk-5:#256abf;
+    --risk-ink-1:#0b0b0b; --risk-ink-2:#0b0b0b; --risk-ink-3:#0b0b0b; --risk-ink-4:#ffffff; --risk-ink-5:#ffffff;
+    --good-ink:#0ca30c;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232322; --surface-3:#2c2c2a;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835;
+  --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+  --accent:#3987e5; --accent-wash:rgba(57,135,229,0.16); --prop-wash:rgba(217,89,38,0.16);
+  --risk-1:#cde2fb; --risk-2:#9ec5f4; --risk-3:#6da7ec; --risk-4:#3987e5; --risk-5:#256abf;
+  --risk-ink-1:#0b0b0b; --risk-ink-2:#0b0b0b; --risk-ink-3:#0b0b0b; --risk-ink-4:#ffffff; --risk-ink-5:#ffffff;
+  --good-ink:#0ca30c;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+body { margin:0; background:var(--page); color:var(--ink); font-family:var(--font-ui);
+       font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:1320px; margin:0 auto; padding:24px 22px 72px; }
+h1,h2,h3,h4 { text-wrap:balance; }
+
+/* ---- masthead ---- */
+.masthead { display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px 24px; margin-bottom:20px; }
+.masthead h1 { font-size:25px; font-weight:600; margin:0 0 4px; letter-spacing:-0.02em; line-height:1.18; }
+.masthead p { margin:0; color:var(--ink-2); font-size:14px; max-width:62ch; }
+.masthead .spacer { flex:1 1 30px; }
+.mast-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+.btn { font:inherit; font-size:13.5px; color:var(--ink-2); background:var(--surface);
+       border:1px solid var(--border-2); border-radius:999px; padding:7px 14px; cursor:pointer; white-space:nowrap;
+       transition:background .12s, color .12s, border-color .12s; }
+a.btn { text-decoration:none; display:inline-block; }
+.btn:hover { background:var(--surface-2); color:var(--ink); }
+.btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.btn.primary:hover { filter:brightness(1.08); }
+.btn[aria-pressed="true"] { background:var(--accent-wash); border-color:var(--accent); color:var(--ink); }
+.btn:disabled { opacity:.45; cursor:not-allowed; }
+.btn.sm { padding:4px 10px; font-size:12.5px; }
+:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---- tabs ---- */
+.tabs { display:flex; gap:2px; overflow-x:auto; border-bottom:1px solid var(--border); margin-bottom:22px; }
+.tabs button { font:inherit; font-size:14px; background:transparent; border:0; border-bottom:2px solid transparent;
+               color:var(--ink-2); padding:10px 15px; cursor:pointer; white-space:nowrap; margin-bottom:-1px; }
+.tabs button:hover { color:var(--ink); }
+.tabs button[aria-selected="true"] { color:var(--ink); font-weight:600; border-bottom-color:var(--accent); }
+.tabpane[hidden] { display:none; }
+
+/* ---- controls bar ---- */
+.controls { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:11px 14px; margin-bottom:20px;
+            background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+.controls .lab { font-family:var(--font-label); font-size:10.5px; font-weight:600; letter-spacing:.12em;
+                 text-transform:uppercase; color:var(--muted); }
+.controls .grow { flex:1 1 20px; }
+input[type="date"], select, input[type="text"], input[type="number"] {
+  font:inherit; font-size:13.5px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--border-2); border-radius:8px; padding:5px 9px; }
+.seg { display:inline-flex; background:var(--surface-2); border-radius:999px; padding:3px; gap:2px; }
+.seg button { font:inherit; font-size:13px; border:0; background:transparent; color:var(--ink-2);
+              padding:5px 12px; border-radius:999px; cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--surface); color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+/* ---- cards ---- */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px 20px 16px; margin-bottom:16px; }
+.card > h3 { font-size:15.5px; font-weight:600; margin:0 0 3px; letter-spacing:-0.005em; }
+.card > .sub { font-size:13px; color:var(--ink-2); margin:0 0 14px; line-height:1.45; max-width:74ch; }
+.card .read { font-size:13px; color:var(--ink-2); margin:12px 0 0; line-height:1.5; border-top:1px solid var(--border); padding-top:11px; }
+.card .read b { font-weight:600; color:var(--ink); }
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(440px,1fr)); gap:16px; }
+/* without this the auto minimum of a card's content resolves the track wider than
+   the grid itself, and the whole page scrolls sideways on a phone */
+.grid2 > *, .grid3 > * { min-width:0; }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:16px; }
+.chart-scroll { overflow-x:auto; }
+svg.chart { display:block; width:100%; max-width:100%; height:auto; overflow:visible; }
+svg text { font-family:var(--font-ui); }
+.tick-txt { font-size:11px; fill:var(--muted); font-variant-numeric:tabular-nums; }
+.axis-line { stroke:var(--axis); stroke-width:1; }
+.grid-line { stroke:var(--grid); stroke-width:1; }
+.lbl-txt { font-size:11.5px; fill:var(--ink-2); }
+.lbl-strong { font-size:12px; fill:var(--ink); font-weight:600; }
+
+/* ---- legend ---- */
+.legend { display:flex; flex-wrap:wrap; gap:6px 18px; margin:0 0 12px; padding:0; list-style:none; }
+.legend li { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2); }
+.legend .key { width:14px; height:3px; border-radius:2px; flex:none; }
+.legend .key.sq { width:11px; height:11px; border-radius:3px; }
+
+/* ---- badges ---- */
+.badge { display:inline-flex; align-items:center; gap:5px; font-family:var(--font-label); font-size:10px;
+         font-weight:600; letter-spacing:.09em; text-transform:uppercase; padding:3px 8px; border-radius:5px;
+         background:var(--surface-2); color:var(--ink-2); white-space:nowrap; }
+.badge.proxy { background:rgba(250,178,25,.16); color:#8a5f00; }
+:root[data-theme="dark"] .badge.proxy, :root:not([data-theme="light"]) .badge.proxy { color:#fab219; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .badge.proxy { color:#8a5f00; } }
+.badge.real { background:rgba(12,163,12,.14); color:var(--good-ink); }
+.badge.warn { background:rgba(208,59,59,.13); color:var(--critical); }
+.proxy-banner { display:flex; align-items:flex-start; gap:11px; padding:12px 15px; margin-bottom:18px;
+                border-radius:12px; background:rgba(250,178,25,.10); border:1px solid rgba(250,178,25,.42);
+                font-size:13.5px; line-height:1.5; color:var(--ink); }
+.proxy-banner b { font-weight:600; }
+.proxy-banner .ico { flex:none; width:18px; height:18px; color:var(--warning); margin-top:1px; }
+
+/* ---- dropzone ---- */
+.drops { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+.drop { border:1.5px dashed var(--border-2); border-radius:14px; background:var(--surface);
+        padding:18px 18px 16px; text-align:left; cursor:pointer; transition:border-color .12s, background .12s; }
+.drop:hover, .drop.over { border-color:var(--accent); background:var(--accent-wash); }
+.drop h4 { margin:0 0 4px; font-size:14px; font-weight:600; }
+.drop p { margin:0; font-size:12.5px; color:var(--ink-2); line-height:1.45; }
+.drop .fmt { font-family:var(--font-label); font-size:11px; color:var(--muted); margin-top:8px; display:block; }
+.drop .state { margin-top:9px; }
+
+/* ---- holdings table ---- */
+.holdings-wrap { overflow-x:auto; }
+table.hold { border-collapse:separate; border-spacing:0; width:100%; font-size:13.5px; min-width:760px; }
+table.hold th, table.hold td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
+table.hold th:first-child, table.hold td:first-child,
+table.hold th:nth-child(2), table.hold td:nth-child(2) { text-align:left; }
+table.hold thead th { font-family:var(--font-label); font-size:10px; font-weight:600; letter-spacing:.09em;
+                      text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--axis); }
+table.hold tbody tr:hover { background:var(--surface-2); }
+table.hold td.tick { font-weight:600; }
+table.hold td.nm { color:var(--ink-2); max-width:230px; overflow:hidden; text-overflow:ellipsis; }
+table.hold tfoot td { font-weight:600; border-top:1px solid var(--axis); border-bottom:0; padding-top:10px; }
+.cls-chip { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-2); }
+.cls-chip .sw { width:9px; height:9px; border-radius:2px; flex:none; }
+.delta-pos { color:var(--good-ink); font-variant-numeric:tabular-nums; }
+.delta-neg { color:var(--critical); font-variant-numeric:tabular-nums; }
+.delta-zero { color:var(--muted); font-variant-numeric:tabular-nums; }
+
+/* ---- weight stepper ---- */
+.wcell { position:relative; display:inline-flex; align-items:center; }
+.wbtn { font:inherit; font-variant-numeric:tabular-nums; font-size:13.5px; font-weight:600; color:var(--ink);
+        background:var(--surface-2); border:1px solid var(--border-2); border-radius:8px;
+        padding:4px 9px; min-width:62px; text-align:right; cursor:ns-resize; }
+.wbtn:hover { border-color:var(--accent); }
+.wbtn.cur { background:var(--accent-wash); }
+.wbtn.prop { background:var(--prop-wash); }
+.wbtn[aria-expanded="true"] { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-wash); }
+.wpop { position:absolute; z-index:60; top:calc(100% + 5px); right:0; width:186px;
+        background:var(--surface); border:1px solid var(--border-2); border-radius:12px; box-shadow:var(--shadow);
+        padding:9px; display:none; }
+.wpop.open { display:block; }
+.wpop-top { display:flex; gap:6px; align-items:center; margin-bottom:8px; }
+.wpop-top input { width:100%; text-align:right; font-variant-numeric:tabular-nums; }
+.wpop-top button { font:inherit; width:30px; height:30px; flex:none; border-radius:8px; cursor:pointer;
+                   border:1px solid var(--border-2); background:var(--surface-2); color:var(--ink); font-size:15px; line-height:1; }
+.wpop-top button:hover { border-color:var(--accent); }
+.wgrid { display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:30px; gap:4px; max-height:206px; overflow-y:auto; padding-right:2px; }
+.wgrid button { font:inherit; font-size:12.5px; font-variant-numeric:tabular-nums; padding:0; cursor:pointer;
+                border:1px solid transparent; border-radius:7px; background:var(--surface-2); color:var(--ink-2); }
+.wgrid button:hover { background:var(--accent-wash); color:var(--ink); border-color:var(--accent); }
+.wgrid button[aria-current="true"] { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.wpop .hintline { font-size:11.5px; color:var(--muted); margin:8px 0 0; line-height:1.4; }
+.wpop .rule { height:1px; background:var(--border); margin:8px 0 0; }
+
+/* ---- stat tiles ---- */
+.tiles { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(186px,1fr)); }
+.tile { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 15px 13px; }
+.tile .t-lab { font-size:12.5px; color:var(--ink-2); margin-bottom:5px; line-height:1.3; }
+.tile .t-val { font-size:27px; font-weight:600; letter-spacing:-0.02em; line-height:1.05; }
+.tile .t-sub { font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.4; }
+.tile .t-delta { font-size:12.5px; margin-top:5px; display:flex; align-items:center; gap:5px; }
+.t-delta .dot { width:7px; height:7px; border-radius:50%; flex:none; }
+.t-delta.up { color:var(--good-ink); } .t-delta.up .dot { background:var(--good); }
+.t-delta.down { color:var(--critical); } .t-delta.down .dot { background:var(--critical); }
+.t-delta.flat { color:var(--muted); } .t-delta.flat .dot { background:var(--axis); }
+
+/* ---- data tables ---- */
+.tbl-wrap { overflow-x:auto; }
+table.data { border-collapse:collapse; width:100%; font-size:13px; }
+table.data th, table.data td { text-align:right; padding:7px 10px; border-bottom:1px solid var(--border);
+                               white-space:nowrap; font-variant-numeric:tabular-nums; }
+table.data th:first-child, table.data td:first-child { text-align:left; font-variant-numeric:normal; }
+table.data thead th { font-family:var(--font-label); font-size:10px; font-weight:600; color:var(--muted);
+                      text-transform:uppercase; letter-spacing:.09em; border-bottom:1px solid var(--axis); }
+table.data tbody tr:hover { background:var(--surface-2); }
+table.data tr.grp td { background:var(--surface-2); font-family:var(--font-label); font-size:10px; font-weight:600;
+                       letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
+table.data .why { font-size:11.5px; color:var(--muted); font-weight:400; display:block; white-space:normal; max-width:44ch; }
+.tbl-note { font-size:12px; color:var(--muted); margin-top:10px; }
+.name-key { display:inline-flex; align-items:center; gap:7px; }
+.name-key .key { width:10px; height:10px; border-radius:2px; flex:none; }
+
+/* ---- sliders ---- */
+.shocks { display:grid; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); gap:16px 24px; }
+.shock label { display:flex; align-items:baseline; gap:8px; font-size:13.5px; margin-bottom:5px; }
+.shock label .v { margin-left:auto; font-weight:600; font-variant-numeric:tabular-nums; }
+.shock input[type="range"] { width:100%; accent-color:var(--accent); }
+.shock .cap { font-size:12px; color:var(--muted); line-height:1.4; margin-top:3px; }
+.scenario-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+
+/* ---- tooltip ---- */
+.tt { position:fixed; pointer-events:none; z-index:80; opacity:0; background:var(--surface); color:var(--ink);
+      border:1px solid var(--border-2); border-radius:10px; box-shadow:var(--shadow); padding:9px 11px;
+      font-size:12.5px; line-height:1.5; min-width:158px; transition:opacity .08s; }
+.tt .tt-h { font-weight:600; margin-bottom:5px; }
+.tt .row { display:flex; align-items:center; gap:8px; }
+.tt .row .key { width:9px; height:9px; border-radius:2px; flex:none; }
+.tt .row .nm { color:var(--ink-2); }
+.tt .row .vl { margin-left:auto; font-variant-numeric:tabular-nums; font-weight:600; }
+
+/* ---- misc ---- */
+.foot { margin-top:34px; padding-top:16px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); line-height:1.6; }
+.foot b { color:var(--ink-2); font-weight:600; }
+.empty { color:var(--ink-2); font-size:14px; padding:26px 0; text-align:center; }
+.rowflex { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.hd-split { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.hd-split h3 { margin:0; font-size:15.5px; font-weight:600; }
+.hd-split .aside { margin-left:auto; font-size:12.5px; color:var(--muted); }
+.stack-bar { display:flex; width:100%; height:34px; border-radius:8px; overflow:hidden; background:var(--surface-2); }
+.stack-bar i { display:block; height:100%; position:relative; border-right:2px solid var(--surface); }
+.stack-bar i:last-child { border-right:0; }
+.stack-lab { display:flex; align-items:center; justify-content:center; height:100%; font-size:11.5px; font-weight:600; }
+.alloc-row { margin-bottom:14px; }
+.alloc-row .cap { display:flex; font-size:12.5px; color:var(--ink-2); margin-bottom:5px; align-items:center; gap:8px; }
+.alloc-row .cap b { font-weight:600; color:var(--ink); }
+
+@media (max-width:760px) {
+  .wrap { padding:18px 14px 56px; }
+  .grid2, .grid3 { grid-template-columns:1fr; }
+  .masthead h1 { font-size:22px; }
+}
+@media print {
+  body { background:#fff; }
+  .tabs, .mast-actions, .controls, .drops { display:none !important; }
+  .tabpane[hidden] { display:block !important; }
+  .card, .tile { break-inside:avoid; box-shadow:none; }
+}
+@media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>Proposal Engine</h1>
+      <p>Load a client's current holdings, build the proposed allocation beside it, and run the
+         whole case &mdash; performance, MPT statistics, risk exposure, stress tests and the efficient frontier.</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="mast-actions">
+      <a class="btn" href="index.html">&larr; Priorities board</a>
+      <button class="btn" id="themeBtn" type="button">Dark</button>
+      <button class="btn" id="printBtn" type="button">Print</button>
+      <button class="btn primary" id="runBtn" type="button">Run proposal</button>
+    </div>
+  </header>
+
+  <div id="proxyBanner"></div>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-tab="build"    aria-selected="true">Build</button>
+    <button role="tab" data-tab="perf"     aria-selected="false">Performance</button>
+    <button role="tab" data-tab="risk"     aria-selected="false">Risk &amp; MPT</button>
+    <button role="tab" data-tab="stress"   aria-selected="false">Stress &amp; scenarios</button>
+    <button role="tab" data-tab="frontier" aria-selected="false">Optimization</button>
+    <button role="tab" data-tab="proposal" aria-selected="false">Proposal</button>
+  </nav>
+
+  <div class="controls">
+    <span class="lab">From</span><input type="date" id="startDate">
+    <span class="lab">To</span><input type="date" id="endDate">
+    <div class="seg" id="rangeSeg" role="group" aria-label="Quick ranges"></div>
+    <span class="grow"></span>
+    <span class="lab">Benchmark</span><select id="benchSel"></select>
+  </div>
+
+  <!-- ============ BUILD ============ -->
+  <section class="tabpane" id="pane-build" role="tabpanel">
+    <div class="card">
+      <h3>Load the client's data</h3>
+      <p class="sub">Drop an Excel or CSV file, or start from a model and edit by hand. Nothing leaves this page &mdash;
+         files are read in your browser and never uploaded anywhere.</p>
+      <div class="drops">
+        <div class="drop" id="dropHoldings" tabindex="0" role="button">
+          <h4>Holdings &amp; allocations</h4>
+          <p>Ticker and weight. A second weight column becomes the proposed allocation.</p>
+          <span class="fmt">TICKER | CURRENT % | PROPOSED %</span>
+          <div class="state"><span class="badge">No file loaded</span></div>
+        </div>
+        <div class="drop" id="dropReturns" tabindex="0" role="button">
+          <h4>Return history</h4>
+          <p>A date column and one column per ticker. Daily, weekly, monthly or quarterly &mdash; the frequency is detected.</p>
+          <span class="fmt">DATE | AAPL | AGG | &hellip;</span>
+          <div class="state"><span class="badge">No file loaded</span></div>
+        </div>
+        <div class="drop" id="dropModel" tabindex="0" role="button" style="cursor:default">
+          <h4>Or start from a model</h4>
+          <p>Load a starting pair of allocations and edit from there.</p>
+          <div class="rowflex" style="margin-top:10px">
+            <select id="modelSel"></select>
+            <button class="btn sm" id="loadModelBtn" type="button">Load</button>
+          </div>
+          <div class="state"><button class="btn sm" id="downloadTplBtn" type="button">Show a template</button></div>
+        </div>
+      </div>
+      <input type="file" id="fileHoldings" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden>
+      <input type="file" id="fileReturns" accept=".xlsx,.xls,.csv,.tsv,.txt" hidden>
+      <p class="read" id="loadRead">Every holding is priced off a proxy of its asset-class risk characteristics until you
+         load real returns. Proxy figures are badged everywhere they appear.</p>
+    </div>
+
+    <div class="card">
+      <div class="hd-split">
+        <h3>Current vs. proposed allocation</h3>
+        <span class="aside" id="holdCount"></span>
+      </div>
+      <p class="sub">Click any weight to open the picker &mdash; click a value from 0&ndash;20, scroll for more, use the arrows,
+         or type it. The mouse wheel over a weight nudges it a point at a time.</p>
+      <div class="rowflex" style="margin-bottom:12px">
+        <button class="btn sm" id="addRowBtn" type="button">+ Add holding</button>
+        <button class="btn sm" id="copyCurBtn" type="button">Copy current &rarr; proposed</button>
+        <button class="btn sm" id="normCurBtn" type="button">Normalise current</button>
+        <button class="btn sm" id="normPropBtn" type="button">Normalise proposed</button>
+        <button class="btn sm" id="clearBtn" type="button">Clear all</button>
+      </div>
+      <div class="holdings-wrap" id="holdingsHost"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Where the risk sits</h3>
+        <p class="sub">Both allocations grouped into five risk buckets, ordered from safest to riskiest.</p>
+        <div id="riskBuckets"></div>
+        <div class="tbl-wrap" id="bucketTable"></div>
+      </div>
+      <div class="card">
+        <h3>Exposure change</h3>
+        <p class="sub">What the proposal actually changes in the risks that drive the portfolio.</p>
+        <div class="chart-scroll"><div id="exposureChart"></div></div>
+        <p class="read" id="exposureRead"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PERFORMANCE ============ -->
+  <section class="tabpane" id="pane-perf" role="tabpanel" hidden>
+    <div class="tiles" id="perfTiles" style="margin-bottom:16px"></div>
+    <div class="card">
+      <h3>Growth of $1,000,000</h3>
+      <p class="sub">The same starting sum through both allocations and the benchmark, over the dates you set above.</p>
+      <ul class="legend" id="growthLegend"></ul>
+      <div class="chart-scroll"><div id="growthChart"></div></div>
+      <p class="read" id="growthRead"></p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Trailing returns</h3>
+        <p class="sub">Periods longer than a year are annualised.</p>
+        <div class="tbl-wrap" id="trailingTable"></div>
+      </div>
+      <div class="card">
+        <h3>Calendar year returns</h3>
+        <p class="sub">Every full calendar year in the window.</p>
+        <ul class="legend" id="calLegend"></ul>
+        <div class="chart-scroll"><div id="calChart"></div></div>
+        <div class="tbl-wrap" id="calTable" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Drawdowns</h3>
+      <p class="sub">Distance below the previous high point. This is the chart a client feels, and the one that decides
+         whether they stay invested.</p>
+      <ul class="legend" id="ddLegend"></ul>
+      <div class="chart-scroll"><div id="ddChart"></div></div>
+      <p class="read" id="ddRead"></p>
+      <div class="tbl-wrap" id="ddTable" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ============ RISK & MPT ============ -->
+  <section class="tabpane" id="pane-risk" role="tabpanel" hidden>
+    <div class="grid2">
+      <div class="card">
+        <h3>Risk taken vs. return earned</h3>
+        <p class="sub">Both allocations, the benchmark, and every holding on one map.</p>
+        <div class="chart-scroll"><div id="riskScatter"></div></div>
+        <p class="read" id="scatterRead"></p>
+      </div>
+      <div class="card">
+        <h3>Where the risk actually comes from</h3>
+        <p class="sub">Capital weight against contribution to portfolio risk. A holding whose risk bar dwarfs its
+           capital bar is doing more than its share of the damage.</p>
+        <ul class="legend" id="rcLegend"></ul>
+        <div class="chart-scroll"><div id="riskContribChart"></div></div>
+        <p class="read" id="rcRead"></p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hd-split">
+        <h3>Modern portfolio theory statistics</h3>
+        <span class="aside" id="mptAside"></span>
+      </div>
+      <div class="tbl-wrap" id="mptTable"></div>
+      <p class="tbl-note" id="mptNote"></p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Distribution of returns</h3>
+        <p class="sub">How often each size of gain and loss actually happened.</p>
+        <ul class="legend" id="histLegend"></ul>
+        <div class="chart-scroll"><div id="histChart"></div></div>
+        <p class="read" id="histRead"></p>
+      </div>
+      <div class="card">
+        <h3>Rolling 12-period return</h3>
+        <p class="sub">Every year-long stretch in the window, not just calendar years.</p>
+        <ul class="legend" id="rollLegend"></ul>
+        <div class="chart-scroll"><div id="rollChart"></div></div>
+        <p class="read" id="rollRead"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STRESS ============ -->
+  <section class="tabpane" id="pane-stress" role="tabpanel" hidden>
+    <div class="card">
+      <h3>Historical episodes</h3>
+      <p class="sub">What each allocation actually did through the windows clients remember, measured from the
+         return series &mdash; not modelled.</p>
+      <ul class="legend" id="epLegend"></ul>
+      <div class="chart-scroll"><div id="episodeChart"></div></div>
+      <div class="tbl-wrap" id="episodeTable" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Shock the portfolio on the fly</h3>
+      <p class="sub">First-order factor shocks applied to each holding's own rate, credit, equity and inflation
+         sensitivity. Move a slider and both allocations reprice instantly.</p>
+      <div class="scenario-row" id="scenarioRow"></div>
+      <div class="shocks" id="shockControls"></div>
+      <div style="margin-top:20px" class="chart-scroll"><div id="shockChart"></div></div>
+      <p class="read" id="shockRead"></p>
+      <div class="tbl-wrap" id="shockTable" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h3>Down-period analysis</h3>
+      <p class="sub">Every period the benchmark lost money, and what each allocation did in those same periods.</p>
+      <ul class="legend" id="downLegend"></ul>
+      <div class="chart-scroll"><div id="worstChart"></div></div>
+      <div class="tbl-wrap" id="downTable" style="margin-top:16px"></div>
+      <p class="read" id="downRead"></p>
+    </div>
+  </section>
+
+  <!-- ============ FRONTIER ============ -->
+  <section class="tabpane" id="pane-frontier" role="tabpanel" hidden>
+    <div class="card">
+      <h3>Efficient frontier</h3>
+      <p class="sub">The best return available at every level of risk, built from the holdings on the table, long only
+         and fully invested. Where the current and proposed allocations sit against it is the whole argument.</p>
+      <div class="rowflex" style="margin-bottom:14px">
+        <span class="lab" style="font-family:var(--font-label);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Max position</span>
+        <div class="seg" id="capSeg" role="group" aria-label="Maximum position size"></div>
+        <span class="grow"></span>
+        <button class="btn sm" id="applyMinVar" type="button">Apply minimum-risk mix</button>
+        <button class="btn sm" id="applyMaxSharpe" type="button">Apply best risk-adjusted mix</button>
+      </div>
+      <ul class="legend" id="frontierLegend"></ul>
+      <div class="chart-scroll"><div id="frontierChart"></div></div>
+      <p class="read" id="frontierRead"></p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Optimised mixes</h3>
+        <p class="sub">The two portfolios the frontier singles out, holding by holding.</p>
+        <div class="tbl-wrap" id="optTable"></div>
+      </div>
+      <div class="card">
+        <h3>What the optimiser is and is not</h3>
+        <p class="sub">Worth saying out loud before anyone acts on this chart.</p>
+        <div id="optCaveats"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROPOSAL ============ -->
+  <section class="tabpane" id="pane-proposal" role="tabpanel" hidden>
+    <div id="proposalBody"></div>
+  </section>
+
+  <p class="foot" id="footNote"></p>
+</div>
+
+<div class="tt" id="tooltip" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ==================================================================
+   1. FACTOR MODEL
+   Annual total returns per risk factor, illustrative figures modelled on
+   published broad-index behaviour. `treas` is a ~5.2-year Treasury index and
+   `credit` is investment-grade EXCESS return over duration-matched Treasuries,
+   so an instrument's rate and credit loadings fall straight out of its own
+   duration and spread duration.
+   ================================================================== */
+const FACTOR_KEYS = ["us","intl","em","treas","credit","reit","commod","cash","infl"];
+const FACTOR_YEARS = {
+  //        us     intl     em    treas  credit    reit   commod  cash  infl
+  2005: [   4.9,   13.5,   34.0,   2.8,   -0.5,   12.2,   21.4,  3.0,  3.4 ],
+  2006: [  15.8,   26.3,   32.2,   3.1,    1.3,   35.1,   -2.7,  4.8,  2.5 ],
+  2007: [   5.5,   11.2,   39.4,   9.8,   -3.9,  -16.8,   16.2,  4.7,  4.1 ],
+  2008: [ -37.0,  -43.4,  -53.3,  13.1,  -18.0,  -37.7,  -35.6,  1.8,  0.1 ],
+  2009: [  26.5,   31.8,   78.5,  -6.5,   20.5,   28.0,   18.9,  0.2,  2.7 ],
+  2010: [  15.1,    7.8,   18.9,   7.9,    2.0,   27.9,   16.8,  0.1,  1.5 ],
+  2011: [   2.1,  -12.1,  -18.4,  13.2,   -3.0,    8.3,   -1.2,  0.1,  3.0 ],
+  2012: [  16.0,   17.3,   18.2,   2.3,    6.8,   19.7,    0.1,  0.1,  1.7 ],
+  2013: [  32.4,   22.8,   -2.6,  -3.4,    1.1,    2.5,   -9.5,  0.1,  1.5 ],
+  2014: [  13.7,   -4.9,   -2.2,   6.1,   -1.2,   28.0,  -33.1,  0.0,  0.8 ],
+  2015: [   1.4,   -0.8,  -14.9,   1.7,   -3.0,    2.8,  -32.9,  0.1,  0.7 ],
+  2016: [  12.0,    1.0,   11.2,   1.1,    3.2,    8.6,   11.4,  0.3,  2.1 ],
+  2017: [  21.8,   25.0,   37.3,   2.4,    2.4,    4.9,    1.7,  0.9,  2.1 ],
+  2018: [  -4.4,  -13.8,  -14.6,   1.0,   -2.5,   -4.0,  -11.2,  1.9,  1.9 ],
+  2019: [  31.5,   22.0,   18.4,   6.9,    5.6,   28.9,    7.7,  2.2,  2.3 ],
+  2020: [  18.4,    7.8,   18.3,   8.0,    1.2,   -4.6,  -23.7,  0.5,  1.4 ],
+  2021: [  28.7,   11.3,   -2.5,  -2.3,    0.3,   41.3,   40.4,  0.0,  7.0 ],
+  2022: [ -18.1,  -14.5,  -20.1, -10.6,   -3.4,  -25.1,   16.1,  1.5,  6.5 ],
+  2023: [  26.3,   18.2,    9.8,   3.9,    3.5,   11.4,   -7.9,  5.0,  3.4 ],
+  2024: [  25.0,    3.8,    7.5,   1.5,    2.2,    4.9,    5.4,  5.2,  2.9 ],
+  2025: [  12.0,   14.0,   10.0,   4.6,    1.5,    6.5,    4.0,  4.2,  2.8 ]
+};
+const FACTOR_SIGMA = { us:.042, intl:.045, em:.055, treas:.016, credit:.014, reit:.050, commod:.052, cash:.0008, infl:.0015 };
+
+/* Crisis structure. Without this a proxy would smear each year's result evenly across
+   its months, so a two-month crash inside a positive year would be pure noise and any
+   episode measured over it would be meaningless. Each entry is the cumulative factor
+   return over that window; the rest of the year is then solved so the annual total
+   still compounds exactly to the figure in FACTOR_YEARS. */
+const EVENT_WINDOWS = [
+  { from:"2007-10-01", to:"2007-12-31", f:{ us:-.038, intl:-.020, em:.030, treas:.030, credit:-.020, reit:-.140, commod:.080 } },
+  { from:"2008-01-01", to:"2008-06-30", f:{ us:-.120, intl:-.110, em:-.115, treas:.040, credit:-.050, reit:-.040, commod:.280 } },
+  { from:"2008-09-01", to:"2008-11-30", f:{ us:-.300, intl:-.330, em:-.400, treas:.040, credit:-.120, reit:-.320, commod:-.350 } },
+  { from:"2009-01-01", to:"2009-02-28", f:{ us:-.180, intl:-.200, em:-.120, treas:-.010, credit:-.020, reit:-.300, commod:-.080 } },
+  { from:"2009-03-01", to:"2009-05-31", f:{ us:.260, intl:.320, em:.450, treas:-.030, credit:.120, reit:.380, commod:.150 } },
+  { from:"2011-05-01", to:"2011-09-30", f:{ us:-.130, intl:-.180, em:-.220, treas:.090, credit:-.035, reit:-.090, commod:-.110 } },
+  { from:"2013-05-01", to:"2013-08-31", f:{ us:.010, intl:-.030, em:-.115, treas:-.045, credit:-.025, reit:-.100, commod:-.035 } },
+  { from:"2015-08-01", to:"2015-09-30", f:{ us:-.085, intl:-.090, em:-.150, treas:.015, credit:-.020, reit:-.030, commod:-.120 } },
+  { from:"2018-10-01", to:"2018-12-31", f:{ us:-.135, intl:-.125, em:-.075, treas:.035, credit:-.015, reit:-.065, commod:-.220 } },
+  { from:"2020-02-01", to:"2020-03-31", f:{ us:-.196, intl:-.228, em:-.236, treas:.055, credit:-.080, reit:-.270, commod:-.450 } },
+  { from:"2020-04-01", to:"2020-08-31", f:{ us:.350, intl:.260, em:.320, treas:.020, credit:.090, reit:.180, commod:.300 } },
+  { from:"2022-01-01", to:"2022-10-31", f:{ us:-.180, intl:-.220, em:-.270, treas:-.130, credit:-.040, reit:-.280, commod:.200 } },
+  { from:"2022-11-01", to:"2022-12-31", f:{ us:-.002, intl:.080, em:.050, treas:.015, credit:.015, reit:-.010, commod:-.030 } }
+].map(e => ({ from:new Date(e.from+"T00:00:00Z"), to:new Date(e.to+"T23:59:59Z"), f:e.f }));
+const FACTOR_DUR = 5.2;      /* years of duration in the treas factor  */
+const FACTOR_SPRD = 7.5;     /* years of spread duration in the credit factor */
+const YEARS = Object.keys(FACTOR_YEARS).map(Number).sort((a,b)=>a-b);
+
+/* ==================================================================
+   2. ASSET-CLASS TEMPLATES
+   e = equity-factor loadings · dur = effective duration (yrs)
+   sprd = spread duration (yrs) · qual = spread-widening multiplier vs IG
+   beta = equity beta · infl = return per 1% inflation surprise
+   vol = return per +1 VIX point beyond the linear equity move
+   idio = annual idiosyncratic volatility · yld = starting yield %
+   ================================================================== */
+const CLASSES = {
+  us_blend:    { lab:"US equity",           bucket:4, e:{us:1.00},               dur:0, sprd:0, beta:1.00, infl:-0.35, vol:-0.0022, idio:.030, yld:1.3, er:.04 },
+  us_growth:   { lab:"US growth equity",    bucket:4, e:{us:1.10},               dur:0, sprd:0, beta:1.10, infl:-0.55, vol:-0.0028, idio:.042, yld:0.6, er:.05 },
+  us_value:    { lab:"US value equity",     bucket:4, e:{us:0.92},               dur:0, sprd:0, beta:0.92, infl:-0.18, vol:-0.0018, idio:.038, yld:2.3, er:.05 },
+  us_div:      { lab:"US dividend equity",  bucket:4, e:{us:0.86},               dur:0, sprd:0, beta:0.85, infl:-0.15, vol:-0.0016, idio:.036, yld:3.3, er:.07 },
+  us_lowvol:   { lab:"US low-volatility",   bucket:4, e:{us:0.74},               dur:0, sprd:0, beta:0.73, infl:-0.20, vol:-0.0012, idio:.034, yld:1.9, er:.15 },
+  us_mid:      { lab:"US mid cap",          bucket:4, e:{us:1.12},               dur:0, sprd:0, beta:1.12, infl:-0.30, vol:-0.0026, idio:.046, yld:1.4, er:.06 },
+  us_small:    { lab:"US small cap",        bucket:4, e:{us:1.22},               dur:0, sprd:0, beta:1.22, infl:-0.28, vol:-0.0032, idio:.056, yld:1.3, er:.07 },
+  us_tech:     { lab:"US technology",       bucket:4, e:{us:1.26},               dur:0, sprd:0, beta:1.26, infl:-0.62, vol:-0.0034, idio:.070, yld:0.6, er:.09 },
+  us_fin:      { lab:"US financials",       bucket:4, e:{us:1.10},               dur:0, sprd:0, beta:1.10, infl:0.10,  vol:-0.0030, idio:.068, yld:1.6, er:.09 },
+  us_energy:   { lab:"US energy",           bucket:3, e:{us:0.70, commod:0.55},  dur:0, sprd:0, beta:0.95, infl:1.30,  vol:-0.0026, idio:.090, yld:3.2, er:.09 },
+  us_health:   { lab:"US health care",      bucket:4, e:{us:0.82},               dur:0, sprd:0, beta:0.82, infl:-0.15, vol:-0.0016, idio:.062, yld:1.6, er:.09 },
+  us_util:     { lab:"US utilities",        bucket:3, e:{us:0.50},               dur:3.0, sprd:1.5, qual:1, beta:0.55, infl:0.10, vol:-0.0010, idio:.062, yld:3.1, er:.09 },
+  us_staples:  { lab:"US consumer staples", bucket:4, e:{us:0.58},               dur:0, sprd:0, beta:0.58, infl:0.05,  vol:-0.0010, idio:.058, yld:2.5, er:.09 },
+  intl_dev:    { lab:"Developed intl",      bucket:4, e:{intl:1.00},             dur:0, sprd:0, beta:0.95, infl:-0.20, vol:-0.0024, idio:.032, yld:3.0, er:.07 },
+  intl_all:    { lab:"Total intl equity",   bucket:4, e:{intl:0.78, em:0.24},    dur:0, sprd:0, beta:0.98, infl:-0.22, vol:-0.0025, idio:.030, yld:2.9, er:.08 },
+  intl_em:     { lab:"Emerging markets",    bucket:4, e:{em:1.00},               dur:0, sprd:0, beta:1.05, infl:0.15,  vol:-0.0030, idio:.048, yld:2.8, er:.11 },
+  intl_eur:    { lab:"Europe equity",       bucket:4, e:{intl:1.05},             dur:0, sprd:0, beta:1.00, infl:-0.20, vol:-0.0026, idio:.042, yld:3.1, er:.09 },
+  intl_jpn:    { lab:"Japan equity",        bucket:4, e:{intl:0.88},             dur:0, sprd:0, beta:0.82, infl:-0.10, vol:-0.0020, idio:.052, yld:2.2, er:.50 },
+  cash:        { lab:"Cash & equivalents",  bucket:0, e:{cash:1.00},             dur:0.15, sprd:0, beta:0, infl:-0.05, vol:0, idio:.0015, yld:4.2, er:.09 },
+  bond_ultra:  { lab:"Ultra-short bonds",   bucket:1, e:{cash:0.55},             dur:0.9, sprd:0.8, qual:1, beta:0.02, infl:-0.15, vol:-0.0002, idio:.004, yld:4.4, er:.15 },
+  bond_shortg: { lab:"Short Treasuries",    bucket:1, e:{},                      dur:1.9, sprd:0, beta:0, infl:-0.30, vol:0.0004, idio:.004, yld:4.1, er:.04 },
+  bond_intg:   { lab:"Intermediate Treas.", bucket:1, e:{},                      dur:5.2, sprd:0, beta:-0.02, infl:-0.80, vol:0.0012, idio:.006, yld:4.0, er:.04 },
+  bond_longg:  { lab:"Long Treasuries",     bucket:1, e:{},                      dur:16.4, sprd:0, beta:-0.05, infl:-2.40, vol:0.0032, idio:.014, yld:4.3, er:.15 },
+  bond_agg:    { lab:"Core bonds",          bucket:1, e:{},                      dur:6.0, sprd:1.8, qual:1, beta:0.04, infl:-0.85, vol:0.0006, idio:.006, yld:4.3, er:.03 },
+  bond_mbs:    { lab:"Mortgage-backed",     bucket:1, e:{},                      dur:5.8, sprd:1.2, qual:1, beta:0.04, infl:-0.80, vol:0.0004, idio:.008, yld:4.4, er:.04 },
+  bond_muni:   { lab:"Municipal bonds",     bucket:1, e:{},                      dur:6.3, sprd:3.4, qual:1.3, beta:0.06, infl:-0.85, vol:0.0002, idio:.008, yld:3.4, er:.07 },
+  bond_igshort:{ lab:"Short corporates",    bucket:2, e:{},                      dur:2.7, sprd:2.6, qual:1, beta:0.08, infl:-0.35, vol:-0.0004, idio:.006, yld:4.6, er:.04 },
+  bond_ig:     { lab:"Corporate bonds",     bucket:2, e:{},                      dur:8.2, sprd:7.5, qual:1, beta:0.16, infl:-1.10, vol:-0.0012, idio:.010, yld:5.0, er:.14 },
+  bond_igint:  { lab:"Intermediate corps",  bucket:2, e:{},                      dur:5.3, sprd:5.0, qual:1, beta:0.12, infl:-0.70, vol:-0.0009, idio:.008, yld:4.9, er:.04 },
+  bond_hy:     { lab:"High yield",          bucket:2, e:{us:0.14},               dur:3.4, sprd:3.6, qual:3.2, beta:0.42, infl:-0.10, vol:-0.0022, idio:.020, yld:7.1, er:.49 },
+  bond_hyshort:{ lab:"Short high yield",    bucket:2, e:{us:0.10},               dur:2.0, sprd:2.2, qual:3.0, beta:0.30, infl:-0.08, vol:-0.0016, idio:.016, yld:7.3, er:.30 },
+  bond_em:     { lab:"EM debt",             bucket:2, e:{em:0.14},               dur:7.0, sprd:6.5, qual:2.0, beta:0.34, infl:-0.55, vol:-0.0020, idio:.022, yld:6.4, er:.39 },
+  bond_intl:   { lab:"International bonds", bucket:1, e:{},                      dur:7.2, sprd:2.4, qual:1, beta:0.06, infl:-0.95, vol:0.0004, idio:.010, yld:3.4, er:.07 },
+  bond_tips:   { lab:"Inflation-linked",    bucket:1, e:{commod:0.10},           dur:6.8, sprd:0, beta:0.04, infl:1.35, vol:0.0004, idio:.008, yld:2.2, er:.05 },
+  bond_stips:  { lab:"Short inflation-lnk", bucket:1, e:{commod:0.06},           dur:2.5, sprd:0, beta:0.02, infl:0.95, vol:0.0002, idio:.005, yld:2.4, er:.04 },
+  bond_bank:   { lab:"Bank loans",          bucket:2, e:{us:0.12},               dur:0.3, sprd:3.0, qual:3.0, beta:0.34, infl:0.25, vol:-0.0018, idio:.020, yld:8.2, er:.50 },
+  reit:        { lab:"Real estate",         bucket:3, e:{reit:1.00},             dur:4.6, sprd:2.0, qual:1.2, beta:0.95, infl:0.45, vol:-0.0026, idio:.040, yld:3.7, er:.12 },
+  reit_gl:     { lab:"Global real estate",  bucket:3, e:{reit:0.86, intl:0.22},  dur:4.2, sprd:2.0, qual:1.2, beta:0.92, infl:0.40, vol:-0.0026, idio:.042, yld:3.4, er:.32 },
+  commod:      { lab:"Commodities",         bucket:3, e:{commod:1.00},           dur:0, sprd:0, beta:0.32, infl:2.10, vol:-0.0008, idio:.055, yld:2.5, er:.59 },
+  gold:        { lab:"Gold",                bucket:3, e:{commod:0.46},           dur:0, sprd:0, beta:0.06, infl:1.25, vol:0.0016, idio:.075, yld:0.0, er:.25 },
+  midstream:   { lab:"Energy midstream",    bucket:3, e:{us:0.52, commod:0.48},  dur:0, sprd:0, beta:0.82, infl:1.05, vol:-0.0028, idio:.095, yld:7.2, er:.85 },
+  alloc_60_40: { lab:"Balanced fund",       bucket:3, e:{us:0.42, intl:0.18},    dur:2.4, sprd:0.8, qual:1, beta:0.60, infl:-0.55, vol:-0.0014, idio:.012, yld:2.4, er:.25 },
+  alloc_cons:  { lab:"Conservative fund",   bucket:2, e:{us:0.20, intl:0.08},    dur:3.9, sprd:1.4, qual:1, beta:0.28, infl:-0.70, vol:-0.0008, idio:.010, yld:3.4, er:.28 },
+  multisector: { lab:"Multi-sector bond",   bucket:2, e:{us:0.08},               dur:4.0, sprd:4.2, qual:2.2, beta:0.26, infl:-0.45, vol:-0.0016, idio:.018, yld:6.0, er:.62 }
+};
+const BUCKETS = ["Cash", "Bonds", "Credit", "Real assets", "Equity"];
+
+/* ==================================================================
+   3. INSTRUMENT LIBRARY  — [ticker, name, class]
+   ================================================================== */
+const LIB_RAW = [
+  ["SPY","SPDR S&P 500 ETF","us_blend"],["VOO","Vanguard S&P 500 ETF","us_blend"],
+  ["IVV","iShares Core S&P 500 ETF","us_blend"],["VTI","Vanguard Total Stock Market ETF","us_blend"],
+  ["ITOT","iShares Core S&P Total US Stock","us_blend"],["FXAIX","Fidelity 500 Index Fund","us_blend"],
+  ["VFIAX","Vanguard 500 Index Admiral","us_blend"],["VTSAX","Vanguard Total Stock Mkt Admiral","us_blend"],
+  ["RSP","Invesco S&P 500 Equal Weight","us_value"],["DIA","SPDR Dow Jones Industrial Avg","us_value"],
+  ["QQQ","Invesco QQQ Trust","us_tech"],["VGT","Vanguard Information Technology","us_tech"],
+  ["XLK","Technology Select Sector SPDR","us_tech"],["VUG","Vanguard Growth ETF","us_growth"],
+  ["IWF","iShares Russell 1000 Growth","us_growth"],["AGTHX","American Funds Growth Fund of Amer","us_growth"],
+  ["VTV","Vanguard Value ETF","us_value"],["IWD","iShares Russell 1000 Value","us_value"],
+  ["ANCFX","American Funds Fundamental Investors","us_blend"],
+  ["SCHD","Schwab US Dividend Equity ETF","us_div"],["VYM","Vanguard High Dividend Yield","us_div"],
+  ["DVY","iShares Select Dividend ETF","us_div"],["NOBL","ProShares S&P 500 Div Aristocrats","us_div"],
+  ["VIG","Vanguard Dividend Appreciation","us_div"],["USMV","iShares MSCI USA Min Vol","us_lowvol"],
+  ["SPLV","Invesco S&P 500 Low Volatility","us_lowvol"],["MTUM","iShares MSCI USA Momentum","us_growth"],
+  ["IJH","iShares Core S&P Mid-Cap","us_mid"],["VO","Vanguard Mid-Cap ETF","us_mid"],
+  ["IWM","iShares Russell 2000 ETF","us_small"],["IJR","iShares Core S&P Small-Cap","us_small"],
+  ["VB","Vanguard Small-Cap ETF","us_small"],
+  ["XLF","Financial Select Sector SPDR","us_fin"],["XLV","Health Care Select Sector SPDR","us_health"],
+  ["XLE","Energy Select Sector SPDR","us_energy"],["XLU","Utilities Select Sector SPDR","us_util"],
+  ["XLP","Consumer Staples Select SPDR","us_staples"],
+  ["EFA","iShares MSCI EAFE ETF","intl_dev"],["VEA","Vanguard FTSE Developed Markets","intl_dev"],
+  ["IEFA","iShares Core MSCI EAFE","intl_dev"],["SCHF","Schwab International Equity","intl_dev"],
+  ["VXUS","Vanguard Total International Stock","intl_all"],["IXUS","iShares Core MSCI Total Intl","intl_all"],
+  ["VGK","Vanguard FTSE Europe ETF","intl_eur"],["EWJ","iShares MSCI Japan ETF","intl_jpn"],
+  ["EEM","iShares MSCI Emerging Markets","intl_em"],["VWO","Vanguard FTSE Emerging Markets","intl_em"],
+  ["IEMG","iShares Core MSCI Emerging Mkts","intl_em"],["SCHE","Schwab Emerging Markets Equity","intl_em"],
+  ["BIL","SPDR 1-3 Month T-Bill ETF","cash"],["SGOV","iShares 0-3 Month Treasury","cash"],
+  ["SHV","iShares Short Treasury Bond","cash"],["USFR","WisdomTree Floating Rate Treasury","cash"],
+  ["VMFXX","Vanguard Federal Money Market","cash"],
+  ["JPST","JPMorgan Ultra-Short Income","bond_ultra"],["MINT","PIMCO Enhanced Short Maturity","bond_ultra"],
+  ["SHY","iShares 1-3 Year Treasury","bond_shortg"],["VGSH","Vanguard Short-Term Treasury","bond_shortg"],
+  ["IEF","iShares 7-10 Year Treasury","bond_intg"],["VGIT","Vanguard Intermediate Treasury","bond_intg"],
+  ["GOVT","iShares US Treasury Bond ETF","bond_intg"],
+  ["TLT","iShares 20+ Year Treasury","bond_longg"],["VGLT","Vanguard Long-Term Treasury","bond_longg"],
+  ["AGG","iShares Core US Aggregate Bond","bond_agg"],["BND","Vanguard Total Bond Market","bond_agg"],
+  ["VBTLX","Vanguard Total Bond Mkt Admiral","bond_agg"],["SCHZ","Schwab US Aggregate Bond","bond_agg"],
+  ["DODIX","Dodge & Cox Income Fund","bond_agg"],["BSV","Vanguard Short-Term Bond","bond_igshort"],
+  ["BIV","Vanguard Intermediate-Term Bond","bond_igint"],["BLV","Vanguard Long-Term Bond","bond_ig"],
+  ["MBB","iShares MBS ETF","bond_mbs"],
+  ["LQD","iShares iBoxx IG Corporate","bond_ig"],["VCIT","Vanguard Interm-Term Corporate","bond_igint"],
+  ["VCSH","Vanguard Short-Term Corporate","bond_igshort"],["IGSB","iShares 1-5 Year IG Corporate","bond_igshort"],
+  ["HYG","iShares iBoxx High Yield Corp","bond_hy"],["JNK","SPDR Bloomberg High Yield Bond","bond_hy"],
+  ["SHYG","iShares 0-5 Year High Yield","bond_hyshort"],["BKLN","Invesco Senior Loan ETF","bond_bank"],
+  ["MUB","iShares National Muni Bond","bond_muni"],["VTEB","Vanguard Tax-Exempt Bond","bond_muni"],
+  ["EMB","iShares JP Morgan USD EM Bond","bond_em"],["BNDX","Vanguard Total Intl Bond","bond_intl"],
+  ["TIP","iShares TIPS Bond ETF","bond_tips"],["SCHP","Schwab US TIPS ETF","bond_tips"],
+  ["VTIP","Vanguard Short-Term TIPS","bond_stips"],
+  ["PIMIX","PIMCO Income Fund","multisector"],["PONAX","PIMCO Income Fund A","multisector"],
+  ["VNQ","Vanguard Real Estate ETF","reit"],["IYR","iShares US Real Estate","reit"],
+  ["SCHH","Schwab US REIT ETF","reit"],["RWO","SPDR Dow Jones Global Real Estate","reit_gl"],
+  ["GLD","SPDR Gold Shares","gold"],["IAU","iShares Gold Trust","gold"],
+  ["DBC","Invesco DB Commodity Index","commod"],["PDBC","Invesco Optimum Yield Divers Cmdty","commod"],
+  ["GSG","iShares S&P GSCI Commodity","commod"],["AMLP","Alerian MLP ETF","midstream"],
+  ["AOR","iShares Core Growth Allocation","alloc_60_40"],["AOM","iShares Core Moderate Allocation","alloc_cons"],
+  ["VBIAX","Vanguard Balanced Index Admiral","alloc_60_40"]
+];
+
+/* Build the library: loadings fall out of duration, spread and class. */
+const LIB = {};
+for (const [ticker, name, cls] of LIB_RAW) {
+  const c = CLASSES[cls];
+  const e = Object.assign({}, c.e);
+  if (c.dur)  e.treas  = (e.treas  || 0) + c.dur / FACTOR_DUR;
+  if (c.sprd) e.credit = (e.credit || 0) + (c.sprd / FACTOR_SPRD) * (c.qual || 1);
+  LIB[ticker] = { ticker, name, cls, classLabel:c.lab, bucket:c.bucket, e,
+                  dur:c.dur, sprd:(c.sprd||0)*(c.qual||1), beta:c.beta, inflSens:c.infl,
+                  volSens:c.vol, idio:c.idio, yld:c.yld, er:c.er };
+}
+const LIB_TICKERS = Object.keys(LIB);
+
+/* Starting models the advisor can load and edit. */
+const MODELS = [
+  { id:"balanced", name:"Legacy 60/40 → globally diversified",
+    current:  { SPY:45, AGG:35, LQD:10, EFA:10 },
+    proposed: { VTI:32, VXUS:16, VWO:5, AGG:22, VCIT:8, TIP:6, VNQ:5, SCHD:6 } },
+  { id:"income", name:"Cash-heavy → income portfolio",
+    current:  { BIL:40, SPY:25, AGG:35 },
+    proposed: { SCHD:22, VYM:8, LQD:14, HYG:8, VCIT:12, MUB:10, VNQ:8, EMB:6, SGOV:12 } },
+  { id:"derisk", name:"Concentrated equity → de-risked",
+    current:  { QQQ:45, SPY:35, IWM:20 },
+    proposed: { VTI:30, USMV:10, VXUS:12, SCHD:8, AGG:20, VGIT:8, TIP:6, GLD:6 } },
+  { id:"rates", name:"Long duration → rate-aware",
+    current:  { TLT:35, AGG:40, LQD:25 },
+    proposed: { VGSH:14, VGIT:18, AGG:20, VCSH:12, TIP:10, BKLN:8, SHYG:8, SGOV:10 } }
+];
+
+/* ==================================================================
+   4. RETURN ENGINE — deterministic proxy series on any date grid
+   ================================================================== */
+function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0;
+  let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t;
+  return ((t^(t>>>14))>>>0)/4294967296; }; }
+function gauss(rnd){ let u=0,v=0; while(u===0)u=rnd(); while(v===0)v=rnd();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function hashSeed(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
+
+/* Spread one annual figure across n periods in log space: the noise sets the
+   path, the level is solved so the periods compound to exactly the year. */
+function spreadYear(annualPct, n, sigma, rnd) {
+  const noise = [];
+  for (let i=0;i<n;i++) noise.push(gauss(rnd)*sigma);
+  const m = noise.reduce((a,b)=>a+b,0)/n;
+  const target = Math.log(1+annualPct/100)/n;
+  return noise.map(x => Math.exp(x-m+target)-1);
+}
+const clampYear = y => Math.min(YEARS[YEARS.length-1], Math.max(YEARS[0], y));
+
+/* Default date grid: month ends, 2005-01 through 2025-12. */
+function defaultDates() {
+  const out = [];
+  for (const y of YEARS) for (let m=0;m<12;m++) out.push(new Date(Date.UTC(y, m+1, 0)));
+  return out;
+}
+/* Factor series aligned to whatever dates are in play (generated or uploaded). */
+function buildFactors(dates) {
+  const rnd = mulberry32(20260827);
+  const byYear = [];                                   /* [{year, idx:[...]}] in order */
+  for (let i=0;i<dates.length;i++) {
+    const y = clampYear(dates[i].getUTCFullYear());
+    if (!byYear.length || byYear[byYear.length-1].year !== y) byYear.push({ year:y, idx:[] });
+    byYear[byYear.length-1].idx.push(i);
+  }
+  const perYear = dates.length / Math.max(1, byYear.length);
+  const scale = Math.sqrt(12 / Math.max(1, perYear));
+  const F = {};
+  for (let k=0;k<FACTOR_KEYS.length;k++) {
+    const key = FACTOR_KEYS[k];
+    const arr = new Array(dates.length).fill(0);
+    for (const grp of byYear) {
+      const n = grp.idx.length;
+      const share = Math.min(1, n / (perYear || n));
+      const targetLog = Math.log(1 + FACTOR_YEARS[grp.year][k] * share / 100);
+      const sigma = FACTOR_SIGMA[key] * scale;
+
+      /* carve the year into event windows and whatever is left over */
+      const claimed = new Set();
+      const blocks = [];
+      for (const ev of EVENT_WINDOWS) {
+        if (ev.f[key] === undefined) continue;
+        const hit = grp.idx.filter(i => !claimed.has(i) && dates[i] >= ev.from && dates[i] <= ev.to);
+        if (!hit.length) continue;
+        hit.forEach(i => claimed.add(i));
+        blocks.push({ idx:hit, log:Math.log(1 + ev.f[key]) });
+      }
+      const free = grp.idx.filter(i => !claimed.has(i));
+      let eventLog = blocks.reduce((a,b) => a + b.log, 0);
+      if (!free.length && blocks.length && eventLog !== 0) {
+        /* the events cover the whole year — scale them to land on the annual figure */
+        const f = targetLog / eventLog;
+        blocks.forEach(b => { b.log *= f; });
+        eventLog = targetLog;
+      }
+      for (const b of blocks) {
+        const vals = spreadYear((Math.exp(b.log)-1)*100, b.idx.length, sigma, rnd);
+        b.idx.forEach((di,j) => { arr[di] = vals[j]; });
+      }
+      if (free.length) {
+        const vals = spreadYear((Math.exp(targetLog - eventLog)-1)*100, free.length, sigma, rnd);
+        free.forEach((di,j) => { arr[di] = vals[j]; });
+      }
+    }
+    F[key] = arr;
+  }
+  return F;
+}
+/* One instrument's proxy series: factor loadings + its own idiosyncratic noise, net of fee. */
+function proxySeries(inst, F, dates, ppy) {
+  const rnd = mulberry32(hashSeed(inst.ticker) ^ 0x9e3779b9);
+  const feeP = Math.pow(1 + inst.er/100, 1/ppy) - 1;
+  const idioP = inst.idio / Math.sqrt(ppy);
+  const out = new Array(dates.length);
+  for (let i=0;i<dates.length;i++) {
+    let r = 0;
+    for (const f in inst.e) r += inst.e[f] * F[f][i];
+    out[i] = r + gauss(rnd)*idioP - feeP;
+  }
+  return out;
+}
+
+/* ==================================================================
+   5. FILE READING — CSV/TSV and XLSX, entirely in the browser
+   ================================================================== */
+function splitCSV(text) {
+  const delim = (text.split("\n")[0].match(/\t/g) || []).length >
+                (text.split("\n")[0].match(/,/g) || []).length ? "\t" : ",";
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i=0;i<text.length;i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === delim) { row.push(cell); cell = ""; }
+    else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (ch !== "\r") cell += ch;
+  }
+  if (cell.length || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+async function inflateRaw(bytes) {
+  if (typeof DecompressionStream === "undefined") throw new Error("nodeflate");
+  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+/* Minimal ZIP central-directory walk — enough for the parts of an .xlsx we need. */
+async function unzip(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let eocd = -1;
+  for (let i=u8.length-22; i>=Math.max(0,u8.length-66000); i--) {
+    if (dv.getUint32(i,true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("Not a readable .xlsx file.");
+  const n = dv.getUint16(eocd+10,true);
+  let p = dv.getUint32(eocd+16,true);
+  const out = {};
+  for (let i=0;i<n;i++) {
+    if (dv.getUint32(p,true) !== 0x02014b50) break;
+    const method = dv.getUint16(p+10,true), compSize = dv.getUint32(p+20,true);
+    const nameLen = dv.getUint16(p+28,true), extraLen = dv.getUint16(p+30,true), cmtLen = dv.getUint16(p+32,true);
+    const lho = dv.getUint32(p+42,true);
+    const name = new TextDecoder().decode(u8.subarray(p+46, p+46+nameLen));
+    const dataStart = lho + 30 + dv.getUint16(lho+26,true) + dv.getUint16(lho+28,true);
+    out[name] = { method, data: u8.subarray(dataStart, dataStart+compSize) };
+    p += 46 + nameLen + extraLen + cmtLen;
+  }
+  const files = {};
+  for (const name in out) {
+    const f = out[name];
+    files[name] = new TextDecoder().decode(f.method === 0 ? f.data : await inflateRaw(f.data));
+  }
+  return files;
+}
+const colIndex = ref => {
+  let n = 0;
+  for (const ch of ref) { const c = ch.charCodeAt(0); if (c < 65 || c > 90) break; n = n*26 + (c-64); }
+  return n - 1;
+};
+const EXCEL_EPOCH = Date.UTC(1899, 11, 30);
+const fromSerial = s => new Date(EXCEL_EPOCH + Math.round(s) * 86400000);
+
+async function readXLSX(buf) {
+  const files = await unzip(buf);
+  const shared = [];
+  const ss = files["xl/sharedStrings.xml"];
+  if (ss) {
+    for (const si of ss.split("<si>").slice(1)) {
+      const parts = si.split("</si>")[0].match(/<t[^>]*>([\s\S]*?)<\/t>/g) || [];
+      shared.push(parts.map(t => t.replace(/<[^>]+>/g, "")).join("")
+        .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'"));
+    }
+  }
+  const sheetName = Object.keys(files).filter(f => /^xl\/worksheets\/sheet\d+\.xml$/.test(f)).sort()[0];
+  if (!sheetName) throw new Error("No worksheet found in that file.");
+  const xml = files[sheetName];
+  const rows = [];
+  for (const rowXml of (xml.match(/<row[\s\S]*?<\/row>/g) || [])) {
+    const row = [];
+    for (const cm of (rowXml.match(/<c[^>]*(?:\/>|>[\s\S]*?<\/c>)/g) || [])) {
+      const ref = (cm.match(/r="([A-Z]+)\d+"/) || [])[1];
+      const type = (cm.match(/t="([^"]+)"/) || [])[1];
+      const vRaw = (cm.match(/<v>([\s\S]*?)<\/v>/) || [])[1];
+      const isRaw = (cm.match(/<is>[\s\S]*?<t[^>]*>([\s\S]*?)<\/t>/) || [])[1];
+      let val = "";
+      if (type === "s" && vRaw !== undefined) val = shared[+vRaw] ?? "";
+      else if (type === "inlineStr") val = isRaw ?? "";
+      else if (vRaw !== undefined) val = vRaw;
+      if (ref) row[colIndex(ref)] = val; else row.push(val);
+    }
+    for (let i=0;i<row.length;i++) if (row[i] === undefined) row[i] = "";
+    rows.push(row);
+  }
+  return rows.filter(r => r.some(c => String(c).trim() !== ""));
+}
+async function readTable(file) {
+  if (/\.(xlsx|xlsm|xls)$/i.test(file.name)) return readXLSX(await file.arrayBuffer());
+  return splitCSV(await file.text());
+}
+
+/* ---- interpreting a parsed grid ---- */
+const cleanNum = v => {
+  if (typeof v === "number") return v;
+  const s = String(v).replace(/[$,%\s]/g, "").replace(/^\((.*)\)$/, "-$1");
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+};
+function parseDateCell(v) {
+  if (v instanceof Date) return v;
+  const n = cleanNum(v);
+  if (n !== null && n > 15000 && n < 80000 && !/[-/]/.test(String(v))) return fromSerial(n);
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})[-/](\d{1,2})(?:[-/](\d{1,2}))?$/);
+  if (m) return new Date(Date.UTC(+m[1], +m[2]-1, m[3] ? +m[3] : 1));
+  m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2,4})$/);
+  if (m) { const y = +m[3] < 100 ? 2000 + +m[3] : +m[3]; return new Date(Date.UTC(y, +m[1]-1, +m[2])); }
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+const HEAD_CUR  = /^(current|existing|cur|now|held|old|before|weight|alloc|allocation|%|pct|percent)/i;
+const HEAD_PROP = /^(proposed|proposal|target|new|model|recommend|after|to)/i;
+const HEAD_TICK = /^(ticker|symbol|sym|cusip|fund|security|holding|asset|name)/i;
+
+function parseHoldings(rows) {
+  let head = -1;
+  for (let i=0;i<Math.min(12, rows.length);i++) {
+    if (rows[i].some(c => HEAD_TICK.test(String(c).trim()))) { head = i; break; }
+  }
+  let tickCol = 0, curCol = 1, propCol = 2, nameCol = -1;
+  if (head >= 0) {
+    const h = rows[head].map(c => String(c).trim());
+    tickCol = h.findIndex(c => /^(ticker|symbol|sym|cusip)/i.test(c));
+    if (tickCol < 0) tickCol = h.findIndex(c => HEAD_TICK.test(c));
+    nameCol = h.findIndex((c,i) => i !== tickCol && /^(name|description|security|fund)/i.test(c));
+    const numCols = h.map((c,i) => ({c,i})).filter(x => x.i !== tickCol && x.i !== nameCol);
+    const propHit = numCols.find(x => HEAD_PROP.test(x.c));
+    const curHit  = numCols.find(x => HEAD_CUR.test(x.c) && (!propHit || x.i !== propHit.i));
+    curCol  = curHit  ? curHit.i  : (numCols[0] ? numCols[0].i : 1);
+    propCol = propHit ? propHit.i : (numCols[1] ? numCols[1].i : -1);
+  }
+  const out = [];
+  for (let i=(head>=0?head+1:0); i<rows.length; i++) {
+    const r = rows[i];
+    const t = String(r[tickCol] ?? "").trim().toUpperCase().replace(/[^A-Z0-9.\-]/g, "");
+    if (!t || t.length > 12) continue;
+    if (/^(TOTAL|SUM|CASH TOTAL)$/.test(t)) continue;
+    const cur = cleanNum(r[curCol]);
+    const prop = propCol >= 0 ? cleanNum(r[propCol]) : null;
+    if (cur === null && prop === null) continue;
+    out.push({ ticker:t, name: nameCol >= 0 ? String(r[nameCol] ?? "").trim() : "", cur: cur ?? 0, prop });
+  }
+  /* weights given as fractions become percentages */
+  const sum = out.reduce((s,h) => s + Math.abs(h.cur), 0);
+  if (sum > 0 && sum <= 1.5) out.forEach(h => { h.cur *= 100; if (h.prop !== null) h.prop *= 100; });
+  return { holdings: out, hadProposed: propCol >= 0 };
+}
+
+function parseReturns(rows) {
+  let head = 0;
+  for (let i=0;i<Math.min(12, rows.length);i++) {
+    if (parseDateCell(rows[i+1] ? rows[i+1][0] : null)) { head = i; break; }
+  }
+  const h = rows[head].map(c => String(c).trim());
+  /* long format: date | ticker | return */
+  if (h.length === 3 && /ticker|symbol|fund/i.test(h[1]) && /return|ret|perf/i.test(h[2])) {
+    const map = {}, dset = new Map();
+    for (let i=head+1;i<rows.length;i++) {
+      const d = parseDateCell(rows[i][0]); const t = String(rows[i][1]||"").trim().toUpperCase();
+      const v = cleanNum(rows[i][2]);
+      if (!d || !t || v === null) continue;
+      const key = d.toISOString().slice(0,10);
+      dset.set(key, d); (map[t] = map[t] || {})[key] = v;
+    }
+    const dates = [...dset.values()].sort((a,b)=>a-b);
+    const keys = dates.map(d => d.toISOString().slice(0,10));
+    const series = {};
+    for (const t in map) series[t] = keys.map(k => map[t][k] ?? null);
+    return finishReturns(dates, series);
+  }
+  const tickers = h.slice(1).map(c => c.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,""));
+  const dates = [], cols = tickers.map(() => []);
+  for (let i=head+1;i<rows.length;i++) {
+    const d = parseDateCell(rows[i][0]);
+    if (!d) continue;
+    dates.push(d);
+    tickers.forEach((t,j) => cols[j].push(cleanNum(rows[i][j+1])));
+  }
+  const series = {};
+  tickers.forEach((t,j) => { if (t) series[t] = cols[j]; });
+  return finishReturns(dates, series);
+}
+function finishReturns(dates, series) {
+  const ord = dates.map((d,i)=>i).sort((a,b)=>dates[a]-dates[b]);
+  const D = ord.map(i => dates[i]);
+  const S = {};
+  for (const t in series) S[t] = ord.map(i => series[t][i]);
+  /* percentages vs decimals, judged on the typical magnitude */
+  const flat = Object.values(S).flat().filter(v => v !== null && v !== undefined && isFinite(v)).map(Math.abs).sort((a,b)=>a-b);
+  const med = flat.length ? flat[Math.floor(flat.length*0.75)] : 0;
+  if (med > 1.2) for (const t in S) S[t] = S[t].map(v => v === null ? null : v/100);
+  /* frequency from the typical gap between dates */
+  let ppy = 12;
+  if (D.length > 2) {
+    const gaps = [];
+    for (let i=1;i<D.length;i++) gaps.push((D[i]-D[i-1])/86400000);
+    gaps.sort((a,b)=>a-b);
+    const g = gaps[Math.floor(gaps.length/2)];
+    ppy = g <= 4 ? 252 : g <= 10 ? 52 : g <= 45 ? 12 : g <= 130 ? 4 : 1;
+  }
+  return { dates:D, series:S, ppy, tickers:Object.keys(S) };
+}
+
+/* ==================================================================
+   6. STATE
+   ================================================================== */
+const BENCHMARKS = [
+  { id:"b6040", name:"60/40 (SPY / AGG)",      w:{ SPY:60, AGG:40 } },
+  { id:"bsp",   name:"US large cap (SPY)",     w:{ SPY:100 } },
+  { id:"bglob", name:"Global 70/30",           w:{ VTI:42, VXUS:28, AGG:30 } },
+  { id:"bagg",  name:"Core bonds (AGG)",       w:{ AGG:100 } },
+  { id:"bcons", name:"Conservative 30/70",     w:{ SPY:30, AGG:70 } }
+];
+const RANGES = [
+  { id:"max", label:"Max",  yrs:null }, { id:"y15", label:"15Y", yrs:15 },
+  { id:"y10", label:"10Y",  yrs:10 },   { id:"y5",  label:"5Y",  yrs:5 },
+  { id:"y3",  label:"3Y",   yrs:3 },    { id:"y1",  label:"1Y",  yrs:1 }
+];
+const CAPS = [ {id:"c100",label:"No cap",v:1}, {id:"c40",label:"40%",v:.40}, {id:"c25",label:"25%",v:.25}, {id:"c15",label:"15%",v:.15} ];
+
+const STATE = {
+  rows: [], returns: null, bench: "b6040", cap: 0.40, range: "max",
+  start: null, end: null, tab: "build",
+  shocks: { rate:-150, spread:450, eq:-38, infl:-1.5, vol:45 }
+};
+
+/* ---- derived caches ---- */
+let CACHE = { key:null, dates:null, F:null, ppy:12, series:{} };
+function ctx() {
+  const up = STATE.returns;
+  const key = (up ? "up:" + up.dates.length + ":" + up.tickers.join(",") : "proxy") + "|" + STATE.rows.map(r=>r.ticker+r.cls).join(",");
+  if (CACHE.key === key) return CACHE;
+  const dates = up ? up.dates : defaultDates();
+  const ppy = up ? up.ppy : 12;
+  const F = buildFactors(dates);
+  CACHE = { key, dates, F, ppy, series:{} };
+  return CACHE;
+}
+function instFor(ticker, cls) {
+  if (LIB[ticker] && (!cls || LIB[ticker].cls === cls)) return LIB[ticker];
+  const c = CLASSES[cls] || CLASSES.us_blend;
+  const e = Object.assign({}, c.e);
+  if (c.dur)  e.treas  = (e.treas  || 0) + c.dur / FACTOR_DUR;
+  if (c.sprd) e.credit = (e.credit || 0) + (c.sprd / FACTOR_SPRD) * (c.qual || 1);
+  return { ticker, name: (LIB[ticker] && LIB[ticker].name) || ticker, cls: cls || "us_blend",
+           classLabel:c.lab, bucket:c.bucket, e, dur:c.dur, sprd:(c.sprd||0)*(c.qual||1),
+           beta:c.beta, inflSens:c.infl, volSens:c.vol, idio:c.idio, yld:c.yld, er:c.er };
+}
+/* Full-length series for one ticker: uploaded where it exists, proxy otherwise. */
+function seriesOf(ticker, cls) {
+  const C = ctx();
+  const k = ticker + "|" + cls;
+  if (C.series[k]) return C.series[k];
+  const up = STATE.returns;
+  let s, src = "proxy";
+  if (up && up.series[ticker] && up.series[ticker].some(v => v !== null && isFinite(v))) {
+    s = up.series[ticker].map(v => (v === null || !isFinite(v)) ? 0 : v);
+    src = "real";
+  } else {
+    s = proxySeries(instFor(ticker, cls), C.F, C.dates, C.ppy);
+  }
+  C.series[k] = { r:s, src };
+  return C.series[k];
+}
+function sourceOf(ticker) {
+  const up = STATE.returns;
+  return (up && up.series[ticker] && up.series[ticker].some(v => v !== null && isFinite(v))) ? "real" : "proxy";
+}
+/* Index window for the chosen dates. */
+function window_() {
+  const C = ctx(), d = C.dates;
+  let a = 0, b = d.length - 1;
+  if (STATE.start) while (a < b && d[a] < STATE.start) a++;
+  if (STATE.end)   while (b > a && d[b] > STATE.end) b--;
+  if (b - a < 4) { a = 0; b = d.length - 1; }
+  return { a, b, dates: d.slice(a, b+1), ppy: C.ppy };
+}
+/* Blend a weight map into one rebalanced series over the window. */
+function blend(weights, win) {
+  const keys = Object.keys(weights).filter(t => Math.abs(weights[t]) > 1e-9);
+  const tot = keys.reduce((s,t) => s + weights[t], 0) || 1;
+  const n = win.b - win.a + 1;
+  const out = new Array(n).fill(0);
+  for (const t of keys) {
+    const row = STATE.rows.find(r => r.ticker === t);
+    const s = seriesOf(t, row ? row.cls : (LIB[t] ? LIB[t].cls : "us_blend")).r;
+    const w = weights[t] / tot;
+    for (let i=0;i<n;i++) out[i] += w * s[win.a + i];
+  }
+  return out;
+}
+const curWeights  = () => Object.fromEntries(STATE.rows.filter(r=>r.cur  > 0).map(r => [r.ticker, r.cur]));
+const propWeights = () => Object.fromEntries(STATE.rows.filter(r=>r.prop > 0).map(r => [r.ticker, r.prop]));
+const benchDef = () => BENCHMARKS.find(b => b.id === STATE.bench) || BENCHMARKS[0];
+
+/* ==================================================================
+   7. STATISTICS
+   ================================================================== */
+const sum = a => a.reduce((x,y)=>x+y,0);
+const mean = a => a.length ? sum(a)/a.length : 0;
+const compound = a => a.reduce((p,r) => p*(1+r), 1);
+function stdev(a) { const m = mean(a); return a.length < 2 ? 0 : Math.sqrt(sum(a.map(v=>(v-m)*(v-m)))/(a.length-1)); }
+function pathOf(r, start) {
+  const idx = [start], dd = [0];
+  let v = start, pk = start;
+  for (const x of r) { v *= (1+x); pk = Math.max(pk, v); idx.push(v); dd.push(v/pk - 1); }
+  return { idx, dd };
+}
+function percentile(sorted, p) {
+  if (!sorted.length) return 0;
+  const i = (sorted.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+}
+function rolling(r, n) { const out=[]; for (let i=n-1;i<r.length;i++) out.push(compound(r.slice(i-n+1,i+1))-1); return out; }
+function calendarYears(r, dates) {
+  const map = new Map();
+  r.forEach((v,i) => {
+    const y = dates[i].getUTCFullYear();
+    if (!map.has(y)) map.set(y, { year:y, g:1, n:0 });
+    const c = map.get(y); c.g *= (1+v); c.n++;
+  });
+  return [...map.values()].map(c => ({ year:c.year, ret:c.g-1, n:c.n }));
+}
+
+function statsFor(r, bench, rf, ppy, dates) {
+  const n = r.length, yrs = n / ppy;
+  const path = pathOf(r, 1);
+  const cagr = Math.pow(compound(r), ppy/n) - 1;
+  const vol = stdev(r) * Math.sqrt(ppy);
+  const rfC = Math.pow(compound(rf), ppy/n) - 1;
+  const ex = r.map((v,i) => v - rf[i]);
+  const neg = r.filter(v => v < 0);
+  const dd = Math.sqrt(sum(r.map(v => v < 0 ? v*v : 0)) / n) * Math.sqrt(ppy);
+  const maxDD = Math.min(...path.dd);
+  const ulcer = Math.sqrt(sum(path.dd.map(d => d*d*10000)) / path.dd.length);
+  let uw = 0, run = 0, rec = 0, recRun = 0;
+  for (const d of path.dd) { if (d < -0.0005) { run++; uw = Math.max(uw, run); } else { rec = Math.max(rec, run); run = 0; } }
+  recRun = Math.max(rec, run);
+  const sorted = r.slice().sort((a,b)=>a-b);
+  const var95 = percentile(sorted, 0.05);
+  const tail = sorted.filter(v => v <= var95);
+  const m = mean(r), sd = stdev(r);
+  const skew = sd ? sum(r.map(v => Math.pow((v-m)/sd, 3))) * n / ((n-1)*(n-2)) : 0;
+  const kurt = sd ? sum(r.map(v => Math.pow((v-m)/sd, 4)))/n - 3 : 0;
+  const gains = sum(r.filter(v=>v>0)), losses = -sum(r.filter(v=>v<0));
+
+  /* relative to the benchmark */
+  let beta=0, alpha=0, r2=0, corr=0, te=0, ir=0, treynor=0, m2=0, upC=null, downC=null, batting=0;
+  if (bench && bench.length === n) {
+    const bex = bench.map((v,i) => v - rf[i]);
+    const mb = mean(bex), mp = mean(ex);
+    const cov = sum(bex.map((v,i) => (v-mb)*(ex[i]-mp))) / (n-1);
+    const vb = sum(bex.map(v => (v-mb)*(v-mb))) / (n-1);
+    beta = vb ? cov/vb : 0;
+    const bCagr = Math.pow(compound(bench), ppy/n) - 1;
+    alpha = (cagr - rfC) - beta * (bCagr - rfC);
+    const sp = stdev(ex), sb = stdev(bex);
+    corr = (sp && sb) ? cov/(sp*sb) : 0;
+    r2 = corr*corr;
+    const act = r.map((v,i) => v - bench[i]);
+    te = stdev(act) * Math.sqrt(ppy);
+    const actC = Math.pow(compound(r), ppy/n) - Math.pow(compound(bench), ppy/n);
+    ir = te ? actC/te : 0;
+    treynor = beta ? (cagr - rfC)/beta : 0;
+    m2 = rfC + (vol ? (cagr - rfC)/vol : 0) * (stdev(bench)*Math.sqrt(ppy));
+    const upI = [], dnI = [];
+    bench.forEach((v,i) => (v > 0 ? upI : dnI).push(i));
+    if (upI.length) { const p = compound(upI.map(i=>r[i])), q = compound(upI.map(i=>bench[i]));
+      upC = q !== 1 ? (Math.pow(p, ppy/upI.length)-1)/(Math.pow(q, ppy/upI.length)-1)*100 : null; }
+    if (dnI.length) { const p = compound(dnI.map(i=>r[i])), q = compound(dnI.map(i=>bench[i]));
+      downC = q !== 1 ? (Math.pow(p, ppy/dnI.length)-1)/(Math.pow(q, ppy/dnI.length)-1)*100 : null; }
+    batting = act.filter(v => v > 0).length / n * 100;
+  }
+  const cal = calendarYears(r, dates).filter(c => c.n >= ppy*0.9);
+  const r12 = rolling(r, Math.round(ppy));
+  return {
+    n, yrs, cagr, cumulative: compound(r)-1, arith: m*ppy, vol, downsideDev: dd, maxDD, ulcer,
+    underwater: uw, longestRecovery: recRun, sharpe: vol ? (cagr-rfC)/vol : 0,
+    sortino: dd ? (cagr-rfC)/dd : 0, calmar: maxDD ? cagr/Math.abs(maxDD) : 0,
+    martin: ulcer ? (cagr-rfC)/(ulcer/100) : 0, omega: losses ? gains/losses : 0,
+    var95, cvar95: tail.length ? mean(tail) : var95, worst: Math.min(...r), best: Math.max(...r),
+    worst12: r12.length ? Math.min(...r12) : 0, best12: r12.length ? Math.max(...r12) : 0,
+    pctPos: r.filter(v=>v>0).length / n * 100, skew, kurt,
+    beta, alpha, r2, corr, te, ir, treynor, m2, upCapture: upC, downCapture: downC, batting,
+    path, cal, r12, rf: rfC, negCount: neg.length
+  };
+}
+
+/* ==================================================================
+   8. OPTIMISER — long-only mean/variance frontier by projected gradient
+   ================================================================== */
+function covariance(cols) {
+  const k = cols.length, n = cols[0].length;
+  const mu = cols.map(mean);
+  const S = Array.from({length:k}, () => new Array(k).fill(0));
+  for (let i=0;i<k;i++) for (let j=i;j<k;j++) {
+    let s = 0;
+    for (let t=0;t<n;t++) s += (cols[i][t]-mu[i]) * (cols[j][t]-mu[j]);
+    S[i][j] = S[j][i] = s/(n-1);
+  }
+  return { mu, S };
+}
+/* Euclidean projection onto { w : sum(w)=1, 0 <= w <= cap }. */
+function projectSimplex(v, cap) {
+  const k = v.length;
+  if (cap * k < 1 - 1e-9) cap = 1/k;                 /* infeasible cap — relax to equal weight */
+  let lo = Math.min(...v) - 1, hi = Math.max(...v);
+  for (let it=0; it<80; it++) {
+    const tau = (lo+hi)/2;
+    let s = 0;
+    for (let i=0;i<k;i++) s += Math.min(cap, Math.max(0, v[i]-tau));
+    if (s > 1) lo = tau; else hi = tau;
+  }
+  const tau = (lo+hi)/2;
+  const w = v.map(x => Math.min(cap, Math.max(0, x-tau)));
+  const t = sum(w) || 1;
+  return w.map(x => x/t);
+}
+function optimise(mu, S, lambda, cap, w0) {
+  const k = mu.length;
+  let w = w0 ? w0.slice() : new Array(k).fill(1/k);
+  let scale = 0;
+  for (let i=0;i<k;i++) scale = Math.max(scale, S[i][i]);
+  const step = 1 / (lambda * scale * k + 1e-9);
+  for (let it=0; it<600; it++) {
+    const g = new Array(k);
+    for (let i=0;i<k;i++) {
+      let sv = 0;
+      for (let j=0;j<k;j++) sv += S[i][j] * w[j];
+      g[i] = mu[i] - lambda * sv;                     /* gradient of  w'mu - (lambda/2) w'Sw */
+    }
+    w = projectSimplex(w.map((x,i) => x + step*g[i]), cap);
+  }
+  return w;
+}
+const portMu  = (w, mu) => sum(w.map((x,i) => x*mu[i]));
+function portVar(w, S) {
+  let v = 0;
+  for (let i=0;i<w.length;i++) for (let j=0;j<w.length;j++) v += w[i]*w[j]*S[i][j];
+  return Math.max(v, 0);
+}
+function buildFrontier(tickers, win, cap, rfPeriod) {
+  const cols = tickers.map(t => {
+    const row = STATE.rows.find(r => r.ticker === t);
+    return seriesOf(t, row ? row.cls : "us_blend").r.slice(win.a, win.b+1);
+  });
+  const { mu, S } = covariance(cols);
+  const ppy = win.ppy, pts = [];
+  let w = null;
+  for (let i=0;i<44;i++) {
+    const lambda = Math.pow(10, -1 + i*(4.6/43));     /* risk aversion sweep */
+    w = optimise(mu, S, lambda, cap, w);
+    const m = portMu(w, mu), v = portVar(w, S);
+    pts.push({ lambda, w:w.slice(), ret: m*ppy, vol: Math.sqrt(v*ppy),
+               sharpe: v > 0 ? (m - rfPeriod)*ppy / Math.sqrt(v*ppy) : 0 });
+  }
+  /* the highest-return feasible mix: fill the best expected returns up to the cap */
+  const order = mu.map((m,i)=>({m,i})).sort((a,b)=>b.m-a.m);
+  const wMax = new Array(mu.length).fill(0);
+  let left = 1;
+  for (const o of order){ const take = Math.min(cap, left); wMax[o.i] = take; left -= take; if (left <= 1e-9) break; }
+  const vMax = portVar(wMax, S), mMax = portMu(wMax, mu);
+  pts.push({ lambda:0, w:wMax, ret:mMax*ppy, vol:Math.sqrt(vMax*ppy),
+             sharpe: vMax > 0 ? (mMax - rfPeriod)*ppy/Math.sqrt(vMax*ppy) : 0 });
+  pts.sort((a,b) => a.vol - b.vol);
+  const hull = [];
+  for (const p of pts) if (!hull.length || p.ret > hull[hull.length-1].ret + 1e-9) hull.push(p);
+  const minVar = hull[0];
+  const maxSharpe = pts.reduce((best,p) => p.sharpe > best.sharpe ? p : best, pts[0]);
+  return { tickers, mu, S, pts: hull, minVar, maxSharpe, ppy };
+}
+
+/* ==================================================================
+   9. FORMATTING & SVG PLUMBING
+   ================================================================== */
+const pct  = (x,d=1) => (x*100).toFixed(d) + "%";
+const pctS = (x,d=1) => (x>=0?"+":"") + (x*100).toFixed(d) + "%";
+const nm   = (x,d=2) => (x===null||x===undefined||!isFinite(x)) ? "—" : x.toFixed(d);
+const money = x => "$" + Math.round(x).toLocaleString("en-US");
+const moneyShort = x => x>=1e9 ? "$"+(x/1e9).toFixed(2)+"B" : x>=1e6 ? "$"+(x/1e6).toFixed(2)+"M"
+                       : x>=1e3 ? "$"+Math.round(x/1e3)+"K" : "$"+Math.round(x);
+const bps = x => (x>=0?"+":"") + Math.round(x) + " bp";
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const iso = d => d.toISOString().slice(0,10);
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const dLabel = (d,ppy) => ppy>=52 ? (MON[d.getUTCMonth()]+" "+d.getUTCDate()+", "+d.getUTCFullYear())
+                                  : (MON[d.getUTCMonth()]+" "+d.getUTCFullYear());
+const SERIES_VARS = ["--series-1","--series-2","--series-3"];
+const sc = i => "var(" + SERIES_VARS[i % 3] + ")";
+const riskColor = b => "var(--risk-" + (b+1) + ")";
+const riskInk = b => "var(--risk-ink-" + (b+1) + ")";
+
+function scale(d0,d1,r0,r1){ const s=(d1-d0)||1; return v => r0 + (v-d0)/s*(r1-r0); }
+function niceTicks(lo,hi,count){
+  if (lo===hi){ lo-=1; hi+=1; }
+  const raw=(hi-lo)/count, mag=Math.pow(10,Math.floor(Math.log10(Math.abs(raw)||1))), n=raw/mag;
+  const step=(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*mag;
+  const out=[]; for(let v=Math.ceil(lo/step)*step; v<=hi+step*1e-6; v+=step) out.push(Math.abs(v)<step*1e-9?0:v);
+  return out.length?out:[lo,hi];
+}
+const svgOpen = (w,h) => '<svg class="chart" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" role="img" preserveAspectRatio="xMinYMin meet">';
+function barPath(x,y,w,h,r,dir){
+  r=Math.max(0,Math.min(r,Math.abs(w)/2,Math.abs(h)));
+  if (h<=0.4||w<=0.4) return "";
+  if (dir==="right") return `M${x},${y} h${w-r} a${r},${r} 0 0 1 ${r},${r} v${h-2*r} a${r},${r} 0 0 1 ${-r},${r} h${-(w-r)} z`;
+  if (dir==="left")  return `M${x+w},${y} h${-(w-r)} a${r},${r} 0 0 0 ${-r},${r} v${h-2*r} a${r},${r} 0 0 0 ${r},${r} h${w-r} z`;
+  if (dir==="up")    return `M${x},${y+h} v${-(h-r)} a${r},${r} 0 0 1 ${r},${-r} h${w-2*r} a${r},${r} 0 0 1 ${r},${r} v${h-r} z`;
+  return `M${x},${y} v${h-r} a${r},${r} 0 0 0 ${r},${r} h${w-2*r} a${r},${r} 0 0 0 ${r},${-r} v${-(h-r)} z`;
+}
+const TT = document.getElementById("tooltip");
+function showTT(html, ev){
+  TT.innerHTML = html; TT.style.opacity = "1";
+  const pad=14, r=TT.getBoundingClientRect();
+  let x=ev.clientX+pad, y=ev.clientY-r.height-pad;
+  if (x+r.width > window.innerWidth-8) x = ev.clientX-r.width-pad;
+  if (y < 8) y = ev.clientY+pad;
+  TT.style.left = x+"px"; TT.style.top = y+"px";
+}
+const hideTT = () => { TT.style.opacity = "0"; };
+const ttRows = (title, rows) => '<div class="tt-h">'+esc(title)+"</div>" + rows.map(r =>
+  '<div class="row">' + (r.color?'<span class="key" style="background:'+r.color+'"></span>':"") +
+  '<span class="nm">'+esc(r.name)+'</span><span class="vl">'+esc(r.value)+"</span></div>").join("");
+function bindTips(host, fn){
+  host.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", ev => showTT(fn(el.getAttribute("data-tip")), ev));
+    el.addEventListener("mouseleave", hideTT);
+  });
+}
+function legendHTML(items, square){
+  return items.map(s => '<li><span class="key'+(square?" sq":"")+'" style="background:'+s.color+'"></span>'+esc(s.name)+"</li>").join("");
+}
+function tableHTML(head, rows, note){
+  return '<table class="data"><thead><tr>' + head.map(h=>"<th>"+h+"</th>").join("") + "</tr></thead><tbody>" +
+    rows.map(r => r.group ? '<tr class="grp"><td colspan="'+head.length+'">'+esc(r.group)+"</td></tr>"
+                          : "<tr>" + r.map(c=>"<td>"+c+"</td>").join("") + "</tr>").join("") +
+    "</tbody></table>" + (note ? '<p class="tbl-note">'+note+"</p>" : "");
+}
+
+/* ---- multi-series line with crosshair ---- */
+function drawLineChart(host, o){
+  const w=o.width, h=o.height, padL=o.padL||62, padR=o.endLabel?86:18, padT=10, padB=26;
+  const plotW=w-padL-padR, plotH=h-padT-padB, n=o.series[0].vals.length;
+  const x=scale(0,n-1,padL,padL+plotW);
+  const t=niceTicks(o.yDomain[0],o.yDomain[1],5);
+  const y=scale(Math.min(o.yDomain[0],t[0]), Math.max(o.yDomain[1],t[t.length-1]), padT+plotH, padT);
+  const out=[svgOpen(w,h)];
+  for (const v of t){
+    out.push('<line class="grid-line" x1="'+padL+'" y1="'+y(v)+'" x2="'+(padL+plotW)+'" y2="'+y(v)+'"/>');
+    out.push('<text class="tick-txt" x="'+(padL-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(o.yFmt(v))+"</text>");
+  }
+  if (o.baselineAt !== undefined)
+    out.push('<line class="axis-line" x1="'+padL+'" y1="'+y(o.baselineAt)+'" x2="'+(padL+plotW)+'" y2="'+y(o.baselineAt)+'"/>');
+  for (const tk of o.xTicks)
+    out.push('<text class="tick-txt" x="'+x(tk.i)+'" y="'+(h-8)+'" text-anchor="middle">'+esc(tk.label)+"</text>");
+  o.series.forEach(s => {
+    const pts = s.vals.map((v,i) => x(i).toFixed(1)+","+y(v).toFixed(1));
+    if (o.fill){
+      const base = y(o.baselineAt !== undefined ? o.baselineAt : t[0]).toFixed(1);
+      out.push('<path d="M'+x(0).toFixed(1)+','+base+' L'+pts.join(" L")+' L'+x(n-1).toFixed(1)+','+base+' Z" fill="'+s.color+'" opacity="0.10"/>');
+    }
+    out.push('<path d="M'+pts.join(" L")+'" fill="none" stroke="'+s.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+  });
+  if (o.endLabel){
+    const placed=[];
+    o.series.map((s,i)=>({s,yy:y(s.vals[n-1])})).sort((a,b)=>a.yy-b.yy).forEach(it=>{
+      let yy=it.yy;
+      for (const p of placed) if (Math.abs(yy-p) < 15) yy = p+15;
+      placed.push(yy);
+      out.push('<circle cx="'+x(n-1)+'" cy="'+it.yy+'" r="4" fill="'+it.s.color+'" stroke="var(--surface)" stroke-width="2"/>');
+      if (Math.abs(yy-it.yy) > 2)
+        out.push('<path d="M'+(x(n-1)+6)+','+it.yy+' L'+(x(n-1)+12)+','+yy+'" stroke="var(--axis)" stroke-width="1" fill="none"/>');
+      out.push('<text class="lbl-strong" x="'+(x(n-1)+14)+'" y="'+(yy+4)+'">'+esc(o.endFmt(it.s.vals[n-1]))+"</text>");
+    });
+  }
+  out.push('<g id="cross" style="display:none"><line class="axis-line" y1="'+padT+'" y2="'+(padT+plotH)+'"/></g>');
+  out.push('<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="transparent" data-hit="1"/></svg>');
+  host.innerHTML = out.join("");
+  const svg=host.querySelector("svg"), cross=svg.querySelector("#cross"), hit=svg.querySelector("[data-hit]");
+  const line=cross.querySelector("line");
+  const dots=o.series.map(s=>{ const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("r","4.5"); c.setAttribute("fill",s.color); c.setAttribute("stroke","var(--surface)");
+    c.setAttribute("stroke-width","2"); cross.appendChild(c); return c; });
+  hit.addEventListener("mousemove", ev => {
+    const rc=svg.getBoundingClientRect(), px=(ev.clientX-rc.left)*(w/rc.width);
+    let i=Math.round((px-padL)/plotW*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    cross.style.display=""; line.setAttribute("x1",x(i)); line.setAttribute("x2",x(i));
+    o.series.forEach((s,k)=>{ dots[k].setAttribute("cx",x(i)); dots[k].setAttribute("cy",y(s.vals[i])); });
+    showTT(ttRows(o.xLabel(i), o.series.map(s=>({name:s.name, value:o.tipFmt(s.vals[i]), color:s.color}))), ev);
+  });
+  hit.addEventListener("mouseleave", ()=>{ cross.style.display="none"; hideTT(); });
+}
+
+/* ---- grouped columns ---- */
+function drawColumns(host, o){
+  const w=o.width, h=o.height||250, padL=o.padL||54, padR=14, padT=12, padB=o.padB||34;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const all=o.series.flatMap(s=>s.vals).filter(v=>v!==null&&v!==undefined&&isFinite(v));
+  const lo=Math.min(o.floor!==undefined?o.floor:-0.02, ...all), hi=Math.max(0.02, ...all);
+  const t=niceTicks(lo,hi,5);
+  const y=scale(Math.min(lo,t[0]),Math.max(hi,t[t.length-1]),padT+plotH,padT);
+  const band=plotW/o.cats.length, gap=2, k=o.series.length;
+  const bw=Math.max(3, Math.min(26,(band-Math.min(14,band*0.28)-gap*(k-1))/k));
+  const out=[svgOpen(w,h)];
+  for (const v of t){
+    out.push('<line class="grid-line" x1="'+padL+'" y1="'+y(v)+'" x2="'+(padL+plotW)+'" y2="'+y(v)+'"/>');
+    out.push('<text class="tick-txt" x="'+(padL-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(o.yFmt(v))+"</text>");
+  }
+  const zero=y(0);
+  out.push('<line class="axis-line" x1="'+padL+'" y1="'+zero+'" x2="'+(padL+plotW)+'" y2="'+zero+'"/>');
+  o.cats.forEach((c,i)=>{
+    const cx=padL+band*i+band/2, gw=k*bw+(k-1)*gap;
+    o.series.forEach((s,j)=>{
+      const v=s.vals[i];
+      if (v===null||v===undefined||!isFinite(v)) return;
+      const bx=cx-gw/2+j*(bw+gap), top=v>=0?y(v):zero, bh=Math.abs(y(v)-zero);
+      out.push('<path d="'+barPath(bx,top,bw,bh,4,v>=0?"up":"down")+'" fill="'+s.color+'"/>');
+    });
+    if (o.showEvery === undefined || i % o.showEvery === 0){
+      const lab=String(o.labels?o.labels[i]:c);
+      const rot = o.rotate ? ' transform="rotate(-38 '+cx+' '+(padT+plotH+14)+')" text-anchor="end"' : ' text-anchor="middle"';
+      out.push('<text class="tick-txt" x="'+cx+'" y="'+(padT+plotH+(o.rotate?14:16))+'"'+rot+'>'+esc(lab)+"</text>");
+    }
+    out.push('<rect x="'+(padL+band*i)+'" y="'+padT+'" width="'+band+'" height="'+plotH+'" fill="transparent" data-tip="'+i+'"/>');
+  });
+  out.push("</svg>");
+  host.innerHTML=out.join("");
+  bindTips(host, idx => ttRows(String(o.cats[+idx]), o.series.map(s=>({
+    name:s.name, value:(s.vals[+idx]===null||s.vals[+idx]===undefined)?"—":o.tipFmt(s.vals[+idx]), color:s.color }))));
+}
+
+/* ---- grouped horizontal bars ---- */
+function drawBarsH(host, o){
+  const rowH=o.rowH||34, padT=6, padB=28;
+  const labW=Math.min(o.labW||178, Math.max(96, o.width*0.30));
+  const h=padT+o.cats.length*rowH+padB, plotL=labW+12, plotR=o.width-(o.padR||58);
+  const all=o.series.flatMap(s=>s.vals).filter(isFinite);
+  const lo=Math.min(0,...all), hi=Math.max(0,...all);
+  const t=niceTicks(lo,hi,4);
+  const x=scale(Math.min(lo,t[0]),Math.max(hi,t[t.length-1]),plotL,plotR);
+  const zero=x(0), k=o.series.length, gap=2;
+  const bh=Math.max(5, Math.min(22,(rowH-11-gap*(k-1))/k));
+  const out=[svgOpen(o.width,h)];
+  for (const v of t){
+    out.push('<line class="grid-line" x1="'+x(v)+'" y1="'+padT+'" x2="'+x(v)+'" y2="'+(padT+o.cats.length*rowH)+'"/>');
+    out.push('<text class="tick-txt" x="'+x(v)+'" y="'+(h-9)+'" text-anchor="middle">'+esc(o.xFmt(v))+"</text>");
+  }
+  o.cats.forEach((c,i)=>{
+    const cy=padT+i*rowH+rowH/2, gh=k*bh+(k-1)*gap;
+    out.push('<text class="lbl-txt" x="'+labW+'" y="'+(cy+4)+'" text-anchor="end">'+esc(c)+"</text>");
+    o.series.forEach((s,j)=>{
+      const v=s.vals[i];
+      if (!isFinite(v)) return;
+      const by=cy-gh/2+j*(bh+gap), bx=v>=0?zero:x(v), bwid=Math.abs(x(v)-zero);
+      out.push('<path d="'+barPath(bx,by,bwid,bh,4,v>=0?"right":"left")+'" fill="'+s.color+'"/>');
+      if (o.valueLabels){
+        const tx=v>=0?x(v)+6:x(v)-6;
+        out.push('<text class="lbl-txt" x="'+tx+'" y="'+(by+bh/2+4)+'" text-anchor="'+(v>=0?"start":"end")+'">'+esc(o.xFmt(v,true))+"</text>");
+      }
+    });
+    out.push('<rect x="'+plotL+'" y="'+(padT+i*rowH)+'" width="'+Math.max(1,plotR-plotL)+'" height="'+rowH+'" fill="transparent" data-tip="'+i+'"/>');
+  });
+  out.push('<line class="axis-line" x1="'+zero+'" y1="'+padT+'" x2="'+zero+'" y2="'+(padT+o.cats.length*rowH)+'"/></svg>');
+  host.innerHTML=out.join("");
+  bindTips(host, idx => ttRows(String(o.cats[+idx]), o.series.map(s=>({
+    name:s.name, value:isFinite(s.vals[+idx])?o.xFmt(s.vals[+idx],true):"—", color:s.color }))));
+}
+
+/* ---- x/y plot: labelled points, with an optional frontier line ---- */
+function drawXY(host, o){
+  const w=o.width, h=o.height||310, padL=58, padR=26, padT=16, padB=44;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const xs=o.points.map(p=>p.x).concat((o.line||[]).map(p=>p.x));
+  const ys=o.points.map(p=>p.y).concat((o.line||[]).map(p=>p.y));
+  const xp=(Math.max(...xs)-Math.min(...xs))*0.14||0.01, yp=(Math.max(...ys)-Math.min(...ys))*0.20||0.01;
+  const xdLo=Math.max(0,Math.min(...xs)-xp), xdHi=Math.max(...xs)+xp;
+  const ydLo=Math.min(...ys)-yp, ydHi=Math.max(...ys)+yp;
+  const xt=niceTicks(xdLo,xdHi,5), yt=niceTicks(ydLo,ydHi,5);
+  const x=scale(Math.min(xdLo,xt[0]),Math.max(xdHi,xt[xt.length-1]),padL,padL+plotW);
+  const y=scale(Math.min(ydLo,yt[0]),Math.max(ydHi,yt[yt.length-1]),padT+plotH,padT);
+  const out=[svgOpen(w,h)];
+  for (const v of yt){
+    out.push('<line class="grid-line" x1="'+padL+'" y1="'+y(v)+'" x2="'+(padL+plotW)+'" y2="'+y(v)+'"/>');
+    out.push('<text class="tick-txt" x="'+(padL-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(o.yFmt(v))+"</text>");
+  }
+  for (const v of xt)
+    out.push('<text class="tick-txt" x="'+x(v)+'" y="'+(padT+plotH+18)+'" text-anchor="middle">'+esc(o.xFmt(v))+"</text>");
+  out.push('<line class="axis-line" x1="'+padL+'" y1="'+(padT+plotH)+'" x2="'+(padL+plotW)+'" y2="'+(padT+plotH)+'"/>');
+  out.push('<text class="tick-txt" x="'+(padL+plotW/2)+'" y="'+(h-6)+'" text-anchor="middle">'+esc(o.xTitle)+"</text>");
+  out.push('<text class="tick-txt" transform="translate(13,'+(padT+plotH/2)+') rotate(-90)" text-anchor="middle">'+esc(o.yTitle)+"</text>");
+  if (o.line && o.line.length > 1){
+    const d = o.line.map(p => x(p.x).toFixed(1)+","+y(p.y).toFixed(1));
+    out.push('<path d="M'+d.join(" L")+'" fill="none" stroke="'+(o.lineColor||"var(--axis)")+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>');
+  }
+  const placed=[], OFF=[-13,21,-27,35,-41,49];
+  o.points.slice().sort((a,b)=>a.x-b.x).forEach(p=>{
+    const cx=x(p.x), cy=y(p.y), r=p.size||5, col=p.color||sc(0);
+    let dy=OFF[0];
+    if (p.label){
+      const hw=p.label.length*3.3+5;
+      for (const cand of OFF){
+        const box={l:cx-hw,r:cx+hw,t:cy+cand-10,b:cy+cand+4};
+        if (!placed.some(q=>box.l<q.r&&box.r>q.l&&box.t<q.b&&box.b>q.t)){ dy=cand; break; }
+      }
+      placed.push({l:cx-hw,r:cx+hw,t:cy+dy-10,b:cy+dy+4});
+      if (Math.abs(dy) > 24)
+        out.push('<line x1="'+cx+'" y1="'+(cy+Math.sign(dy)*(r+3))+'" x2="'+cx+'" y2="'+(cy+dy-(dy<0?3:11))+'" stroke="var(--axis)" stroke-width="1"/>');
+    }
+    if (p.ring) out.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+6)+'" fill="none" stroke="'+col+'" stroke-width="1.5" opacity="0.5"/>');
+    out.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'" stroke="var(--surface)" stroke-width="2"'+(p.faded?' opacity="0.5"':"")+'/>');
+    if (p.label) out.push('<text class="'+(p.strong?"lbl-strong":"lbl-txt")+'" x="'+cx+'" y="'+(cy+dy)+'" text-anchor="middle">'+esc(p.label)+"</text>");
+    out.push('<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="transparent" data-tip="'+esc(p.id)+'"/>');
+  });
+  out.push("</svg>");
+  host.innerHTML=out.join("");
+  bindTips(host, id => {
+    const p=o.points.find(q=>String(q.id)===id);
+    return ttRows(p.name||p.label||"", [
+      {name:o.yTitle, value:o.yFmt(p.y,true), color:p.color||sc(0)},
+      {name:o.xTitle, value:o.xFmt(p.x,true)}
+    ].concat(p.extra||[]));
+  });
+}
+
+/* ==================================================================
+   10. WEIGHT STEPPER  — click a value 0-20, scroll for more, type, or wheel
+   ================================================================== */
+let openPop = null;
+function closePop(){ if (openPop){ openPop.pop.classList.remove("open"); openPop.btn.setAttribute("aria-expanded","false"); openPop = null; } }
+document.addEventListener("click", e => { if (openPop && !openPop.wrap.contains(e.target)) closePop(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePop(); });
+
+function weightCell(rowIdx, field){
+  const row = STATE.rows[rowIdx];
+  const v = field === "cur" ? row.cur : row.prop;
+  return '<span class="wcell" data-cell="'+rowIdx+':'+field+'">' +
+    '<button type="button" class="wbtn '+(field==="cur"?"cur":"prop")+'" aria-expanded="false" ' +
+    'aria-label="'+esc(row.ticker)+' '+(field==="cur"?"current":"proposed")+' weight">'+ (+v).toFixed(v%1?1:0) +'%</button>' +
+    '<span class="wpop" role="dialog"></span></span>';
+}
+function popMarkup(val){
+  let grid = "";
+  for (let i=0;i<=100;i++)
+    grid += '<button type="button" data-w="'+i+'"'+(Math.round(val)===i?' aria-current="true"':"")+">"+i+"</button>";
+  return '<div class="wpop-top">' +
+      '<button type="button" data-step="-1" aria-label="Decrease">&minus;</button>' +
+      '<input type="number" min="0" max="100" step="0.5" value="'+(+val)+'" aria-label="Weight percent">' +
+      '<button type="button" data-step="1" aria-label="Increase">+</button></div>' +
+    '<div class="wgrid">'+grid+"</div>" +
+    '<div class="rule"></div><p class="hintline">0&ndash;20 without scrolling. Scroll the grid for more, or roll the mouse wheel over the weight itself.</p>';
+}
+function setWeight(rowIdx, field, val){
+  const v = Math.max(0, Math.min(100, Math.round(val*10)/10));
+  if (field === "cur") STATE.rows[rowIdx].cur = v; else STATE.rows[rowIdx].prop = v;
+}
+function wireWeights(host){
+  host.querySelectorAll("[data-cell]").forEach(wrap => {
+    const [ri, field] = wrap.getAttribute("data-cell").split(":");
+    const idx = +ri, btn = wrap.querySelector(".wbtn"), pop = wrap.querySelector(".wpop");
+    const cur = () => field === "cur" ? STATE.rows[idx].cur : STATE.rows[idx].prop;
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      if (openPop && openPop.pop === pop) { closePop(); return; }
+      closePop();
+      pop.innerHTML = popMarkup(cur());
+      pop.style.top = ""; pop.style.bottom = "";
+      pop.classList.add("open"); btn.setAttribute("aria-expanded","true");
+      /* flip above the weight when there is not room below it */
+      const pr = pop.getBoundingClientRect();
+      if (pr.bottom > window.innerHeight - 8 && btn.getBoundingClientRect().top > pr.height + 16){
+        pop.style.top = "auto"; pop.style.bottom = "calc(100% + 5px)";
+      }
+      openPop = { pop, btn, wrap };
+      /* the grid always opens at the top so 0-23 are one click away, whatever the
+         current weight is — the exact value is in the input box above it. */
+      const inp = pop.querySelector("input");
+      pop.querySelectorAll("[data-w]").forEach(b => b.addEventListener("click", () => {
+        setWeight(idx, field, +b.getAttribute("data-w")); closePop(); renderAll();
+      }));
+      pop.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
+        setWeight(idx, field, cur() + +b.getAttribute("data-step"));
+        inp.value = cur(); btn.textContent = (+cur()).toFixed(cur()%1?1:0)+"%"; renderSoft();
+      }));
+      inp.addEventListener("input", () => { const n = parseFloat(inp.value); if (!isNaN(n)) { setWeight(idx, field, n); renderSoft(); } });
+      inp.addEventListener("keydown", e2 => { if (e2.key === "Enter") { closePop(); renderAll(); } });
+      inp.focus(); inp.select();
+    });
+    btn.addEventListener("wheel", e => {
+      e.preventDefault();
+      setWeight(idx, field, cur() + (e.deltaY < 0 ? 1 : -1));
+      btn.textContent = (+cur()).toFixed(cur()%1?1:0)+"%";
+      clearTimeout(btn._t); btn._t = setTimeout(renderAll, 220);
+      renderSoft();
+    }, { passive:false });
+    btn.addEventListener("keydown", e => {
+      const d = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : e.key === "PageUp" ? 5 : e.key === "PageDown" ? -5 : 0;
+      if (!d) return;
+      e.preventDefault();
+      setWeight(idx, field, cur() + d);
+      btn.textContent = (+cur()).toFixed(cur()%1?1:0)+"%";
+      clearTimeout(btn._t); btn._t = setTimeout(renderAll, 220);
+      renderSoft();
+    });
+  });
+}
+
+/* ==================================================================
+   11. BUILD TAB
+   ================================================================== */
+const totalCur  = () => STATE.rows.reduce((s,r)=>s+(+r.cur||0),0);
+const totalProp = () => STATE.rows.reduce((s,r)=>s+(+r.prop||0),0);
+const deltaCell = d => {
+  if (Math.abs(d) < 0.05) return '<span class="delta-zero">&mdash;</span>';
+  const t = (Math.round(d*10)/10).toFixed(1).replace(/\.0$/, "");
+  return '<span class="'+(d>0?"delta-pos":"delta-neg")+'">'+(d>0?"+":"")+t+"</span>";
+};
+
+function renderProxyBanner(){
+  const host = document.getElementById("proxyBanner");
+  if (!STATE.rows.length) { host.innerHTML = ""; return; }
+  const proxied = STATE.rows.filter(r => sourceOf(r.ticker) === "proxy");
+  const unmapped = STATE.rows.filter(r => !LIB[r.ticker]);
+  if (!proxied.length) {
+    host.innerHTML = '<div class="proxy-banner" style="background:rgba(12,163,12,.08);border-color:rgba(12,163,12,.4)">' +
+      '<svg class="ico" viewBox="0 0 24 24" style="color:var(--good)"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      '<div><b>Live returns loaded for every holding.</b> Performance and MPT statistics come from the file you uploaded. ' +
+      'Asset-class settings still drive the stress tests, so check the class on each row.</div></div>';
+    return;
+  }
+  host.innerHTML = '<div class="proxy-banner">' +
+    '<svg class="ico" viewBox="0 0 24 24"><path d="M12 4.5l8.5 15h-17z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.8" r="1" fill="currentColor"/></svg>' +
+    "<div><b>" + proxied.length + " of " + STATE.rows.length + " holdings are running on proxy data.</b> " +
+    "Their returns are modelled from asset-class risk characteristics, not the fund's real record — every figure they touch is badged " +
+    '<span class="badge proxy">Proxy</span>. Upload a return history to replace them.' +
+    (unmapped.length ? " <b>" + unmapped.length + " ticker" + (unmapped.length>1?"s aren't":" isn't") +
+      " in the library</b> — set the asset class on those rows so the risk model is right." : "") +
+    "</div></div>";
+}
+
+function renderHoldings(){
+  const host = document.getElementById("holdingsHost");
+  if (!STATE.rows.length){
+    host.innerHTML = '<p class="empty">No holdings yet. Drop a file above, load a model, or add a holding by hand.</p>';
+    document.getElementById("holdCount").textContent = "";
+    return;
+  }
+  const clsOpts = Object.keys(CLASSES).map(k => ({ k, lab: CLASSES[k].lab }));
+  const rows = STATE.rows.map((r,i) => {
+    const inst = instFor(r.ticker, r.cls);
+    const src = sourceOf(r.ticker);
+    const d = (+r.prop||0) - (+r.cur||0);
+    return "<tr>" +
+      '<td class="tick">' + esc(r.ticker) +
+        (LIB[r.ticker] ? "" : ' <span class="badge warn" title="Not in the library">New</span>') + "</td>" +
+      '<td class="nm">' + esc(r.name || inst.name) + "</td>" +
+      "<td><select data-cls=\"" + i + "\" aria-label=\"Asset class for " + esc(r.ticker) + "\">" +
+        clsOpts.map(o => '<option value="'+o.k+'"'+(o.k===r.cls?" selected":"")+">"+esc(o.lab)+"</option>").join("") +
+      "</select></td>" +
+      '<td><span class="badge ' + (src==="real"?"real":"proxy") + '">' + (src==="real"?"Live":"Proxy") + "</span></td>" +
+      "<td>" + weightCell(i,"cur") + "</td>" +
+      "<td>" + weightCell(i,"prop") + "</td>" +
+      "<td>" + deltaCell(d) + "</td>" +
+      '<td><button class="btn sm" data-del="'+i+'" aria-label="Remove '+esc(r.ticker)+'">&times;</button></td></tr>';
+  }).join("");
+  const tc = totalCur(), tp = totalProp();
+  const flag = v => Math.abs(v-100) < 0.05 ? "" : ' <span class="badge warn">off by '+(v-100>0?"+":"")+(v-100).toFixed(1)+"</span>";
+  host.innerHTML = '<table class="hold"><thead><tr>' +
+    "<th>Ticker</th><th>Name</th><th>Asset class</th><th>Data</th><th>Current</th><th>Proposed</th><th>&Delta;</th><th></th>" +
+    "</tr></thead><tbody>" + rows + "</tbody><tfoot><tr>" +
+    '<td colspan="4">Total</td><td>' + tc.toFixed(1) + "%" + flag(tc) + "</td><td>" + tp.toFixed(1) + "%" + flag(tp) +
+    "</td><td></td><td></td></tr></tfoot></table>";
+  document.getElementById("holdCount").textContent =
+    STATE.rows.length + " holdings · " + STATE.rows.filter(r=>r.cur>0).length + " held now · " +
+    STATE.rows.filter(r=>r.prop>0).length + " proposed";
+  wireWeights(host);
+  host.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    STATE.rows.splice(+b.getAttribute("data-del"), 1); renderAll();
+  }));
+  host.querySelectorAll("[data-cls]").forEach(s => s.addEventListener("change", () => {
+    STATE.rows[+s.getAttribute("data-cls")].cls = s.value; CACHE.key = null; renderAll();
+  }));
+}
+
+function bucketWeights(weights){
+  const out = new Array(BUCKETS.length).fill(0);
+  let tot = 0;
+  for (const t in weights){
+    const row = STATE.rows.find(r => r.ticker === t);
+    const inst = instFor(t, row ? row.cls : "us_blend");
+    out[inst.bucket] += weights[t]; tot += weights[t];
+  }
+  return tot ? out.map(v => v/tot*100) : out;
+}
+function renderBuckets(){
+  const cur = bucketWeights(curWeights()), prop = bucketWeights(propWeights());
+  const bar = (vals, label) =>
+    '<div class="alloc-row"><div class="cap"><b>'+label+"</b></div><div class=\"stack-bar\">" +
+    vals.map((v,i) => v <= 0 ? "" :
+      '<i style="width:'+v.toFixed(2)+'%;background:'+riskColor(i)+'" data-tip="'+i+'">' +
+      (v >= 11 ? '<span class="stack-lab" style="color:'+riskInk(i)+'">'+Math.round(v)+"%</span>" : "") + "</i>").join("") +
+    "</div></div>";
+  const host = document.getElementById("riskBuckets");
+  host.innerHTML =
+    '<ul class="legend">' + legendHTML(BUCKETS.map((b,i)=>({name:b, color:riskColor(i)})), true) + "</ul>" +
+    bar(cur, "Current") + bar(prop, "Proposed");
+  host.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", ev => {
+      const i = +el.getAttribute("data-tip");
+      showTT(ttRows(BUCKETS[i], [
+        { name:"Current", value:cur[i].toFixed(1)+"%", color:sc(0) },
+        { name:"Proposed", value:prop[i].toFixed(1)+"%", color:sc(1) }
+      ]), ev);
+    });
+    el.addEventListener("mouseleave", hideTT);
+  });
+  document.getElementById("bucketTable").innerHTML = tableHTML(
+    ["Risk bucket","Current","Proposed","Change"],
+    BUCKETS.map((b,i) => ['<span class="name-key"><span class="key" style="background:'+riskColor(i)+'"></span>'+esc(b)+"</span>",
+      cur[i].toFixed(1)+"%", prop[i].toFixed(1)+"%", deltaCell(prop[i]-cur[i])]),
+    "Ordered from safest to riskiest. Percentages are of each allocation's own total.");
+}
+
+function exposures(weights){
+  let tot = 0, dur = 0, sprd = 0, beta = 0, yld = 0, er = 0, infl = 0;
+  for (const t in weights){
+    const row = STATE.rows.find(r => r.ticker === t);
+    const inst = instFor(t, row ? row.cls : "us_blend");
+    const w = weights[t]; tot += w;
+    dur += w*inst.dur; sprd += w*inst.sprd; beta += w*inst.beta;
+    yld += w*inst.yld; er += w*inst.er; infl += w*inst.inflSens;
+  }
+  if (!tot) return { dur:0, sprd:0, beta:0, yld:0, er:0, infl:0 };
+  return { dur:dur/tot, sprd:sprd/tot, beta:beta/tot, yld:yld/tot, er:er/tot, infl:infl/tot };
+}
+const EXP_META = [
+  { k:"dur",  lab:"Effective duration",  fmt:v=>v.toFixed(2)+" yrs", better:0, why:"Price fall for each 1% rise in rates." },
+  { k:"sprd", lab:"Spread duration",     fmt:v=>v.toFixed(2)+" yrs", better:0, why:"Price fall for each 1% widening in credit spreads." },
+  { k:"beta", lab:"Equity beta",         fmt:v=>v.toFixed(2),        better:0, why:"Move for each 1% move in the stock market." },
+  { k:"infl", lab:"Inflation response",  fmt:v=>(v>=0?"+":"")+v.toFixed(2)+"×", better:1, why:"Return for each 1% of unexpected inflation." },
+  { k:"yld",  lab:"Portfolio yield",     fmt:v=>v.toFixed(2)+"%",    better:1, why:"Income thrown off each year before tax." },
+  { k:"er",   lab:"Weighted cost",       fmt:v=>v.toFixed(3)+"%",    better:-1, why:"Running charge across the whole portfolio." }
+];
+function renderExposure(){
+  const c = exposures(curWeights()), p = exposures(propWeights());
+  document.getElementById("exposureChart").innerHTML = '<div class="tiles">' + EXP_META.map(m => {
+    const a = c[m.k], b = p[m.k], d = b - a;
+    let cls = "flat", word = "unchanged";
+    if (Math.abs(d) > 1e-6){
+      const good = m.better > 0 ? d > 0 : m.better < 0 ? d < 0 : null;
+      cls = good === null ? "flat" : good ? "up" : "down";
+      word = (d > 0 ? "up " : "down ") + m.fmt(Math.abs(d)).replace(/^\+/,"");
+    }
+    return '<div class="tile"><div class="t-lab">'+esc(m.lab)+"</div>" +
+      '<div class="t-val">'+esc(m.fmt(b))+"</div>" +
+      '<div class="t-delta '+cls+'"><span class="dot"></span>from '+esc(m.fmt(a))+" &middot; "+esc(word)+"</div>" +
+      '<div class="t-sub">'+esc(m.why)+"</div></div>";
+  }).join("") + "</div>";
+
+  const dd = p.dur - c.dur, db = p.beta - c.beta, ds = p.sprd - c.sprd;
+  const say = [];
+  if (Math.abs(dd) > 0.1) say.push("takes " + (dd>0?"on":"off") + " " + Math.abs(dd).toFixed(1) + " years of duration, so a 1% move in rates now costs " + Math.abs(p.dur).toFixed(1) + "% instead of " + Math.abs(c.dur).toFixed(1) + "%");
+  if (Math.abs(db) > 0.03) say.push("moves equity beta from " + c.beta.toFixed(2) + " to " + p.beta.toFixed(2));
+  if (Math.abs(ds) > 0.15) say.push((ds>0?"adds":"cuts") + " " + Math.abs(ds).toFixed(1) + " years of credit spread exposure");
+  document.getElementById("exposureRead").innerHTML = say.length
+    ? "The proposal " + esc(say.join(", ")) + "."
+    : "The two allocations carry almost identical rate, credit and equity exposure — whatever else changes, the risk profile does not.";
+}
+
+/* ==================================================================
+   12. THE COMPUTED PICTURE
+   ================================================================== */
+function compute(){
+  const win = window_();
+  const C = ctx();
+  const rf = C.F.cash.slice(win.a, win.b+1);
+  const cw = curWeights(), pw = propWeights();
+  if (!Object.keys(cw).length && !Object.keys(pw).length) return null;
+  const bDef = benchDef();
+  const bench = blend(bDef.w, win);
+  const cur  = Object.keys(cw).length ? blend(cw, win) : null;
+  const prop = Object.keys(pw).length ? blend(pw, win) : null;
+  const mk = r => r ? statsFor(r, bench, rf, win.ppy, win.dates) : null;
+  return { win, rf, bench, cur, prop, bDef,
+           sCur: mk(cur), sProp: mk(prop), sBench: statsFor(bench, null, rf, win.ppy, win.dates) };
+}
+function activeSeries(D){
+  const out = [];
+  if (D.cur)  out.push({ name:"Current",  color:sc(0), r:D.cur,  s:D.sCur });
+  if (D.prop) out.push({ name:"Proposed", color:sc(1), r:D.prop, s:D.sProp });
+  out.push({ name:D.bDef.name, color:sc(2), r:D.bench, s:D.sBench });
+  return out;
+}
+function xTicksFor(dates, n, width){
+  const out = [], want = Math.max(3, Math.min(9, Math.floor(width/110)));
+  const step = Math.max(1, Math.floor(n/want));
+  for (let i=0;i<n;i+=step) out.push({ i, label:String(dates[Math.min(i, dates.length-1)].getUTCFullYear()) });
+  return out;
+}
+const hostW = id => {
+  const el = document.getElementById(id);
+  const outer = document.querySelector(".wrap").clientWidth - 44;
+  return Math.max(240, Math.min(el.parentElement.clientWidth || 620, outer));
+};
+
+/* ==================================================================
+   13. PERFORMANCE TAB
+   ================================================================== */
+function renderPerf(D){
+  const S = activeSeries(D);
+  const tiles = [
+    { lab:"Return a year",     f:s=>pct(s.cagr),      d:1 },
+    { lab:"Total return",      f:s=>pctS(s.cumulative,0), d:1 },
+    { lab:"Volatility",        f:s=>pct(s.vol),       d:-1 },
+    { lab:"Worst fall",        f:s=>pct(s.maxDD),     d:1 },
+    { lab:"Return per unit of risk", f:s=>nm(s.sharpe), d:1 }
+  ];
+  document.getElementById("perfTiles").innerHTML = tiles.map(t => {
+    const a = D.sCur ? t.f(D.sCur) : "—", b = D.sProp ? t.f(D.sProp) : "—";
+    let cls = "flat", word = "no current allocation to compare";
+    if (D.sCur && D.sProp){
+      const va = t.lab === "Return per unit of risk" ? D.sCur.sharpe : null;
+      const key = { "Return a year":"cagr", "Total return":"cumulative", "Volatility":"vol",
+                    "Worst fall":"maxDD", "Return per unit of risk":"sharpe" }[t.lab];
+      const diff = D.sProp[key] - D.sCur[key];
+      const good = t.d > 0 ? diff > 0 : diff < 0;
+      cls = Math.abs(diff) < 1e-9 ? "flat" : good ? "up" : "down";
+      word = (Math.abs(diff) < 1e-9 ? "same as" : good ? "better than" : "behind") + " current (" + a + ")";
+    }
+    return '<div class="tile"><div class="t-lab">'+esc(t.lab)+' <span style="color:var(--muted)">— proposed</span></div>' +
+      '<div class="t-val">'+esc(b)+"</div>" +
+      '<div class="t-delta '+cls+'"><span class="dot"></span>'+esc(word)+"</div></div>";
+  }).join("");
+
+  /* growth of $1m */
+  const w = hostW("growthChart");
+  const paths = S.map(s => ({ name:s.name, color:s.color, vals: pathOf(s.r, 1e6).idx }));
+  document.getElementById("growthLegend").innerHTML = legendHTML(S);
+  drawLineChart(document.getElementById("growthChart"), {
+    width:w, height:288, series:paths,
+    yDomain:[Math.min(...paths.flatMap(p=>p.vals))*0.97, Math.max(...paths.flatMap(p=>p.vals))*1.02],
+    yFmt:moneyShort, endFmt:moneyShort, tipFmt:money,
+    xLabel:i => i===0 ? "Start" : dLabel(D.win.dates[i-1], D.win.ppy),
+    xTicks: xTicksFor(D.win.dates, paths[0].vals.length, w), endLabel:true
+  });
+  const best = paths.slice().sort((a,b)=>b.vals[b.vals.length-1]-a.vals[a.vals.length-1])[0];
+  const cP = paths.find(p=>p.name==="Current"), pP = paths.find(p=>p.name==="Proposed");
+  document.getElementById("growthRead").innerHTML = (cP && pP)
+    ? "$1,000,000 ends at <b>"+money(pP.vals[pP.vals.length-1])+"</b> proposed against <b>"+money(cP.vals[cP.vals.length-1])+
+      "</b> as it stands — a difference of "+money(Math.abs(pP.vals[pP.vals.length-1]-cP.vals[cP.vals.length-1]))+
+      " over "+D.sBench.yrs.toFixed(1)+" years."
+    : "<b>"+esc(best.name)+"</b> finishes highest at "+money(best.vals[best.vals.length-1])+".";
+
+  /* trailing returns */
+  const per = [ {lab:"3 months",p:0.25},{lab:"6 months",p:0.5},{lab:"1 year",p:1},{lab:"3 years",p:3},
+                {lab:"5 years",p:5},{lab:"10 years",p:10} ];
+  const trail = [];
+  const ytdStart = (() => { const y = D.win.dates[D.win.dates.length-1].getUTCFullYear();
+    let i = D.win.dates.length-1; while (i > 0 && D.win.dates[i-1].getUTCFullYear() === y) i--; return i; })();
+  trail.push(["Year to date"].concat(S.map(s => pctS(compound(s.r.slice(ytdStart))-1))));
+  for (const q of per){
+    const n = Math.round(q.p * D.win.ppy);
+    if (n > S[0].r.length) continue;
+    trail.push([q.lab].concat(S.map(s => {
+      const seg = s.r.slice(s.r.length-n);
+      const v = q.p > 1 ? Math.pow(compound(seg), 1/q.p)-1 : compound(seg)-1;
+      return pctS(v);
+    })));
+  }
+  trail.push(["Full window (a year)"].concat(S.map(s => pctS(s.s.cagr))));
+  document.getElementById("trailingTable").innerHTML = tableHTML(
+    ["Period"].concat(S.map(s=>'<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>")),
+    trail, "Periods over a year are annualised. Everything is net of the costs on each holding.");
+
+  /* calendar years */
+  const years = D.sBench.cal.map(c=>c.year);
+  document.getElementById("calLegend").innerHTML = legendHTML(S);
+  drawColumns(document.getElementById("calChart"), {
+    width:hostW("calChart"), height:246, cats:years,
+    labels:years.map(y=>String(y).slice(2)),
+    showEvery: years.length > 14 ? 2 : 1,
+    series:S.map(s => ({ name:s.name, color:s.color,
+      vals: years.map(y => { const f = s.s.cal.find(c=>c.year===y); return f ? f.ret : null; }) })),
+    yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pctS(v)
+  });
+  document.getElementById("calTable").innerHTML = tableHTML(
+    ["Year"].concat(S.map(s=>'<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>")),
+    years.map(y => [String(y)].concat(S.map(s => { const f = s.s.cal.find(c=>c.year===y); return f ? pctS(f.ret) : "—"; }))));
+
+  /* drawdowns */
+  const wd = hostW("ddChart");
+  document.getElementById("ddLegend").innerHTML = legendHTML(S);
+  drawLineChart(document.getElementById("ddChart"), {
+    width:wd, height:262, series:S.map(s=>({ name:s.name, color:s.color, vals:s.s.path.dd })),
+    yDomain:[Math.min(...S.flatMap(s=>s.s.path.dd))*1.06, 0],
+    yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pct(v), endFmt:v=>pct(v),
+    xLabel:i => i===0 ? "Start" : dLabel(D.win.dates[i-1], D.win.ppy),
+    xTicks:xTicksFor(D.win.dates, S[0].s.path.dd.length, wd), baselineAt:0, fill:true
+  });
+  const deep = S.slice().sort((a,b)=>a.s.maxDD-b.s.maxDD)[0];
+  document.getElementById("ddRead").innerHTML =
+    "The deepest hole belongs to <b>"+esc(deep.name)+"</b> at "+pct(deep.s.maxDD)+", and it sat below its previous high for "+
+    deep.s.underwater+" "+(D.win.ppy>=52?"days":"months")+". Ask the client which of these lines they could have sat through.";
+  document.getElementById("ddTable").innerHTML = tableHTML(
+    ["Allocation","Worst fall","Longest time down","Worst 12 periods","Worst single period","Ulcer index"],
+    S.map(s => ['<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>",
+      pct(s.s.maxDD), s.s.underwater+"", pctS(s.s.worst12), pctS(s.s.worst), nm(s.s.ulcer)]),
+    "The ulcer index measures depth and duration of drawdowns together — lower is calmer.");
+}
+
+/* ==================================================================
+   14. RISK & MPT TAB
+   ================================================================== */
+const MPT_ROWS = [
+  { g:"Return" },
+  { k:"cagr",        lab:"Compound return a year",  f:s=>pct(s.cagr),        why:"The rate that turns the start value into the end value." },
+  { k:"arith",       lab:"Average return a year",   f:s=>pct(s.arith),       why:"Simple average of the periods, annualised." },
+  { k:"cumulative",  lab:"Total return",            f:s=>pctS(s.cumulative,0), why:"Everything earned over the whole window." },
+  { k:"best12",      lab:"Best 12 periods",         f:s=>pctS(s.best12),     why:"The strongest year-long stretch on record." },
+  { k:"worst12",     lab:"Worst 12 periods",        f:s=>pctS(s.worst12),    why:"The weakest year-long stretch on record." },
+  { g:"Risk" },
+  { k:"vol",         lab:"Standard deviation",      f:s=>pct(s.vol),         why:"The classic measure of how much it moves, annualised." },
+  { k:"downsideDev", lab:"Downside deviation",      f:s=>pct(s.downsideDev), why:"The same idea counting only the losses." },
+  { k:"maxDD",       lab:"Maximum drawdown",        f:s=>pct(s.maxDD),       why:"Deepest peak-to-trough fall." },
+  { k:"underwater",  lab:"Longest time under water",f:s=>s.underwater+"",    why:"Longest run of periods below a previous high." },
+  { k:"ulcer",       lab:"Ulcer index",             f:s=>nm(s.ulcer),        why:"Depth and length of drawdowns in one number." },
+  { k:"var95",       lab:"Value at risk (95%)",     f:s=>pct(s.var95),       why:"1 period in 20 was worse than this." },
+  { k:"cvar95",      lab:"Conditional VaR (95%)",   f:s=>pct(s.cvar95),      why:"The average of that worst 1-in-20 tail." },
+  { k:"worst",       lab:"Worst single period",     f:s=>pctS(s.worst),      why:"The single worst period in the window." },
+  { g:"Risk-adjusted return" },
+  { k:"sharpe",      lab:"Sharpe ratio",            f:s=>nm(s.sharpe),       why:"Excess return per unit of total volatility." },
+  { k:"sortino",     lab:"Sortino ratio",           f:s=>nm(s.sortino),      why:"Excess return per unit of downside volatility." },
+  { k:"calmar",      lab:"Calmar ratio",            f:s=>nm(s.calmar),       why:"Return divided by the worst drawdown." },
+  { k:"martin",      lab:"Martin ratio",            f:s=>nm(s.martin),       why:"Excess return per unit of ulcer index." },
+  { k:"omega",       lab:"Omega ratio",             f:s=>nm(s.omega),        why:"Total gains divided by total losses." },
+  { k:"m2",          lab:"M² (risk-matched return)",f:s=>pct(s.m2),          why:"What it would have returned at the benchmark's risk level." },
+  { g:"Against the benchmark" },
+  { k:"beta",        lab:"Beta",                    f:s=>nm(s.beta),         why:"Move for each 1% move in the benchmark." },
+  { k:"alpha",       lab:"Alpha (Jensen, a year)",  f:s=>pctS(s.alpha),      why:"Return beyond what that beta alone would explain." },
+  { k:"r2",          lab:"R²",                      f:s=>nm(s.r2),           why:"How much of the movement the benchmark explains." },
+  { k:"corr",        lab:"Correlation",             f:s=>nm(s.corr),         why:"How closely the two move together." },
+  { k:"te",          lab:"Tracking error",          f:s=>pct(s.te),          why:"How far returns stray from the benchmark." },
+  { k:"ir",          lab:"Information ratio",       f:s=>nm(s.ir),           why:"Excess return per unit of tracking error." },
+  { k:"treynor",     lab:"Treynor ratio",           f:s=>pct(s.treynor),     why:"Excess return per unit of market risk taken." },
+  { k:"upCapture",   lab:"Up capture",              f:s=>s.upCapture===null?"—":Math.round(s.upCapture)+"%",   why:"Share of the benchmark's gains captured." },
+  { k:"downCapture", lab:"Down capture",            f:s=>s.downCapture===null?"—":Math.round(s.downCapture)+"%", why:"Share of the benchmark's losses taken." },
+  { k:"batting",     lab:"Batting average",         f:s=>Math.round(s.batting)+"%", why:"How often it beat the benchmark period by period." },
+  { g:"Shape of returns" },
+  { k:"pctPos",      lab:"Positive periods",        f:s=>Math.round(s.pctPos)+"%", why:"How often a period finished up." },
+  { k:"skew",        lab:"Skewness",                f:s=>nm(s.skew),         why:"Below zero means the big surprises tend to be bad ones." },
+  { k:"kurt",        lab:"Excess kurtosis",         f:s=>nm(s.kurt),         why:"Above zero means fatter tails than a normal distribution." }
+];
+let rcMode = "prop";
+function riskContrib(weights, win){
+  const ts = Object.keys(weights).filter(t => weights[t] > 0);
+  if (ts.length < 2) return null;
+  const tot = ts.reduce((s,t)=>s+weights[t],0);
+  const w = ts.map(t => weights[t]/tot);
+  const cols = ts.map(t => { const row = STATE.rows.find(r=>r.ticker===t);
+    return seriesOf(t, row?row.cls:"us_blend").r.slice(win.a, win.b+1); });
+  const { S } = covariance(cols);
+  const pv = portVar(w, S);
+  if (pv <= 0) return null;
+  const contrib = w.map((wi,i) => {
+    let cv = 0;
+    for (let j=0;j<w.length;j++) cv += S[i][j]*w[j];
+    return wi*cv/pv*100;
+  });
+  return ts.map((t,i) => ({ ticker:t, capital:w[i]*100, risk:contrib[i] }))
+           .sort((a,b)=>b.risk-a.risk);
+}
+function renderRisk(D){
+  const S = activeSeries(D);
+  /* scatter — portfolios emphasised, holdings as muted reference points */
+  const pts = [];
+  const seen = new Set();
+  for (const r of STATE.rows){
+    if (seen.has(r.ticker) || (r.cur <= 0 && r.prop <= 0)) continue;
+    seen.add(r.ticker);
+    const rr = seriesOf(r.ticker, r.cls).r.slice(D.win.a, D.win.b+1);
+    const st = statsFor(rr, null, D.rf, D.win.ppy, D.win.dates);
+    pts.push({ id:"h_"+r.ticker, name:r.ticker+" — "+(r.name||instFor(r.ticker,r.cls).name), label:r.ticker,
+               x:st.vol, y:st.cagr, color:"var(--axis)", size:4.5, faded:true,
+               extra:[{name:"Worst fall", value:pct(st.maxDD)}] });
+  }
+  S.forEach((s,i) => pts.push({ id:"p_"+i, name:s.name, label:s.name, x:s.s.vol, y:s.s.cagr,
+    color:s.color, size:8, ring:true, strong:true, extra:[{name:"Worst fall", value:pct(s.s.maxDD)}] }));
+  drawXY(document.getElementById("riskScatter"), {
+    width:hostW("riskScatter"), height:320, points:pts,
+    xFmt:v=>pct(v,v<0.02?1:0), yFmt:v=>pct(v,v<0.02?1:0),
+    xTitle:"Volatility", yTitle:"Return a year"
+  });
+  if (D.sCur && D.sProp){
+    const dv = D.sProp.vol - D.sCur.vol, dr = D.sProp.cagr - D.sCur.cagr;
+    document.getElementById("scatterRead").innerHTML =
+      "The proposal moves the portfolio "+(Math.abs(dv)<0.002?"sideways on risk":(dv>0?"right":"left")+" by "+pct(Math.abs(dv))+
+      " of volatility")+" and "+(dr>0?"up":"down")+" by "+pct(Math.abs(dr))+" of return a year. Grey dots are the individual holdings — " +
+      "the portfolios sit above most of them because diversification does work.";
+  } else document.getElementById("scatterRead").textContent =
+      "Grey dots are the individual holdings. A portfolio that sits above and to the left of its own holdings is getting paid for diversification.";
+
+  /* risk contribution */
+  const card = document.getElementById("riskContribChart").closest(".card");
+  if (!card.querySelector("#rcSeg")){
+    const seg = document.createElement("div");
+    seg.className = "rowflex"; seg.style.marginBottom = "12px";
+    seg.innerHTML = '<div class="seg" id="rcSeg" role="group" aria-label="Allocation">' +
+      '<button type="button" data-rc="cur">Current</button><button type="button" data-rc="prop">Proposed</button></div>';
+    card.insertBefore(seg, document.getElementById("rcLegend"));
+    seg.addEventListener("click", e => { const b = e.target.closest("[data-rc]"); if (!b) return;
+      rcMode = b.getAttribute("data-rc"); renderAll(); });
+  }
+  card.querySelectorAll("[data-rc]").forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute("data-rc") === rcMode)));
+  const rcW = rcMode === "cur" ? curWeights() : propWeights();
+  const rcColor = rcMode === "cur" ? sc(0) : sc(1);
+  const rc = riskContrib(rcW, D.win);
+  document.getElementById("rcLegend").innerHTML = legendHTML(
+    [{ name:"Share of capital", color:"var(--axis)" }, { name:"Share of risk", color:rcColor }], true);
+  if (!rc){
+    document.getElementById("riskContribChart").innerHTML = '<p class="empty">Needs at least two holdings in this allocation.</p>';
+    document.getElementById("rcRead").textContent = "";
+  } else {
+    const top = rc.slice(0, 12);
+    drawBarsH(document.getElementById("riskContribChart"), {
+      width:hostW("riskContribChart"), cats:top.map(x=>x.ticker), rowH:30, labW:86, padR:64,
+      series:[{ name:"Share of capital", color:"var(--axis)", vals:top.map(x=>x.capital) },
+              { name:"Share of risk",    color:rcColor,       vals:top.map(x=>x.risk) }],
+      xFmt:(v,long)=>v.toFixed(long?1:0)+"%"
+    });
+    const worst = rc[0];
+    document.getElementById("rcRead").innerHTML =
+      "<b>"+esc(worst.ticker)+"</b> is "+worst.capital.toFixed(1)+"% of the money but "+worst.risk.toFixed(1)+
+      "% of the risk"+(worst.risk > worst.capital*1.4 ? " — it is carrying far more than its share." : ".") +
+      " The top three holdings account for "+rc.slice(0,3).reduce((s,x)=>s+x.risk,0).toFixed(0)+"% of total portfolio risk.";
+  }
+
+  /* the big statistics table */
+  const cols = S.map(s => s);
+  document.getElementById("mptTable").innerHTML = tableHTML(
+    ["Statistic"].concat(cols.map(s=>'<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>")),
+    MPT_ROWS.map(r => r.g ? { group:r.g }
+      : ["<b>"+esc(r.lab)+'</b><span class="why">'+esc(r.why)+"</span>"].concat(cols.map(s => {
+          if (["beta","alpha","r2","corr","te","ir","treynor","upCapture","downCapture","batting","m2"].includes(r.k)
+              && s.name === D.bDef.name) return "—";
+          return esc(r.f(s.s));
+        }))));
+  document.getElementById("mptAside").textContent =
+    D.sBench.n + " periods · " + D.sBench.yrs.toFixed(1) + " years · " +
+    ({252:"daily",52:"weekly",12:"monthly",4:"quarterly",1:"annual"}[D.win.ppy] || "custom") + " data";
+  document.getElementById("mptNote").textContent =
+    "Relative statistics are measured against " + D.bDef.name + ". The risk-free rate is the cash series over the same window (" +
+    pct(D.sBench.rf) + " a year). Rows marked — do not apply to the benchmark against itself.";
+
+  /* histogram */
+  const hs = S.filter(s => s.name !== D.bDef.name);
+  const all = hs.flatMap(s=>s.r);
+  const lo = Math.min(...all), hi = Math.max(...all);
+  const nb = 13, step = (hi-lo)/nb || 0.01;
+  const cats = [], vals = hs.map(()=>[]);
+  for (let i=0;i<nb;i++){
+    const a = lo+step*i, b = a+step;
+    cats.push(((a+b)/2*100).toFixed(1)+"%");
+    hs.forEach((s,j) => vals[j].push(s.r.filter(v => v >= a && (i===nb-1 ? v <= b : v < b)).length / s.r.length));
+  }
+  document.getElementById("histLegend").innerHTML = legendHTML(hs, true);
+  drawColumns(document.getElementById("histChart"), {
+    width:hostW("histChart"), height:236, cats, showEvery:2, floor:0, rotate:true, padB:44,
+    series:hs.map((s,j)=>({ name:s.name, color:s.color, vals:vals[j] })),
+    yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>(v*100).toFixed(1)+"% of periods"
+  });
+  document.getElementById("histRead").innerHTML = hs.length > 1
+    ? "<b>"+esc(hs[1].name)+"</b> finished up in "+Math.round(hs[1].s.pctPos)+"% of periods against "+
+      Math.round(hs[0].s.pctPos)+"% for the current mix, and its worst period was "+pctS(hs[1].s.worst)+
+      " versus "+pctS(hs[0].s.worst)+"."
+    : "Each bar is the share of periods that landed in that range of return.";
+
+  /* rolling 12 */
+  const wr = hostW("rollChart");
+  const rollSeries = S.map(s=>({ name:s.name, color:s.color, vals:s.s.r12 }));
+  document.getElementById("rollLegend").innerHTML = legendHTML(S);
+  if (rollSeries[0].vals.length > 3){
+    drawLineChart(document.getElementById("rollChart"), {
+      width:wr, height:236, series:rollSeries,
+      yDomain:[Math.min(...rollSeries.flatMap(s=>s.vals)), Math.max(...rollSeries.flatMap(s=>s.vals))],
+      yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pctS(v), endFmt:v=>pctS(v), baselineAt:0,
+      xLabel:i=>dLabel(D.win.dates[i + Math.round(D.win.ppy) - 1] || D.win.dates[D.win.dates.length-1], D.win.ppy),
+      xTicks:xTicksFor(D.win.dates.slice(Math.round(D.win.ppy)-1), rollSeries[0].vals.length, wr)
+    });
+    const negP = rollSeries.map(s => s.vals.filter(v=>v<0).length / s.vals.length * 100);
+    document.getElementById("rollRead").innerHTML =
+      rollSeries.map((s,i)=>"<b>"+esc(s.name)+"</b> lost money over "+negP[i].toFixed(0)+"% of the year-long stretches").join(", ") +
+      ". This is the honest answer to &ldquo;what are the odds I am down after a year?&rdquo;";
+  } else {
+    document.getElementById("rollChart").innerHTML = '<p class="empty">Not enough history in this window for rolling years.</p>';
+    document.getElementById("rollRead").textContent = "";
+  }
+}
+
+/* ==================================================================
+   15. STRESS & SCENARIOS TAB
+   ================================================================== */
+const EPISODES = [
+  { name:"Global financial crisis", from:"2007-10-01", to:"2009-03-31" },
+  { name:"Euro debt crisis",        from:"2011-05-01", to:"2011-09-30" },
+  { name:"Taper tantrum",           from:"2013-05-01", to:"2013-08-31" },
+  { name:"Q4 2018 selloff",         from:"2018-10-01", to:"2018-12-31" },
+  { name:"COVID crash",             from:"2020-02-01", to:"2020-03-31" },
+  { name:"2022 rate shock",         from:"2022-01-01", to:"2022-10-31" },
+  { name:"2009 recovery",           from:"2009-03-01", to:"2010-03-31" }
+];
+const SHOCK_META = [
+  { k:"rate",   lab:"Interest rates",     unit:"bp",  min:-300, max:400, step:10, cap:"A parallel shift in the yield curve. Priced off each holding's own duration." },
+  { k:"spread", lab:"Credit spreads",     unit:"bp",  min:-200, max:600, step:10, cap:"Investment-grade spread widening. High yield and EM debt move a multiple of this." },
+  { k:"eq",     lab:"Equity market",      unit:"%",   min:-45,  max:30,  step:1,  cap:"A move in the broad stock market, applied through each holding's beta." },
+  { k:"infl",   lab:"Inflation surprise", unit:"%",   min:-4,   max:6,   step:0.25, cap:"Inflation above or below what was priced in. Real assets gain, long bonds lose." },
+  { k:"vol",    lab:"Volatility (VIX)",   unit:"pts", min:-15,  max:60,  step:1,  cap:"A jump in equity volatility, on top of the market move — the gap risk in credit and high beta." }
+];
+const SCENARIOS = [
+  { name:"Reset",                  s:{ rate:0,    spread:0,   eq:0,   infl:0,   vol:0 } },
+  { name:"2008-style credit crisis", s:{ rate:-150, spread:450, eq:-38, infl:-1.5, vol:45 } },
+  { name:"COVID March 2020",       s:{ rate:-120, spread:250, eq:-34, infl:-1.0, vol:55 } },
+  { name:"2022 rate shock",        s:{ rate:280,  spread:150, eq:-20, infl:3.5,  vol:12 } },
+  { name:"Rates +100bp only",      s:{ rate:100,  spread:0,   eq:0,   infl:0,   vol:0 } },
+  { name:"Inflation surge",        s:{ rate:150,  spread:80,  eq:-10, infl:2.5,  vol:10 } },
+  { name:"Soft landing rally",     s:{ rate:-75,  spread:-60, eq:14,  infl:-0.5, vol:-8 } }
+];
+function shockImpact(weights, sh){
+  const parts = { rate:0, spread:0, eq:0, infl:0, vol:0 };
+  let tot = 0;
+  for (const t in weights) tot += weights[t];
+  if (!tot) return { parts, total:0 };
+  for (const t in weights){
+    const row = STATE.rows.find(r=>r.ticker===t);
+    const inst = instFor(t, row?row.cls:"us_blend");
+    const w = weights[t]/tot;
+    parts.rate   += w * (-inst.dur  * sh.rate/10000);
+    parts.spread += w * (-inst.sprd * sh.spread/10000);
+    parts.eq     += w * ( inst.beta * sh.eq/100);
+    parts.infl   += w * ( inst.inflSens * sh.infl/100);
+    parts.vol    += w * ( inst.volSens * sh.vol);
+  }
+  return { parts, total: parts.rate+parts.spread+parts.eq+parts.infl+parts.vol };
+}
+function episodeReturn(weights, from, to){
+  const C = ctx();
+  const a = C.dates.findIndex(d => d >= new Date(from+"T00:00:00Z"));
+  let b = -1;
+  for (let i=C.dates.length-1;i>=0;i--) if (C.dates[i] <= new Date(to+"T00:00:00Z")) { b = i; break; }
+  if (a < 0 || b < a || b - a < 1) return null;
+  return compound(blend(weights, { a, b, ppy:C.ppy })) - 1;
+}
+function renderStress(D){
+  const cw = curWeights(), pw = propWeights();
+  const sets = [];
+  if (Object.keys(cw).length) sets.push({ name:"Current",  color:sc(0), w:cw });
+  if (Object.keys(pw).length) sets.push({ name:"Proposed", color:sc(1), w:pw });
+  sets.push({ name:D.bDef.name, color:sc(2), w:D.bDef.w });
+
+  /* historical episodes */
+  const eps = EPISODES.map(e => Object.assign({}, e, { vals: sets.map(s => episodeReturn(s.w, e.from, e.to)) }));
+  const avail = eps.filter(e => e.vals.some(v => v !== null));
+  document.getElementById("epLegend").innerHTML = legendHTML(sets);
+  drawColumns(document.getElementById("episodeChart"), {
+    width:hostW("episodeChart"), height:284, cats:avail.map(e=>e.name), rotate:true, padB:82, padL:84,
+    series:sets.map((s,j)=>({ name:s.name, color:s.color, vals:avail.map(e=>e.vals[j]) })),
+    yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pctS(v)
+  });
+  document.getElementById("episodeTable").innerHTML = tableHTML(
+    ["Episode","Window"].concat(sets.map(s=>'<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>")),
+    eps.map(e => [esc(e.name), e.from.slice(0,7)+" → "+e.to.slice(0,7)]
+      .concat(e.vals.map(v => v === null ? "—" : pctS(v)))),
+    "Measured straight from the return series over each window. A dash means the data in play does not cover those dates.");
+
+  /* on-the-fly shocks */
+  const row = document.getElementById("scenarioRow");
+  if (!row.dataset.built){
+    row.innerHTML = SCENARIOS.map((s,i) => '<button class="btn sm" type="button" data-scn="'+i+'">'+esc(s.name)+"</button>").join("");
+    row.dataset.built = "1";
+    row.addEventListener("click", e => { const b = e.target.closest("[data-scn]"); if (!b) return;
+      Object.assign(STATE.shocks, SCENARIOS[+b.getAttribute("data-scn")].s); renderAll(); });
+  }
+  const ctrl = document.getElementById("shockControls");
+  if (!ctrl.dataset.built){
+    ctrl.innerHTML = SHOCK_META.map(m =>
+      '<div class="shock"><label for="sh_'+m.k+'">'+esc(m.lab)+'<span class="v" id="shv_'+m.k+'"></span></label>' +
+      '<input type="range" id="sh_'+m.k+'" data-shock="'+m.k+'" min="'+m.min+'" max="'+m.max+'" step="'+m.step+'">' +
+      '<p class="cap">'+esc(m.cap)+"</p></div>").join("");
+    ctrl.dataset.built = "1";
+    ctrl.addEventListener("input", e => {
+      const el = e.target.closest("[data-shock]"); if (!el) return;
+      STATE.shocks[el.getAttribute("data-shock")] = +el.value;
+      renderStress(LAST_D); labelShocks();
+    });
+  }
+  function labelShocks(){
+    for (const m of SHOCK_META){
+      const v = STATE.shocks[m.k];
+      document.getElementById("sh_"+m.k).value = v;
+      document.getElementById("shv_"+m.k).textContent =
+        m.unit === "bp" ? bps(v) : (v>=0?"+":"") + (m.step<1 ? v.toFixed(2) : v) + (m.unit==="%"?"%":" pts");
+    }
+  }
+  labelShocks();
+  const imp = sets.map(s => shockImpact(s.w, STATE.shocks));
+  const partKeys = ["rate","spread","eq","infl","vol"];
+  const partLabs = ["Rates","Credit spreads","Equity","Inflation","Volatility","Total"];
+  drawColumns(document.getElementById("shockChart"), {
+    width:hostW("shockChart"), height:264, cats:partLabs, padL:56,
+    series:sets.map((s,j)=>({ name:s.name, color:s.color,
+      vals: partKeys.map(k => imp[j].parts[k]).concat([imp[j].total]) })),
+    yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pctS(v,2)
+  });
+  const anyShock = partKeys.some(k => STATE.shocks[k] !== 0);
+  if (!anyShock){
+    document.getElementById("shockRead").textContent =
+      "Pick a scenario above or move a slider — both allocations reprice against their own rate, credit, equity and inflation sensitivities.";
+  } else if (imp.length > 1){
+    const c = imp[0].total, p = imp[1] ? imp[1].total : null;
+    document.getElementById("shockRead").innerHTML = p === null
+      ? "This scenario costs the current allocation <b>"+pctS(c,1)+"</b>."
+      : "Under this scenario the current allocation moves <b>"+pctS(c,1)+"</b> and the proposal <b>"+pctS(p,1)+
+        "</b> &mdash; a difference of "+pct(Math.abs(p-c),1)+" on a $1,000,000 portfolio, or about "+
+        money(Math.abs(p-c)*1e6)+".";
+  }
+  document.getElementById("shockTable").innerHTML = tableHTML(
+    ["Allocation"].concat(partLabs),
+    sets.map((s,j) => ['<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>"]
+      .concat(partKeys.map(k => pctS(imp[j].parts[k],2))).concat(["<b>"+pctS(imp[j].total,2)+"</b>"])),
+    "First-order factor shocks: duration × rate move, spread duration × spread move, beta × market move, inflation sensitivity × surprise, " +
+    "plus a volatility term for the gap risk that beta alone misses. Instant repricing, not a path — it says nothing about how long the loss lasts.");
+
+  /* down-period analysis */
+  const dn = [];
+  D.bench.forEach((v,i) => { if (v < 0) dn.push(i); });
+  const label = D.win.ppy >= 252 ? "days" : D.win.ppy >= 52 ? "weeks" : D.win.ppy >= 12 ? "months" : "periods";
+  const worst = D.bench.map((v,i)=>({ v, i })).sort((a,b)=>a.v-b.v).slice(0, 10).sort((a,b)=>a.i-b.i);
+  const dnSets = sets.filter(s => s.name !== D.bDef.name).map((s,j) => ({
+    name:s.name, color:s.color, r: s.name === "Current" ? D.cur : D.prop }));
+  const allSets = dnSets.concat([{ name:D.bDef.name, color:sc(2), r:D.bench }]);
+  document.getElementById("downLegend").innerHTML = legendHTML(allSets);
+  drawColumns(document.getElementById("worstChart"), {
+    width:Math.max(340, hostW("worstChart")), height:250, rotate:true, padB:74, padL:52,
+    cats:worst.map(x => dLabel(D.win.dates[x.i], D.win.ppy)),
+    series:allSets.map(s => ({ name:s.name, color:s.color, vals:worst.map(x => s.r[x.i]) })),
+    yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pctS(v,2)
+  });
+  document.getElementById("downTable").innerHTML = tableHTML(
+    ["Allocation","Average down "+label,"Average up "+label,"Down capture","Up capture","Beat the benchmark"],
+    allSets.map(s => {
+      const up = [], down = [];
+      D.bench.forEach((v,i) => (v < 0 ? down : up).push(s.r[i]));
+      const st = s.name === D.bDef.name ? D.sBench : (s.name === "Current" ? D.sCur : D.sProp);
+      const beat = down.filter((v,k) => v > s.r.filter((_,i)=>D.bench[i]<0)[k]).length;
+      const better = dn.filter(i => s.r[i] > D.bench[i]).length;
+      return ['<span class="name-key"><span class="key" style="background:'+s.color+'"></span>'+esc(s.name)+"</span>",
+        pctS(mean(down),2), pctS(mean(up),2),
+        st.downCapture === null || st.downCapture === undefined ? "—" : Math.round(st.downCapture)+"%",
+        st.upCapture === null || st.upCapture === undefined ? "—" : Math.round(st.upCapture)+"%",
+        Math.round(better/dn.length*100)+"% of down "+label];
+    }),
+    "The benchmark lost money in " + dn.length + " of " + D.bench.length + " " + label + " (" +
+    Math.round(dn.length/D.bench.length*100) + "%).");
+  const dnCur = D.cur ? mean(dn.map(i=>D.cur[i])) : null, dnProp = D.prop ? mean(dn.map(i=>D.prop[i])) : null;
+  document.getElementById("downRead").innerHTML = (dnCur !== null && dnProp !== null)
+    ? "In the average down "+label.replace(/s$/,"")+" the current mix lost <b>"+pctS(dnCur,2)+"</b> and the proposal <b>"+pctS(dnProp,2)+
+      "</b>. Over the ten worst "+label+" on the chart, that gap compounds to "+
+      pctS(compound(worst.map(x=>D.prop[x.i]))-compound(worst.map(x=>D.cur[x.i])),1)+"."
+    : "Every period the benchmark lost money, and what each allocation did alongside it.";
+}
+let LAST_D = null;
+
+/* ==================================================================
+   16. OPTIMIZATION TAB
+   ================================================================== */
+let LAST_FRONTIER = null;
+function renderFrontier(D){
+  const tickers = [...new Set(STATE.rows.filter(r => r.cur > 0 || r.prop > 0).map(r => r.ticker))];
+  const host = document.getElementById("frontierChart");
+  if (tickers.length < 3){
+    host.innerHTML = '<p class="empty">The frontier needs at least three holdings. Add a few more and it will draw.</p>';
+    document.getElementById("frontierRead").textContent = "";
+    document.getElementById("optTable").innerHTML = "";
+    LAST_FRONTIER = null;
+    return;
+  }
+  const rfP = mean(D.rf);
+  const F = buildFrontier(tickers, D.win, STATE.cap, rfP);
+  LAST_FRONTIER = F;
+  const pts = [];
+  tickers.forEach((t,i) => {
+    const v = Math.sqrt(F.S[i][i]*F.ppy), m = F.mu[i]*F.ppy;
+    pts.push({ id:"a_"+t, name:t, label:t, x:v, y:m, color:"var(--axis)", size:4.5, faded:true });
+  });
+  const mark = (w, name, color, strong) => {
+    const v = Math.sqrt(portVar(w, F.S)*F.ppy), m = portMu(w, F.mu)*F.ppy;
+    pts.push({ id:"m_"+name, name, label:name, x:v, y:m, color, size:strong?8:6.5, ring:strong, strong:true,
+               extra:[{ name:"Return per unit of risk", value:nm((m-rfP*F.ppy)/(v||1)) }] });
+  };
+  const wOf = weights => { const tot = tickers.reduce((s,t)=>s+(weights[t]||0),0) || 1;
+    return tickers.map(t => (weights[t]||0)/tot); };
+  if (Object.keys(curWeights()).length)  mark(wOf(curWeights()),  "Current",  sc(0), true);
+  if (Object.keys(propWeights()).length) mark(wOf(propWeights()), "Proposed", sc(1), true);
+  mark(F.minVar.w, "Min risk", "var(--ink)", false);
+  mark(F.maxSharpe.w, "Best Sharpe", "var(--ink)", false);
+  document.getElementById("frontierLegend").innerHTML = legendHTML([
+    { name:"Efficient frontier", color:"var(--muted)" },
+    ...(Object.keys(curWeights()).length ? [{ name:"Current", color:sc(0) }] : []),
+    ...(Object.keys(propWeights()).length ? [{ name:"Proposed", color:sc(1) }] : []),
+    { name:"Optimised mixes", color:"var(--ink)" },
+    { name:"Individual holdings", color:"var(--axis)" }
+  ], true);
+  drawXY(host, {
+    width:hostW("frontierChart"), height:360, points:pts,
+    line:F.pts.map(p=>({ x:p.vol, y:p.ret })), lineColor:"var(--muted)",
+    xFmt:v=>pct(v,0), yFmt:v=>pct(v,0), xTitle:"Volatility", yTitle:"Expected return a year"
+  });
+  const gapOf = w => {
+    const v = Math.sqrt(portVar(w, F.S)*F.ppy), m = portMu(w, F.mu)*F.ppy;
+    let bestAt = F.pts[0];
+    for (const p of F.pts) if (Math.abs(p.vol - v) < Math.abs(bestAt.vol - v)) bestAt = p;
+    return { v, m, gap: bestAt.ret - m };
+  };
+  const bits = [];
+  if (Object.keys(curWeights()).length){ const g = gapOf(wOf(curWeights()));
+    bits.push("the current mix gives up <b>"+pct(Math.max(0,g.gap))+" a year</b> against the best available at its own level of risk"); }
+  if (Object.keys(propWeights()).length){ const g = gapOf(wOf(propWeights()));
+    bits.push("the proposal gives up <b>"+pct(Math.max(0,g.gap))+"</b>"); }
+  document.getElementById("frontierRead").innerHTML = bits.length
+    ? "On this data " + bits.join(" and ") + ". The gap is the cost of the current structure, not of the markets."
+    : "";
+
+  const rows = tickers.map((t,i) => [esc(t), esc(instFor(t, (STATE.rows.find(r=>r.ticker===t)||{}).cls).classLabel),
+    (F.minVar.w[i]*100).toFixed(1)+"%", (F.maxSharpe.w[i]*100).toFixed(1)+"%"])
+    .sort((a,b)=>parseFloat(b[3])-parseFloat(a[3]));
+  const stat = (p,lab) => [lab, pct(p.ret), pct(p.vol), nm((p.ret - rfP*F.ppy)/(p.vol||1))];
+  document.getElementById("optTable").innerHTML =
+    tableHTML(["Holding","Asset class","Min risk","Best Sharpe"], rows) +
+    "<div style='height:14px'></div>" +
+    tableHTML(["Mix","Expected return","Volatility","Return per unit of risk"],
+      [stat(F.minVar,"Minimum risk"), stat(F.maxSharpe,"Best Sharpe")],
+      "Expected return is the average of the window you selected — it is a description of the past, not a forecast.");
+
+  document.getElementById("optCaveats").innerHTML = [
+    ["It optimises the past, not the future.", "Expected returns and correlations come from the window you picked. Change the dates and the &lsquo;optimal&rsquo; portfolio changes with them."],
+    ["Small input errors move it a lot.", "Mean-variance optimisation is famously sensitive: a fraction of a percent on an expected return can swing a weight by twenty points. That is why the position cap matters."],
+    ["It knows nothing about the client.", "Taxes, held-away assets, cost basis, concentration rules, cash needs and what they can actually sit through are all outside the maths."],
+    ["Use it to interrogate a proposal, not to write one.", "The useful question is why the proposal differs from the frontier — often for good reasons you can then say out loud."]
+  ].map(([h,p]) => '<div style="border-top:1px solid var(--border);padding:12px 0 2px">' +
+    '<h4 style="margin:0 0 4px;font-size:13.5px;font-weight:600">'+h+"</h4>" +
+    '<p style="margin:0;font-size:13px;color:var(--ink-2);line-height:1.5">'+p+"</p></div>").join("");
+}
+function applyOptimised(which){
+  if (!LAST_FRONTIER) return;
+  const F = LAST_FRONTIER, w = which === "min" ? F.minVar.w : F.maxSharpe.w;
+  F.tickers.forEach((t,i) => {
+    const row = STATE.rows.find(r => r.ticker === t);
+    if (row) row.prop = Math.round(w[i]*1000)/10;
+  });
+  STATE.rows.forEach(r => { if (!F.tickers.includes(r.ticker)) r.prop = 0; });
+  renderAll();
+}
+
+/* ==================================================================
+   17. PROPOSAL TAB
+   ================================================================== */
+function renderProposal(D){
+  const host = document.getElementById("proposalBody");
+  if (!D.sCur || !D.sProp){
+    host.innerHTML = '<div class="card"><p class="empty">Fill in both a current and a proposed allocation, then this page writes the case.</p></div>';
+    return;
+  }
+  const c = D.sCur, p = D.sProp, ec = exposures(curWeights()), ep = exposures(propWeights());
+  const bc = bucketWeights(curWeights()), bp = bucketWeights(propWeights());
+  const moves = STATE.rows.map(r => ({ t:r.ticker, d:(+r.prop||0)-(+r.cur||0) }))
+    .filter(m => Math.abs(m.d) >= 0.5).sort((a,b)=>b.d-a.d);
+  const ups = moves.filter(m=>m.d>0).slice(0,5), downs = moves.filter(m=>m.d<0).slice(-5).reverse();
+  const epi = ["Global financial crisis","COVID crash","2022 rate shock"].map(n => {
+    const e = EPISODES.find(x=>x.name===n);
+    return { name:n, c:episodeReturn(curWeights(), e.from, e.to), p:episodeReturn(propWeights(), e.from, e.to) };
+  }).filter(x => x.c !== null && x.p !== null);
+
+  const headline = [];
+  if (p.cagr > c.cagr + 0.0005) headline.push("adds " + pct(p.cagr-c.cagr) + " a year of return");
+  else if (p.cagr < c.cagr - 0.0005) headline.push("gives up " + pct(c.cagr-p.cagr) + " a year of return");
+  if (p.vol < c.vol - 0.0005) headline.push("takes out " + pct(c.vol-p.vol) + " of volatility");
+  else if (p.vol > c.vol + 0.0005) headline.push("adds " + pct(p.vol-c.vol) + " of volatility");
+  if (p.maxDD > c.maxDD + 0.005) headline.push("cuts the worst fall from " + pct(c.maxDD) + " to " + pct(p.maxDD));
+  if (ep.yld > ec.yld + 0.05) headline.push("lifts income from " + ec.yld.toFixed(2) + "% to " + ep.yld.toFixed(2) + "%");
+  if (ep.er < ec.er - 0.005) headline.push("cuts running cost from " + ec.er.toFixed(2) + "% to " + ep.er.toFixed(2) + "%");
+
+  /* The change column always carries its own sign — a drawdown going from -32% to
+     -35% must never read as "2.9%". `better: 0` marks a measure with no good
+     direction, which stays neutral rather than being coloured. */
+  const cmp = (lab, a, b, fmt, better) => {
+    if (!isFinite(a) || !isFinite(b)) return [lab, isFinite(a)?fmt(a):"—", isFinite(b)?fmt(b):"—", '<span class="delta-zero">—</span>'];
+    const d = b - a;
+    if (fmt(a) === fmt(b)) return [lab, fmt(a), fmt(b), '<span class="delta-zero">—</span>'];
+    const txt = (d > 0 ? "+" : "\u2212") + fmt(Math.abs(d)).replace(/^[+\u2212-]/, "");
+    const cls = better === 0 ? "delta-zero" : ((better > 0 ? d > 0 : d < 0) ? "delta-pos" : "delta-neg");
+    return [lab, fmt(a), fmt(b), '<span class="'+cls+'">'+txt+"</span>"];
+  };
+  host.innerHTML =
+  '<div class="card"><h3>The case in one paragraph</h3>' +
+    '<p style="font-size:16px;line-height:1.65;margin:0 0 4px">Moving from the current allocation to the proposal ' +
+    (headline.length ? esc(headline.join(", ")) + "." : "leaves the risk and return profile broadly unchanged.") +
+    " Over " + c.yrs.toFixed(1) + " years measured to " + iso(D.win.dates[D.win.dates.length-1]) +
+    ", $1,000,000 would have become <b>" + money(1e6*(1+p.cumulative)) + "</b> instead of " + money(1e6*(1+c.cumulative)) +
+    ", with a worst fall of " + pct(p.maxDD) + " against " + pct(c.maxDD) + ".</p>" +
+    '<p style="font-size:13px;color:var(--ink-2);margin:10px 0 0">Benchmark: ' + esc(D.bDef.name) + " · window " +
+    iso(D.win.dates[0]) + " to " + iso(D.win.dates[D.win.dates.length-1]) + " · " +
+    ({252:"daily",52:"weekly",12:"monthly",4:"quarterly",1:"annual"}[D.win.ppy]||"custom") + " data" +
+    (STATE.rows.some(r=>sourceOf(r.ticker)==="proxy") ? ' · <span class="badge proxy">Contains proxy data</span>' : "") + "</p></div>" +
+
+  '<div class="grid2"><div class="card"><h3>Return and risk</h3><div class="tbl-wrap">' +
+    tableHTML(["Measure","Current","Proposed","Change"], [
+      cmp("Return a year", c.cagr, p.cagr, v=>pct(v), 1),
+      cmp("Total return", c.cumulative, p.cumulative, v=>pct(v,0), 1),
+      cmp("Volatility", c.vol, p.vol, v=>pct(v), -1),
+      cmp("Worst fall", c.maxDD, p.maxDD, v=>pct(v), 1),
+      cmp("Worst 12 periods", c.worst12, p.worst12, v=>pct(v), 1),
+      cmp("Sharpe ratio", c.sharpe, p.sharpe, v=>nm(v), 1),
+      cmp("Sortino ratio", c.sortino, p.sortino, v=>nm(v), 1),
+      cmp("Down capture", c.downCapture/100, p.downCapture/100, v=>Math.round(v*100)+"%", -1),
+      cmp("Up capture", c.upCapture/100, p.upCapture/100, v=>Math.round(v*100)+"%", 1)
+    ]) + "</div></div>" +
+  '<div class="card"><h3>Exposure and cost</h3><div class="tbl-wrap">' +
+    tableHTML(["Measure","Current","Proposed","Change"], [
+      cmp("Effective duration", ec.dur, ep.dur, v=>v.toFixed(2)+" yrs", 0),
+      cmp("Spread duration", ec.sprd, ep.sprd, v=>v.toFixed(2)+" yrs", 0),
+      cmp("Equity beta", ec.beta, ep.beta, v=>v.toFixed(2), 0),
+      cmp("Inflation response", ec.infl, ep.infl, v=>v.toFixed(2)+"×", 1),
+      cmp("Yield", ec.yld, ep.yld, v=>v.toFixed(2)+"%", 1),
+      cmp("Weighted cost", ec.er, ep.er, v=>v.toFixed(3)+"%", -1)
+    ].concat(BUCKETS.map((b,i) => cmp(b + " weight", bc[i], bp[i], v=>v.toFixed(1)+"%", 0)))) +
+    "</div></div></div>" +
+
+  '<div class="grid2"><div class="card"><h3>What actually changes</h3>' +
+    '<div class="tbl-wrap">' + tableHTML(["Increase","Change"], ups.map(m=>[esc(m.t), deltaCell(m.d)+" pts"])) + "</div>" +
+    "<div style='height:12px'></div>" +
+    '<div class="tbl-wrap">' + tableHTML(["Reduce or exit","Change"], downs.map(m=>[esc(m.t), deltaCell(m.d)+" pts"])) + "</div></div>" +
+  '<div class="card"><h3>How each would have handled the bad years</h3><div class="tbl-wrap">' +
+    tableHTML(["Episode","Current","Proposed","Difference"], epi.map(e =>
+      [esc(e.name), pctS(e.c), pctS(e.p),
+       '<span class="'+(e.p>e.c?"delta-pos":"delta-neg")+'">'+pctS(e.p-e.c)+"</span>"]),
+      "Measured from the return series, not modelled.") + "</div></div></div>" +
+
+  '<div class="card"><h3>What to say</h3>' +
+    [["Lead with the drawdown, not the return.",
+      "&ldquo;The change I am proposing would have taken your worst stretch from " + pct(c.maxDD) + " down to " + pct(p.maxDD) +
+      ". That is the number that decides whether you stay invested long enough for the rest of this to work.&rdquo;"],
+     ["Name the trade honestly.",
+      p.cagr >= c.cagr
+        ? "&ldquo;On this data you are not paying for that in return &mdash; the proposal earned " + pct(p.cagr) + " a year against " +
+          pct(c.cagr) + ". What you are giving up is familiarity, not performance.&rdquo;"
+        : "&ldquo;You give up about " + pct(c.cagr-p.cagr) + " a year of return. What you buy is " + pct(c.vol-p.vol) +
+          " less movement and a worst case " + pct(Math.abs(c.maxDD-p.maxDD)) + " shallower. That is the trade &mdash; and it is yours to make.&rdquo;"],
+     ["Explain the exposure change in one sentence.",
+      "&ldquo;Today a one percent rise in rates costs you about " + Math.abs(ec.dur).toFixed(1) + "%. After the change it costs about " +
+      Math.abs(ep.dur).toFixed(1) + "%. Your equity beta goes from " + ec.beta.toFixed(2) + " to " + ep.beta.toFixed(2) + ".&rdquo;"],
+     ["Say what the numbers cannot.",
+      "&ldquo;Everything on these pages is history. It tells us how this mix behaved through crises we have already lived through. " +
+      "It is not a forecast, and I am not going to pretend it is.&rdquo;"]
+    ].map(([h,q]) => '<div style="border-top:1px solid var(--border);padding:13px 0 2px">' +
+      '<h4 style="margin:0 0 5px;font-size:13.5px;font-weight:600">'+h+"</h4>" +
+      '<p style="margin:0;font-size:15px;line-height:1.6">'+q+"</p></div>").join("") + "</div>";
+}
+
+/* ==================================================================
+   18. RENDER ORCHESTRATION
+   ================================================================== */
+function labelCharts(){
+  document.querySelectorAll(".card").forEach(card => {
+    const svg = card.querySelector("svg.chart");
+    if (!svg) return;
+    const h = card.querySelector("h3"), sub = card.querySelector(".sub");
+    svg.setAttribute("aria-label", (h?h.textContent:"Chart") + (sub?". "+sub.textContent:"") +
+      " The same values appear in the table beside or below this chart.");
+  });
+}
+function renderSoft(){
+  const tc = totalCur(), tp = totalProp();
+  const foot = document.querySelector("table.hold tfoot tr");
+  if (foot){
+    const flag = v => Math.abs(v-100) < 0.05 ? "" : ' <span class="badge warn">off by '+(v-100>0?"+":"")+(v-100).toFixed(1)+"</span>";
+    foot.children[1].innerHTML = tc.toFixed(1)+"%"+flag(tc);
+    foot.children[2].innerHTML = tp.toFixed(1)+"%"+flag(tp);
+  }
+  document.querySelectorAll("table.hold tbody tr").forEach((tr,i) => {
+    if (!STATE.rows[i]) return;
+    tr.children[6].innerHTML = deltaCell((+STATE.rows[i].prop||0)-(+STATE.rows[i].cur||0));
+  });
+}
+function renderAll(){
+  renderProxyBanner();
+  renderHoldings();
+  renderBuckets();
+  renderExposure();
+  const D = compute();
+  LAST_D = D;
+  const heavy = { perf:renderPerf, risk:renderRisk, stress:renderStress, frontier:renderFrontier, proposal:renderProposal };
+  for (const t in heavy){
+    const pane = document.getElementById("pane-"+t);
+    pane.hidden = STATE.tab !== t;
+  }
+  document.getElementById("pane-build").hidden = STATE.tab !== "build";
+  if (D && heavy[STATE.tab]) {
+    try { heavy[STATE.tab](D); }
+    catch (err) { document.getElementById("pane-"+STATE.tab).innerHTML =
+      '<div class="card"><p class="empty">Could not build that view: '+esc(err.message)+"</p></div>"; }
+  } else if (!D && STATE.tab !== "build") {
+    document.getElementById("pane-"+STATE.tab).innerHTML =
+      '<div class="card"><p class="empty">Add some holdings on the Build tab first.</p></div>';
+  }
+  document.getElementById("footNote").innerHTML =
+    "<b>How the numbers are made.</b> Holdings with uploaded returns use those returns. Everything else runs on a proxy built from " +
+    "its asset class's risk characteristics — factor loadings for equity, rates, credit, real assets and cash, plus its own idiosyncratic " +
+    "volatility — driven by illustrative annual asset-class results for " + YEARS[0] + "&ndash;" + YEARS[YEARS.length-1] + ". " +
+    "Portfolios are rebalanced every period. Returns are net of each holding's expense ratio and ignore taxes, trading costs and cash flows." +
+    "<br><br><b>Not investment advice.</b> Past performance does not predict future results. Stress tests are first-order factor shocks, not " +
+    "forecasts, and the optimiser describes the window you selected rather than the future. Nothing here is a recommendation or an offer.";
+  labelCharts();
+}
+
+/* ==================================================================
+   19. LOADING DATA
+   ================================================================== */
+function setRows(holdings, hadProposed){
+  STATE.rows = holdings.map(h => ({
+    ticker:h.ticker, name:h.name || (LIB[h.ticker] ? LIB[h.ticker].name : ""),
+    cls: LIB[h.ticker] ? LIB[h.ticker].cls : "us_blend",
+    cur: Math.round((h.cur||0)*10)/10,
+    prop: Math.round(((h.prop !== null && h.prop !== undefined) ? h.prop : (hadProposed ? 0 : h.cur||0))*10)/10
+  }));
+  CACHE.key = null;
+}
+function loadModel(id){
+  const m = MODELS.find(x => x.id === id) || MODELS[0];
+  const tickers = [...new Set(Object.keys(m.current).concat(Object.keys(m.proposed)))];
+  setRows(tickers.map(t => ({ ticker:t, name:"", cur:m.current[t]||0, prop:m.proposed[t]||0 })), true);
+}
+function setDatesFromData(){
+  const C = ctx();
+  const lo = C.dates[0], hi = C.dates[C.dates.length-1];
+  document.getElementById("startDate").min = iso(lo);
+  document.getElementById("startDate").max = iso(hi);
+  document.getElementById("endDate").min = iso(lo);
+  document.getElementById("endDate").max = iso(hi);
+  STATE.start = lo; STATE.end = hi;
+  document.getElementById("startDate").value = iso(lo);
+  document.getElementById("endDate").value = iso(hi);
+  STATE.range = "max";
+  paintRange();
+}
+function paintRange(){
+  document.querySelectorAll("[data-range]").forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute("data-range") === STATE.range)));
+}
+function applyRange(id){
+  const C = ctx(), hi = C.dates[C.dates.length-1], r = RANGES.find(x=>x.id===id);
+  STATE.range = id;
+  STATE.end = hi;
+  STATE.start = r.yrs ? new Date(Date.UTC(hi.getUTCFullYear()-r.yrs, hi.getUTCMonth(), hi.getUTCDate())) : C.dates[0];
+  if (STATE.start < C.dates[0]) STATE.start = C.dates[0];
+  document.getElementById("startDate").value = iso(STATE.start);
+  document.getElementById("endDate").value = iso(STATE.end);
+  paintRange();
+}
+function setDropState(id, html){ document.querySelector("#"+id+" .state").innerHTML = html; }
+
+async function handleFile(kind, file){
+  const dropId = kind === "holdings" ? "dropHoldings" : "dropReturns";
+  setDropState(dropId, '<span class="badge">Reading ' + esc(file.name) + "…</span>");
+  try {
+    const rows = await readTable(file);
+    ingest(kind, rows, file.name);
+  } catch (err){
+    const msg = err.message === "nodeflate"
+      ? "This browser cannot unzip .xlsx — save the sheet as CSV and try again."
+      : err.message;
+    setDropState(dropId, '<span class="badge warn">' + esc(msg) + "</span>");
+  }
+}
+function ingest(kind, rows, label){
+  if (kind === "holdings"){
+    const { holdings, hadProposed } = parseHoldings(rows);
+    if (!holdings.length){ setDropState("dropHoldings", '<span class="badge warn">No tickers found in that file.</span>'); return; }
+    setRows(holdings, hadProposed);
+    const unknown = holdings.filter(h => !LIB[h.ticker]).length;
+    setDropState("dropHoldings", '<span class="badge real">' + holdings.length + " holdings from " + esc(label) + "</span>" +
+      (unknown ? ' <span class="badge warn">' + unknown + " need an asset class</span>" : ""));
+  } else {
+    const parsed = parseReturns(rows);
+    if (!parsed.dates.length || !parsed.tickers.length){
+      setDropState("dropReturns", '<span class="badge warn">No dated return columns found.</span>'); return;
+    }
+    STATE.returns = parsed;
+    CACHE.key = null;
+    setDropState("dropReturns", '<span class="badge real">' + parsed.tickers.length + " series · " + parsed.dates.length + " periods · " +
+      ({252:"daily",52:"weekly",12:"monthly",4:"quarterly",1:"annual"}[parsed.ppy]||"custom") + "</span>");
+    setDatesFromData();
+  }
+  renderAll();
+}
+
+const TEMPLATE_HOLDINGS = "Ticker,Name,Current %,Proposed %\nSPY,SPDR S&P 500 ETF,45,32\nAGG,iShares Core US Aggregate,35,22\nLQD,iShares IG Corporate,10,8\nEFA,iShares MSCI EAFE,10,16\nVWO,Vanguard Emerging Markets,0,5\nTIP,iShares TIPS Bond,0,6\nVNQ,Vanguard Real Estate,0,5\nSCHD,Schwab US Dividend,0,6";
+const TEMPLATE_RETURNS = "Date,SPY,AGG,LQD,EFA\n2024-01-31,1.68,-0.27,-0.16,0.51\n2024-02-29,5.34,-1.41,-1.55,1.83\n2024-03-31,3.22,0.92,1.29,3.29\n2024-04-30,-4.08,-2.53,-2.55,-2.56";
+
+function addPastePanels(){
+  const mk = (dropId, kind, template) => {
+    const drop = document.getElementById(dropId);
+    const wrapEl = document.createElement("div");
+    wrapEl.style.marginTop = "10px";
+    wrapEl.innerHTML = '<button class="btn sm" type="button" data-paste="'+kind+'">Paste instead</button>' +
+      '<div hidden data-panel="'+kind+'" style="margin-top:9px">' +
+      '<textarea data-ta="'+kind+'" rows="5" style="width:100%;font-family:var(--font-label);font-size:11.5px;' +
+      'border:1px solid var(--border-2);border-radius:9px;padding:8px;background:var(--surface);color:var(--ink)" ' +
+      'placeholder="Copy the cells in Excel and paste here"></textarea>' +
+      '<div class="rowflex" style="margin-top:7px"><button class="btn sm" type="button" data-parse="'+kind+'">Use this</button>' +
+      '<button class="btn sm" type="button" data-tpl="'+kind+'">Fill with an example</button></div></div>';
+    drop.appendChild(wrapEl);
+    wrapEl.addEventListener("click", e => {
+      e.stopPropagation();
+      const t = e.target;
+      if (t.closest("[data-paste]")) {
+        const panel = wrapEl.querySelector("[data-panel]");
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) wrapEl.querySelector("[data-ta]").focus();
+      }
+      if (t.closest("[data-tpl]")) wrapEl.querySelector("[data-ta]").value = template;
+      if (t.closest("[data-parse]")){
+        const txt = wrapEl.querySelector("[data-ta]").value.trim();
+        if (!txt) return;
+        try { ingest(kind, splitCSV(txt), "pasted data"); }
+        catch (err){ setDropState(dropId, '<span class="badge warn">'+esc(err.message)+"</span>"); }
+      }
+    });
+  };
+  mk("dropHoldings", "holdings", TEMPLATE_HOLDINGS);
+  mk("dropReturns", "returns", TEMPLATE_RETURNS);
+}
+
+/* ==================================================================
+   20. EVENTS
+   ================================================================== */
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  STATE.tab = b.getAttribute("data-tab");
+  document.querySelectorAll("#tabs [data-tab]").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  renderAll();
+  window.scrollTo({ top:0, behavior:"smooth" });
+});
+document.getElementById("rangeSeg").innerHTML = RANGES.map(r =>
+  '<button type="button" data-range="'+r.id+'">'+esc(r.label)+"</button>").join("");
+document.getElementById("rangeSeg").addEventListener("click", e => {
+  const b = e.target.closest("[data-range]"); if (!b) return;
+  applyRange(b.getAttribute("data-range")); renderAll();
+});
+document.getElementById("startDate").addEventListener("change", e => {
+  STATE.start = new Date(e.target.value + "T00:00:00Z"); STATE.range = ""; paintRange(); renderAll();
+});
+document.getElementById("endDate").addEventListener("change", e => {
+  STATE.end = new Date(e.target.value + "T00:00:00Z"); STATE.range = ""; paintRange(); renderAll();
+});
+document.getElementById("benchSel").innerHTML = BENCHMARKS.map(b =>
+  '<option value="'+b.id+'">'+esc(b.name)+"</option>").join("");
+document.getElementById("benchSel").addEventListener("change", e => { STATE.bench = e.target.value; renderAll(); });
+document.getElementById("modelSel").innerHTML = MODELS.map(m =>
+  '<option value="'+m.id+'">'+esc(m.name)+"</option>").join("");
+document.getElementById("loadModelBtn").addEventListener("click", () => {
+  loadModel(document.getElementById("modelSel").value);
+  setDropState("dropHoldings", '<span class="badge">Model loaded</span>');
+  renderAll();
+});
+document.getElementById("downloadTplBtn").addEventListener("click", () => {
+  const drop = document.getElementById("dropHoldings");
+  const panel = drop.querySelector('[data-panel="holdings"]');
+  if (panel){ panel.hidden = false; drop.querySelector('[data-ta="holdings"]').value = TEMPLATE_HOLDINGS; }
+});
+document.getElementById("capSeg").innerHTML = CAPS.map(c =>
+  '<button type="button" data-cap="'+c.id+'">'+esc(c.label)+"</button>").join("");
+document.getElementById("capSeg").addEventListener("click", e => {
+  const b = e.target.closest("[data-cap]"); if (!b) return;
+  STATE.cap = CAPS.find(c=>c.id===b.getAttribute("data-cap")).v;
+  document.querySelectorAll("[data-cap]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  renderAll();
+});
+document.getElementById("applyMinVar").addEventListener("click", () => applyOptimised("min"));
+document.getElementById("applyMaxSharpe").addEventListener("click", () => applyOptimised("sharpe"));
+document.getElementById("addRowBtn").addEventListener("click", () => {
+  const t = (prompt("Ticker to add (e.g. VTI)") || "").trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,"");
+  if (!t) return;
+  if (STATE.rows.some(r => r.ticker === t)) return;
+  STATE.rows.push({ ticker:t, name: LIB[t] ? LIB[t].name : "", cls: LIB[t] ? LIB[t].cls : "us_blend", cur:0, prop:0 });
+  CACHE.key = null; renderAll();
+});
+document.getElementById("copyCurBtn").addEventListener("click", () => { STATE.rows.forEach(r => r.prop = r.cur); renderAll(); });
+const normalise = field => {
+  const tot = STATE.rows.reduce((s,r)=>s+(+r[field]||0),0);
+  if (!tot) return;
+  STATE.rows.forEach(r => r[field] = Math.round(r[field]/tot*1000)/10);
+  renderAll();
+};
+document.getElementById("normCurBtn").addEventListener("click", () => normalise("cur"));
+document.getElementById("normPropBtn").addEventListener("click", () => normalise("prop"));
+document.getElementById("clearBtn").addEventListener("click", () => { STATE.rows = []; CACHE.key = null; renderAll(); });
+document.getElementById("runBtn").addEventListener("click", () => {
+  STATE.tab = "proposal";
+  document.querySelectorAll("#tabs [data-tab]").forEach(x => x.setAttribute("aria-selected", String(x.getAttribute("data-tab") === "proposal")));
+  renderAll();
+  window.scrollTo({ top:0, behavior:"smooth" });
+});
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+[["dropHoldings","fileHoldings","holdings"],["dropReturns","fileReturns","returns"]].forEach(([dropId, inputId, kind]) => {
+  const drop = document.getElementById(dropId), input = document.getElementById(inputId);
+  drop.addEventListener("click", e => { if (!e.target.closest("button, textarea, select")) input.click(); });
+  drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("change", () => { if (input.files[0]) handleFile(kind, input.files[0]); });
+  ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleFile(kind, f); });
+});
+
+const themeBtn = document.getElementById("themeBtn");
+const currentTheme = () => document.documentElement.getAttribute("data-theme") ||
+  (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+const syncTheme = () => { themeBtn.textContent = currentTheme() === "dark" ? "Light" : "Dark"; };
+try { const s = localStorage.getItem("cpd-theme"); if (s) document.documentElement.setAttribute("data-theme", s); } catch (e) {}
+themeBtn.addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem("cpd-theme", next); } catch (e) {}
+  syncTheme(); renderAll();
+});
+syncTheme();
+
+let rt = null;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderAll, 160); });
+
+/* ==================================================================
+   21. START
+   ================================================================== */
+addPastePanels();
+loadModel("balanced");
+document.getElementById("benchSel").value = STATE.bench;
+document.querySelectorAll("[data-cap]").forEach(x =>
+  x.setAttribute("aria-pressed", String(CAPS.find(c=>c.id===x.getAttribute("data-cap")).v === STATE.cap)));
+setDatesFromData();
+renderAll();
+</script>
+</body>
+</html>
