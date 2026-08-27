@@ -1,8 +1,9 @@
 # Advisor dashboards
 
-Two tools for two moments in a client meeting: **`index.html`** for discovery, and
-**`proposal.html`** for the formal proposal. Each is a single self-contained file, and
-they link to each other.
+Three tools for three moments in a client meeting: **`index.html`** for discovery,
+**`proposal.html`** for building a proposal from scratch, and **`allocation-review.html`**
+for presenting a finished one. Each is a single self-contained file, and they link to
+each other.
 
 ---
 
@@ -182,3 +183,60 @@ with an exact Euclidean projection onto the capped simplex, swept across risk av
 the frontier, plus the max-return corner. Verified against an independent 20,000-iteration
 reference run: same weights, same volatility to seven significant figures. The tool ships four
 caveats about mean-variance optimisation next to the chart, because they matter more than the chart does.
+
+
+---
+
+# 3. Allocation Review — `allocation-review.html`
+
+The HTML version of an existing client workbook — the interactive form of
+*Robert (Bucky) Leach — Interactive Portfolio Allocation Dashboard.xlsx*. Where
+`proposal.html` is a general engine you build a proposal in, this is a finished
+proposal you present from and hand over.
+
+Two models (Strategic Income & Alternatives, Muni & Factor Growth), each with its real
+holdings, sleeves and current-vs-proposed weights, across five tabs: Allocation, Metric
+cards, Executive scorecard, Optimizer and Stress tests.
+
+## Live versus input — the important distinction
+
+The page is explicit about which numbers it stands behind:
+
+**Live** — computed from the weights on the page, and re-computed the moment you change
+one. Sleeve and asset-class totals, the trade (what funds what), allocation to the
+strategies, securitized RMBS %, convertible arbitrage %, every change column, the header
+KPIs, and the swap list. These carry a `Live` chip in the metric cards.
+
+**Input** — carried over from the workbook and editable in place: returns, volatility,
+Sharpe, Sortino, drawdowns, capture, correlations, duration, the sizing table and the
+stress scenarios. Type over any of them and everything downstream follows.
+
+**The page never models or simulates returns for a named fund.** The other two tools use
+generated asset-class proxies with generic names; that would be inappropriate here, where
+the tickers are real third-party products and the audience is a client. So where the
+workbook left a cell blank, the page shows it blank and counts it: *"13 measures are still
+blank."* An empty cell you can see beats a plausible number you can't source.
+
+## What it does with the allocations
+
+Click any weight for the same picker as the proposal engine — 0–23 one click away, scroll
+for more, type it, or roll the mouse wheel over the weight. Sleeve subtotals, the total and
+the checksum update live; positions going to zero are struck through and marked `exit`,
+new positions are marked `new`, and the strategy rows are tinted.
+
+The **trade panel** derives itself from the weight changes: what is being funded, what it
+is funding, in points and in dollars on a stated account size.
+
+**Apply recommended sizing** writes the workbook's suggested shifts into the proposed
+column, funding them from the longest-duration and RMBS sleeves first.
+
+## Re-pointing it at another client
+
+Everything lives in one `WORKBOOK` block at the top of the script: `MODELS` (sleeves and
+holdings), `METRICS` (the card values per model, `null` for blank), `CARDS` (which measures
+each card shows and which are derived), `FRONTIER`, `SIZING`, `STRESS`, `SERIES_SEED` and
+`TALKING_POINTS`. Change the client name in the header and the rest is data entry.
+
+The growth and drawdown charts plot whatever series is loaded; the workbook ships five
+placeholder months that only rise, which the page says out loud rather than drawing a
+flat drawdown line and leaving you to wonder. Paste a real series to replace it.
