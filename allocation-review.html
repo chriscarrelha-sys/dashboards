@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Allocation Review</title>
+</head>
+<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --font-ui:    "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --page:       #f9f9f7;
+  --surface:    #fcfcfb;
+  --surface-2:  #f2f1ed;
+  --surface-3:  #e9e8e3;
+  --ink:        #0b0b0b;
+  --ink-2:      #52514e;
+  --muted:      #898781;
+  --grid:       #e1e0d9;
+  --axis:       #c3c2b7;
+  --border:     rgba(11,11,11,0.10);
+  --border-2:   rgba(11,11,11,0.18);
+  --series-1:   #2a78d6;   /* Current  */
+  --series-2:   #eb6834;   /* Proposed */
+  --series-3:   #1baf7a;   /* Benchmark */
+  --accent:     #2a78d6;
+  --accent-wash:rgba(42,120,214,0.10);
+  --prop-wash:  rgba(235,104,52,0.10);
+  /* risk-ordered ordinal ramp: cash -> bonds -> credit -> real assets -> equity */
+  --risk-1: #86b6ef; --risk-2: #5598e7; --risk-3: #2a78d6; --risk-4: #1c5cab; --risk-5: #104281;
+  --risk-ink-1: #0b0b0b; --risk-ink-2: #0b0b0b; --risk-ink-3: #ffffff; --risk-ink-4: #ffffff; --risk-ink-5: #ffffff;
+  --good:      #0ca30c;
+  --good-ink:  #006300;
+  --warning:   #fab219;
+  --serious:   #ec835a;
+  --critical:  #d03b3b;
+  --shadow:    0 1px 2px rgba(11,11,11,0.05), 0 8px 24px rgba(11,11,11,0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232322; --surface-3:#2c2c2a;
+    --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835;
+    --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+    --accent:#3987e5; --accent-wash:rgba(57,135,229,0.16); --prop-wash:rgba(217,89,38,0.16);
+    --risk-1:#cde2fb; --risk-2:#9ec5f4; --risk-3:#6da7ec; --risk-4:#3987e5; --risk-5:#256abf;
+    --risk-ink-1:#0b0b0b; --risk-ink-2:#0b0b0b; --risk-ink-3:#0b0b0b; --risk-ink-4:#ffffff; --risk-ink-5:#ffffff;
+    --good-ink:#0ca30c;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#232322; --surface-3:#2c2c2a;
+  --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835;
+  --border:rgba(255,255,255,0.10); --border-2:rgba(255,255,255,0.18);
+  --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70;
+  --accent:#3987e5; --accent-wash:rgba(57,135,229,0.16); --prop-wash:rgba(217,89,38,0.16);
+  --risk-1:#cde2fb; --risk-2:#9ec5f4; --risk-3:#6da7ec; --risk-4:#3987e5; --risk-5:#256abf;
+  --risk-ink-1:#0b0b0b; --risk-ink-2:#0b0b0b; --risk-ink-3:#0b0b0b; --risk-ink-4:#ffffff; --risk-ink-5:#ffffff;
+  --good-ink:#0ca30c;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+body { margin:0; background:var(--page); color:var(--ink); font-family:var(--font-ui);
+       font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:1320px; margin:0 auto; padding:24px 22px 72px; }
+h1,h2,h3,h4 { text-wrap:balance; }
+
+/* ---- masthead ---- */
+.masthead { display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px 24px; margin-bottom:20px; }
+.masthead h1 { font-size:25px; font-weight:600; margin:0 0 4px; letter-spacing:-0.02em; line-height:1.18; }
+.masthead p { margin:0; color:var(--ink-2); font-size:14px; max-width:62ch; }
+.masthead .spacer { flex:1 1 30px; }
+.mast-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+.btn { font:inherit; font-size:13.5px; color:var(--ink-2); background:var(--surface);
+       border:1px solid var(--border-2); border-radius:999px; padding:7px 14px; cursor:pointer; white-space:nowrap;
+       transition:background .12s, color .12s, border-color .12s; }
+a.btn { text-decoration:none; display:inline-block; }
+.btn:hover { background:var(--surface-2); color:var(--ink); }
+.btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.btn.primary:hover { filter:brightness(1.08); }
+.btn[aria-pressed="true"] { background:var(--accent-wash); border-color:var(--accent); color:var(--ink); }
+.btn:disabled { opacity:.45; cursor:not-allowed; }
+.btn.sm { padding:4px 10px; font-size:12.5px; }
+:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---- tabs ---- */
+.tabs { display:flex; gap:2px; overflow-x:auto; border-bottom:1px solid var(--border); margin-bottom:22px; }
+.tabs button { font:inherit; font-size:14px; background:transparent; border:0; border-bottom:2px solid transparent;
+               color:var(--ink-2); padding:10px 15px; cursor:pointer; white-space:nowrap; margin-bottom:-1px; }
+.tabs button:hover { color:var(--ink); }
+.tabs button[aria-selected="true"] { color:var(--ink); font-weight:600; border-bottom-color:var(--accent); }
+.tabpane[hidden] { display:none; }
+
+/* ---- controls bar ---- */
+.controls { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:11px 14px; margin-bottom:20px;
+            background:var(--surface); border:1px solid var(--border); border-radius:12px; }
+.controls .lab { font-family:var(--font-label); font-size:10.5px; font-weight:600; letter-spacing:.12em;
+                 text-transform:uppercase; color:var(--muted); }
+.controls .grow { flex:1 1 20px; }
+input[type="date"], select, input[type="text"], input[type="number"] {
+  font:inherit; font-size:13.5px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--border-2); border-radius:8px; padding:5px 9px; }
+.seg { display:inline-flex; background:var(--surface-2); border-radius:999px; padding:3px; gap:2px; }
+.seg button { font:inherit; font-size:13px; border:0; background:transparent; color:var(--ink-2);
+              padding:5px 12px; border-radius:999px; cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--surface); color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+
+/* ---- cards ---- */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px 20px 16px; margin-bottom:16px; }
+.card > h3 { font-size:15.5px; font-weight:600; margin:0 0 3px; letter-spacing:-0.005em; }
+.card > .sub { font-size:13px; color:var(--ink-2); margin:0 0 14px; line-height:1.45; max-width:74ch; }
+.card .read { font-size:13px; color:var(--ink-2); margin:12px 0 0; line-height:1.5; border-top:1px solid var(--border); padding-top:11px; }
+.card .read b { font-weight:600; color:var(--ink); }
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(440px,1fr)); gap:16px; }
+/* without this the auto minimum of a card's content resolves the track wider than
+   the grid itself, and the whole page scrolls sideways on a phone */
+.grid2 > *, .grid3 > * { min-width:0; }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:16px; }
+.chart-scroll { overflow-x:auto; }
+svg.chart { display:block; width:100%; max-width:100%; height:auto; overflow:visible; }
+svg text { font-family:var(--font-ui); }
+.tick-txt { font-size:11px; fill:var(--muted); font-variant-numeric:tabular-nums; }
+.axis-line { stroke:var(--axis); stroke-width:1; }
+.grid-line { stroke:var(--grid); stroke-width:1; }
+.lbl-txt { font-size:11.5px; fill:var(--ink-2); }
+.lbl-strong { font-size:12px; fill:var(--ink); font-weight:600; }
+
+/* ---- legend ---- */
+.legend { display:flex; flex-wrap:wrap; gap:6px 18px; margin:0 0 12px; padding:0; list-style:none; }
+.legend li { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink-2); }
+.legend .key { width:14px; height:3px; border-radius:2px; flex:none; }
+.legend .key.sq { width:11px; height:11px; border-radius:3px; }
+
+/* ---- badges ---- */
+.badge { display:inline-flex; align-items:center; gap:5px; font-family:var(--font-label); font-size:10px;
+         font-weight:600; letter-spacing:.09em; text-transform:uppercase; padding:3px 8px; border-radius:5px;
+         background:var(--surface-2); color:var(--ink-2); white-space:nowrap; }
+.badge.proxy { background:rgba(250,178,25,.16); color:#8a5f00; }
+:root[data-theme="dark"] .badge.proxy, :root:not([data-theme="light"]) .badge.proxy { color:#fab219; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .badge.proxy { color:#8a5f00; } }
+.badge.real { background:rgba(12,163,12,.14); color:var(--good-ink); }
+.badge.warn { background:rgba(208,59,59,.13); color:var(--critical); }
+.proxy-banner { display:flex; align-items:flex-start; gap:11px; padding:12px 15px; margin-bottom:18px;
+                border-radius:12px; background:rgba(250,178,25,.10); border:1px solid rgba(250,178,25,.42);
+                font-size:13.5px; line-height:1.5; color:var(--ink); }
+.proxy-banner b { font-weight:600; }
+.proxy-banner .ico { flex:none; width:18px; height:18px; color:var(--warning); margin-top:1px; }
+
+/* ---- dropzone ---- */
+.drops { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+.drop { border:1.5px dashed var(--border-2); border-radius:14px; background:var(--surface);
+        padding:18px 18px 16px; text-align:left; cursor:pointer; transition:border-color .12s, background .12s; }
+.drop:hover, .drop.over { border-color:var(--accent); background:var(--accent-wash); }
+.drop h4 { margin:0 0 4px; font-size:14px; font-weight:600; }
+.drop p { margin:0; font-size:12.5px; color:var(--ink-2); line-height:1.45; }
+.drop .fmt { font-family:var(--font-label); font-size:11px; color:var(--muted); margin-top:8px; display:block; }
+.drop .state { margin-top:9px; }
+
+/* ---- holdings table ---- */
+.holdings-wrap { overflow-x:auto; }
+table.hold { border-collapse:separate; border-spacing:0; width:100%; font-size:13.5px; min-width:760px; }
+table.hold th, table.hold td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
+table.hold th:first-child, table.hold td:first-child,
+table.hold th:nth-child(2), table.hold td:nth-child(2) { text-align:left; }
+table.hold thead th { font-family:var(--font-label); font-size:10px; font-weight:600; letter-spacing:.09em;
+                      text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--axis); }
+table.hold tbody tr:hover { background:var(--surface-2); }
+table.hold td.tick { font-weight:600; }
+table.hold td.nm { color:var(--ink-2); max-width:230px; overflow:hidden; text-overflow:ellipsis; }
+table.hold tfoot td { font-weight:600; border-top:1px solid var(--axis); border-bottom:0; padding-top:10px; }
+.cls-chip { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-2); }
+.cls-chip .sw { width:9px; height:9px; border-radius:2px; flex:none; }
+.delta-pos { color:var(--good-ink); font-variant-numeric:tabular-nums; }
+.delta-neg { color:var(--critical); font-variant-numeric:tabular-nums; }
+.delta-zero { color:var(--muted); font-variant-numeric:tabular-nums; }
+
+/* ---- weight stepper ---- */
+.wcell { position:relative; display:inline-flex; align-items:center; }
+.wbtn { font:inherit; font-variant-numeric:tabular-nums; font-size:13.5px; font-weight:600; color:var(--ink);
+        background:var(--surface-2); border:1px solid var(--border-2); border-radius:8px;
+        padding:4px 9px; min-width:62px; text-align:right; cursor:ns-resize; }
+.wbtn:hover { border-color:var(--accent); }
+.wbtn.cur { background:var(--accent-wash); }
+.wbtn.prop { background:var(--prop-wash); }
+.wbtn[aria-expanded="true"] { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-wash); }
+.wpop { position:absolute; z-index:60; top:calc(100% + 5px); right:0; width:186px;
+        background:var(--surface); border:1px solid var(--border-2); border-radius:12px; box-shadow:var(--shadow);
+        padding:9px; display:none; }
+.wpop.open { display:block; }
+.wpop-top { display:flex; gap:6px; align-items:center; margin-bottom:8px; }
+.wpop-top input { width:100%; text-align:right; font-variant-numeric:tabular-nums; }
+.wpop-top button { font:inherit; width:30px; height:30px; flex:none; border-radius:8px; cursor:pointer;
+                   border:1px solid var(--border-2); background:var(--surface-2); color:var(--ink); font-size:15px; line-height:1; }
+.wpop-top button:hover { border-color:var(--accent); }
+.wgrid { display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:30px; gap:4px; max-height:206px; overflow-y:auto; padding-right:2px; }
+.wgrid button { font:inherit; font-size:12.5px; font-variant-numeric:tabular-nums; padding:0; cursor:pointer;
+                border:1px solid transparent; border-radius:7px; background:var(--surface-2); color:var(--ink-2); }
+.wgrid button:hover { background:var(--accent-wash); color:var(--ink); border-color:var(--accent); }
+.wgrid button[aria-current="true"] { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.wpop .hintline { font-size:11.5px; color:var(--muted); margin:8px 0 0; line-height:1.4; }
+.wpop .rule { height:1px; background:var(--border); margin:8px 0 0; }
+
+/* ---- stat tiles ---- */
+.tiles { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(186px,1fr)); }
+.tile { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 15px 13px; }
+.tile .t-lab { font-size:12.5px; color:var(--ink-2); margin-bottom:5px; line-height:1.3; }
+.tile .t-val { font-size:27px; font-weight:600; letter-spacing:-0.02em; line-height:1.05; }
+.tile .t-sub { font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.4; }
+.tile .t-delta { font-size:12.5px; margin-top:5px; display:flex; align-items:center; gap:5px; }
+.t-delta .dot { width:7px; height:7px; border-radius:50%; flex:none; }
+.t-delta.up { color:var(--good-ink); } .t-delta.up .dot { background:var(--good); }
+.t-delta.down { color:var(--critical); } .t-delta.down .dot { background:var(--critical); }
+.t-delta.flat { color:var(--muted); } .t-delta.flat .dot { background:var(--axis); }
+
+/* ---- data tables ---- */
+.tbl-wrap { overflow-x:auto; }
+table.data { border-collapse:collapse; width:100%; font-size:13px; }
+table.data th, table.data td { text-align:right; padding:7px 10px; border-bottom:1px solid var(--border);
+                               white-space:nowrap; font-variant-numeric:tabular-nums; }
+table.data th:first-child, table.data td:first-child { text-align:left; font-variant-numeric:normal; }
+table.data thead th { font-family:var(--font-label); font-size:10px; font-weight:600; color:var(--muted);
+                      text-transform:uppercase; letter-spacing:.09em; border-bottom:1px solid var(--axis); }
+table.data tbody tr:hover { background:var(--surface-2); }
+table.data tr.grp td { background:var(--surface-2); font-family:var(--font-label); font-size:10px; font-weight:600;
+                       letter-spacing:.09em; text-transform:uppercase; color:var(--muted); }
+table.data .why { font-size:11.5px; color:var(--muted); font-weight:400; display:block; white-space:normal; max-width:44ch; }
+.tbl-note { font-size:12px; color:var(--muted); margin-top:10px; }
+.name-key { display:inline-flex; align-items:center; gap:7px; }
+.name-key .key { width:10px; height:10px; border-radius:2px; flex:none; }
+
+/* ---- sliders ---- */
+.shocks { display:grid; grid-template-columns:repeat(auto-fit,minmax(268px,1fr)); gap:16px 24px; }
+.shock label { display:flex; align-items:baseline; gap:8px; font-size:13.5px; margin-bottom:5px; }
+.shock label .v { margin-left:auto; font-weight:600; font-variant-numeric:tabular-nums; }
+.shock input[type="range"] { width:100%; accent-color:var(--accent); }
+.shock .cap { font-size:12px; color:var(--muted); line-height:1.4; margin-top:3px; }
+.scenario-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+
+/* ---- tooltip ---- */
+.tt { position:fixed; pointer-events:none; z-index:80; opacity:0; background:var(--surface); color:var(--ink);
+      border:1px solid var(--border-2); border-radius:10px; box-shadow:var(--shadow); padding:9px 11px;
+      font-size:12.5px; line-height:1.5; min-width:158px; transition:opacity .08s; }
+.tt .tt-h { font-weight:600; margin-bottom:5px; }
+.tt .row { display:flex; align-items:center; gap:8px; }
+.tt .row .key { width:9px; height:9px; border-radius:2px; flex:none; }
+.tt .row .nm { color:var(--ink-2); }
+.tt .row .vl { margin-left:auto; font-variant-numeric:tabular-nums; font-weight:600; }
+
+/* ---- misc ---- */
+.foot { margin-top:34px; padding-top:16px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); line-height:1.6; }
+.foot b { color:var(--ink-2); font-weight:600; }
+.empty { color:var(--ink-2); font-size:14px; padding:26px 0; text-align:center; }
+.rowflex { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.hd-split { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.hd-split h3 { margin:0; font-size:15.5px; font-weight:600; }
+.hd-split .aside { margin-left:auto; font-size:12.5px; color:var(--muted); }
+.stack-bar { display:flex; width:100%; height:34px; border-radius:8px; overflow:hidden; background:var(--surface-2); }
+.stack-bar i { display:block; height:100%; position:relative; font-style:normal; border-right:2px solid var(--surface); }
+.stack-bar i:last-child { border-right:0; }
+.stack-lab { display:flex; align-items:center; justify-content:center; height:100%; font-size:11.5px; font-weight:600; }
+.alloc-row { margin-bottom:14px; }
+.alloc-row .cap { display:flex; font-size:12.5px; color:var(--ink-2); margin-bottom:5px; align-items:center; gap:8px; }
+.alloc-row .cap b { font-weight:600; color:var(--ink); }
+
+@media (max-width:760px) {
+  .wrap { padding:18px 14px 56px; }
+  .grid2, .grid3 { grid-template-columns:1fr; }
+  .masthead h1 { font-size:22px; }
+}
+@media print {
+  body { background:#fff; }
+  .tabs, .mast-actions, .controls, .drops { display:none !important; }
+  .tabpane[hidden] { display:block !important; }
+  .card, .tile { break-inside:avoid; box-shadow:none; }
+}
+@media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+
+/* ---------- deck-specific ---------- */
+:root { --navy:#3e5f90; --navy-deep:#2f4a72; --gold:#a8890a; --gold-wash:rgba(235,217,78,0.22); }
+:root[data-theme="dark"], :root:not([data-theme="light"]) { --gold:#d8c33e; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --gold:#a8890a; } }
+
+.deckhead { background:var(--navy-deep); color:#fff; border-radius:16px; padding:22px 24px 20px; margin-bottom:20px;
+            display:flex; flex-wrap:wrap; gap:16px 28px; align-items:flex-end; }
+.deckhead .who { font-family:var(--font-label); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+                 color:rgba(255,255,255,.62); margin-bottom:6px; }
+.deckhead h1 { margin:0; font-size:26px; font-weight:600; letter-spacing:-0.02em; line-height:1.15; color:#fff; }
+.deckhead .sub { margin:6px 0 0; font-size:14px; color:rgba(255,255,255,.78); max-width:56ch; }
+.deckhead .spacer { flex:1 1 20px; }
+.deckhead .kpis { display:flex; gap:26px; flex-wrap:wrap; }
+.deckhead .kpi .k { font-family:var(--font-label); font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+                    color:rgba(255,255,255,.62); margin-bottom:3px; }
+.deckhead .kpi .v { font-size:25px; font-weight:600; letter-spacing:-0.02em; color:#fff; line-height:1; }
+.deckhead .kpi .n { font-size:12px; color:rgba(255,255,255,.7); margin-top:4px; }
+.deckhead input.name { background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.24); color:#fff;
+                       font:inherit; font-size:26px; font-weight:600; letter-spacing:-0.02em; padding:2px 8px; border-radius:8px; width:min(420px,70vw); }
+.deckhead input.name::placeholder { color:rgba(255,255,255,.45); }
+
+.sleeve-row td { background:var(--surface-2); font-family:var(--font-label); font-size:10px; font-weight:600;
+                 letter-spacing:.11em; text-transform:uppercase; color:var(--ink-2); }
+.sleeve-row td .sub { float:right; font-family:var(--font-ui); letter-spacing:0; text-transform:none; font-size:12px; color:var(--muted); }
+tr.wam td { background:var(--gold-wash); }
+tr.wam td.tick { color:var(--gold); }
+tr.exiting td.tick { text-decoration:line-through; text-decoration-color:var(--critical); }
+.chip { display:inline-block; font-family:var(--font-label); font-size:9.5px; font-weight:600; letter-spacing:.1em;
+        text-transform:uppercase; padding:2px 6px; border-radius:4px; background:var(--surface-2); color:var(--muted); margin-left:6px; }
+.chip.wam { background:var(--gold-wash); color:var(--gold); }
+.chip.calc { background:var(--accent-wash); color:var(--accent); }
+.chip.input { background:var(--surface-2); color:var(--muted); }
+
+.mcards { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:16px; }
+.mcard { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:15px 17px 13px; }
+.mcard h4 { margin:0 0 2px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.mcard h4 .num { font-family:var(--font-label); font-size:10px; color:var(--muted); letter-spacing:.1em; }
+.mcard .cap { margin:0 0 11px; font-size:12.5px; color:var(--muted); line-height:1.4; }
+table.mtbl { width:100%; border-collapse:collapse; font-size:13px; }
+table.mtbl th { font-family:var(--font-label); font-size:9.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+                color:var(--muted); text-align:right; padding:0 0 6px; border-bottom:1px solid var(--border); }
+table.mtbl th:first-child { text-align:left; }
+table.mtbl td { padding:6px 0; border-bottom:1px solid var(--border); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+table.mtbl td:first-child { text-align:left; font-variant-numeric:normal; white-space:normal; padding-right:8px; }
+table.mtbl tr:last-child td { border-bottom:0; }
+.mval { font:inherit; font-size:13px; font-variant-numeric:tabular-nums; text-align:right; width:88px;
+        background:transparent; border:1px solid transparent; border-radius:6px; padding:2px 5px; color:var(--ink); }
+.mval:hover { border-color:var(--border-2); }
+.mval:focus { border-color:var(--accent); background:var(--surface); outline:none; }
+.mval.blank { color:var(--muted); }
+.mval.calc { color:var(--ink); font-weight:600; border-color:transparent; background:var(--accent-wash); }
+.mchg { font-variant-numeric:tabular-nums; font-size:12.5px; }
+
+.swaps { display:grid; gap:10px; }
+.swap { display:flex; align-items:center; gap:12px; padding:11px 13px; border:1px solid var(--border); border-radius:11px; background:var(--surface); }
+.swap .from, .swap .to { display:flex; flex-direction:column; gap:1px; min-width:0; }
+.swap .t { font-weight:600; font-size:13.5px; }
+.swap .n { font-size:11.5px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.swap .arrow { color:var(--muted); flex:none; }
+.swap .amt { margin-left:auto; font-variant-numeric:tabular-nums; font-weight:600; font-size:13.5px; white-space:nowrap; }
+.swap.out .t { color:var(--critical); }
+.swap.in .t { color:var(--gold); }
+
+.tp { border-top:1px solid var(--border); padding:13px 0 3px; display:flex; gap:12px; }
+.tp .n { font-family:var(--font-label); font-size:11px; font-weight:600; color:var(--accent); flex:none; padding-top:2px; }
+.tp p { margin:0; font-size:14px; line-height:1.55; }
+.tp textarea { width:100%; font:inherit; font-size:14px; line-height:1.55; border:1px solid transparent; border-radius:8px;
+               background:transparent; color:var(--ink); resize:vertical; padding:3px 6px; }
+.tp textarea:hover { border-color:var(--border-2); }
+.tp textarea:focus { border-color:var(--accent); background:var(--surface); outline:none; }
+
+.needs { display:flex; align-items:flex-start; gap:11px; padding:12px 15px; border-radius:12px; margin-bottom:18px;
+         background:var(--surface); border:1px solid var(--border-2); font-size:13.5px; line-height:1.5; }
+.needs .ico { flex:none; width:18px; height:18px; color:var(--muted); margin-top:1px; }
+.needs b { font-weight:600; }
+@media print {
+  .deckhead { background:#2f4a72 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .tabs, .mast-actions { display:none !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="deckhead">
+    <div>
+      <div class="who">Portfolio allocation review · prepared for</div>
+      <input class="name" id="clientName" value="Robert &ldquo;Bucky&rdquo; Leach" aria-label="Client name">
+      <p class="sub" id="deckSub"></p>
+    </div>
+    <div class="spacer"></div>
+    <div class="kpis" id="headKpis"></div>
+  </header>
+
+  <div class="controls">
+    <span class="lab">Model</span>
+    <div class="seg" id="modelSeg" role="group" aria-label="Model"></div>
+    <span class="grow"></span>
+    <a class="btn" href="proposal.html">Proposal engine</a>
+    <button class="btn" id="themeBtn" type="button">Dark</button>
+    <button class="btn" id="printBtn" type="button">Print</button>
+    <button class="btn" id="resetBtn" type="button">Reset to workbook</button>
+  </div>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-tab="alloc"    aria-selected="true">Allocation</button>
+    <button role="tab" data-tab="metrics"  aria-selected="false">Metric cards</button>
+    <button role="tab" data-tab="score"    aria-selected="false">Executive scorecard</button>
+    <button role="tab" data-tab="frontier" aria-selected="false">Optimizer</button>
+    <button role="tab" data-tab="stress"   aria-selected="false">Stress tests</button>
+  </nav>
+
+  <!-- ================= ALLOCATION ================= -->
+  <section class="tabpane" id="pane-alloc" role="tabpanel">
+    <div class="grid2">
+      <div class="card">
+        <h3>Asset class mix</h3>
+        <p class="sub">Every sleeve, current against proposed, ordered from safest to riskiest. These move the moment you change a weight.</p>
+        <div id="sleeveBars"></div>
+        <div class="tbl-wrap" id="sleeveTable"></div>
+      </div>
+      <div class="card">
+        <h3>The trade</h3>
+        <p class="sub">What funds the new positions, taken straight from the weight changes below.</p>
+        <div class="swaps" id="swapList"></div>
+        <p class="read" id="swapRead"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="hd-split">
+        <h3 id="allocTitle">Holdings</h3>
+        <span class="aside" id="allocCount"></span>
+      </div>
+      <p class="sub">Click any weight to open the picker &mdash; 0&ndash;23 are one click away, scroll for more, or type it.
+         The mouse wheel over a weight nudges it a point at a time.</p>
+      <div class="rowflex" style="margin-bottom:12px">
+        <button class="btn sm" id="copyCurBtn" type="button">Copy current &rarr; proposed</button>
+        <button class="btn sm" id="normPropBtn" type="button">Normalise proposed</button>
+        <button class="btn sm" id="applySizingBtn" type="button">Apply recommended sizing</button>
+      </div>
+      <div class="holdings-wrap" id="holdingsHost"></div>
+    </div>
+  </section>
+
+  <!-- ================= METRIC CARDS ================= -->
+  <section class="tabpane" id="pane-metrics" role="tabpanel" hidden>
+    <div class="needs" id="metricNeeds"></div>
+    <div class="mcards" id="metricCards"></div>
+  </section>
+
+  <!-- ================= SCORECARD ================= -->
+  <section class="tabpane" id="pane-score" role="tabpanel" hidden>
+    <div class="card">
+      <h3>Executive scorecard</h3>
+      <p class="sub">Both models side by side, current against proposed.</p>
+      <div class="tbl-wrap" id="scoreTable"></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Where the proposal moves the numbers</h3>
+        <p class="sub">Averaged across both models, on the metrics you have filled in.</p>
+        <div class="tiles" id="scoreTiles"></div>
+      </div>
+      <div class="card">
+        <h3>Talking points</h3>
+        <p class="sub">Click any line to edit it. These print with the deck.</p>
+        <div id="talkingPoints"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= OPTIMIZER ================= -->
+  <section class="tabpane" id="pane-frontier" role="tabpanel" hidden>
+    <div class="card">
+      <h3>Sizing the allocation</h3>
+      <p class="sub">Return and risk across increasing allocations to the strategies. Drag the target volatility to find
+         the sizing that matches the risk budget.</p>
+      <div class="rowflex" style="margin-bottom:6px;gap:14px">
+        <span class="lab" style="font-family:var(--font-label);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Target volatility</span>
+        <input type="range" id="volTarget" style="flex:1 1 220px;max-width:340px;accent-color:var(--accent)">
+        <span id="volTargetVal" style="font-weight:600;font-variant-numeric:tabular-nums"></span>
+      </div>
+      <p class="read" id="volRead" style="border:0;padding:0;margin:0 0 16px"></p>
+      <ul class="legend" id="frontierLegend"></ul>
+      <div class="chart-scroll"><div id="frontierChart"></div></div>
+      <div class="tbl-wrap" id="frontierTable" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h3>Recommended sizing</h3>
+      <p class="sub">The weight shifts behind the recommended mix. &ldquo;Apply recommended sizing&rdquo; on the Allocation tab writes these into the proposed column.</p>
+      <div class="tbl-wrap" id="sizingTable"></div>
+    </div>
+  </section>
+
+  <!-- ================= STRESS ================= -->
+  <section class="tabpane" id="pane-stress" role="tabpanel" hidden>
+    <div class="card">
+      <h3>Stress tests &amp; scenario analysis</h3>
+      <p class="sub">Named episodes with the return and the drawdown each allocation would have carried through them.
+         Every figure is an input &mdash; edit it in the table below the chart.</p>
+      <ul class="legend" id="stressLegend"></ul>
+      <div class="chart-scroll"><div id="stressChart"></div></div>
+      <p class="read" id="stressRead"></p>
+      <div class="tbl-wrap" id="stressTable" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h3>Growth and drawdown</h3>
+      <p class="sub">Whatever series is loaded in the workbook's data engine. Paste your own below to replace it.</p>
+      <ul class="legend" id="growthLegend"></ul>
+      <div class="grid2">
+        <div>
+          <h4 style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--ink-2)">Growth of the starting balance</h4>
+          <div class="chart-scroll"><div id="growthChart"></div></div>
+        </div>
+        <div>
+          <h4 style="margin:0 0 8px;font-size:13px;font-weight:600;color:var(--ink-2)">Distance below the previous high</h4>
+          <div class="chart-scroll"><div id="ddChart"></div></div>
+          <p class="read" id="ddNote" style="margin-top:10px"></p>
+        </div>
+      </div>
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;font-size:13.5px;color:var(--ink-2)">Paste a return series</summary>
+        <p style="font-size:12.5px;color:var(--muted);margin:9px 0 7px">
+          Date, Current, Proposed, Benchmark &mdash; index values or returns, one row per period. Copy the cells from Excel and paste.</p>
+        <textarea id="seriesPaste" rows="5" style="width:100%;font-family:var(--font-label);font-size:11.5px;
+          border:1px solid var(--border-2);border-radius:9px;padding:8px;background:var(--surface);color:var(--ink)"
+          placeholder="2024-01-31, 10000, 10000, 10000"></textarea>
+        <div class="rowflex" style="margin-top:8px">
+          <button class="btn sm" id="seriesUse" type="button">Use this series</button>
+          <span id="seriesState" style="font-size:12.5px;color:var(--muted)"></span>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <p class="foot" id="footNote"></p>
+</div>
+
+<div class="tt" id="tooltip" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ==================================================================
+   WORKBOOK  — transcribed from
+   "Robert (Bucky) Leach — Interactive Portfolio Allocation Dashboard.xlsx".
+   Everything on the page is driven from this block; edit it to re-point the
+   deck at another client.
+   ================================================================== */
+const WAM_TICKERS = ["MIFIX", "MMNIX", "MCIFX"];
+
+const MODELS = [
+  {
+    id: "m1",
+    name: "Model 1 — Strategic Income & Alternatives",
+    short: "Model 1",
+    sleeves: [
+      { name:"U.S. Equities", holdings:[
+        ["IVW","iShares S&P 500 Growth ETF",16,16],
+        ["IVV","iShares Core S&P 500 ETF",13,13],
+        ["NBPIX","Neuberger Berman Large Cap Value Instl",10,10],
+        ["DYNF","iShares US Equity Factor Rotation Active ETF",5,5],
+        ["BAI","iShares AI Innovation & Technology Active ETF",4,4],
+        ["HULEX","Huber Select Large Cap Value Instl",3,3],
+        ["SHLD","Global X Defense Tech ETF",3,3],
+        ["THRO","iShares US Thematic Rotation Active ETF",2,2],
+        ["BLCR","iShares Large Cap Core Active ETF",2,2]]},
+      { name:"Non-U.S. Equities", holdings:[
+        ["SPEM","SPDR S&P Emerging Markets ETF",2,2],
+        ["BROIX","BlackRock Advantage Intl Instl",1,1]]},
+      { name:"Fixed Income", holdings:[
+        ["PSDYX","Putnam Ultra Short Duration Income Cl Y",10,8],
+        ["MAHQX","BlackRock Total Return Instl",6,3],
+        ["BINC","iShares Flexible Income Active ETF",5,5],
+        ["NCRLX","Neuberger Berman Core Bond Instl",2,2],
+        ["RFXIX","Rational Special Situations Income Instl",2,0],
+        ["GOVT","iShares US Treasury Bond ETF",1,1],
+        ["BSIIX","BlackRock Strategic Income Opptys Instl",1,1],
+        ["IAGG","iShares Core Intl Aggregate Bond ETF",1,1]]},
+      { name:"Liquid Alternatives", holdings:[
+        ["BDMIX","BlackRock Global Equity Market Neutral Instl",6,0],
+        ["IALT","iShares Systematic Alternatives Active ETF",3,3]]},
+      { name:"Cash", holdings:[
+        ["USD CASH","Cash / Short-Term Reserves",2,2]]},
+      { name:"Proposed WAM Strategies", holdings:[
+        ["MIFIX","Miller Intermediate Bond Fund Class I",0,7],
+        ["MMNIX","Miller Market Neutral Income Fund",0,6],
+        ["MCIFX","Miller Convertible Bond Fund Class I",0,0]]}
+    ],
+    /* Asset-class roll-up used by the Visual Dashboard tab of the workbook */
+    groups: {
+      "Equities (US & Non-US)": ["U.S. Equities","Non-U.S. Equities"],
+      "Fixed Income": ["Fixed Income"],
+      "Liquid Alternatives": ["Liquid Alternatives"],
+      "Cash & Equivalents": ["Cash"],
+      "WAM Strategies": ["Proposed WAM Strategies"]
+    }
+  },
+  {
+    id: "m2",
+    name: "Model 2 — Muni & Factor Growth",
+    short: "Model 2",
+    sleeves: [
+      { name:"U.S. Equities", holdings:[
+        ["IVW","iShares S&P 500 Growth ETF",11,11],
+        ["IVE","iShares S&P 500 Value ETF",10,10],
+        ["SPY","SPDR S&P 500 ETF Trust",9,9],
+        ["DYNF","iShares US Equity Factor Rotation Active ETF",7,7],
+        ["RDVY","First Trust Rising Dividend Achievers ETF",6,6],
+        ["THRO","iShares US Thematic Rotation Active ETF",4,4],
+        ["BAI","iShares AI Innovation & Technology Active ETF",4,4],
+        ["JQUA","JPMorgan U.S. Quality Factor ETF",3,3],
+        ["SHLD","Global X Defense Tech ETF",2,2]]},
+      { name:"Municipal Fixed Income", holdings:[
+        ["PSDYX","Putnam Ultra Short Duration Income Cl Y",10,5],
+        ["MUB","iShares National Muni Bond ETF",10,10],
+        ["PZA","Invesco National AMT-Free Municipal Bond ETF",9,9],
+        ["JMUB","JPMorgan Municipal ETF",6,6]]},
+      { name:"Non-U.S. Equities", holdings:[
+        ["SPEM","SPDR S&P Emerging Markets ETF",4,4],
+        ["BROIX","BlackRock Advantage Intl Instl",3,3]]},
+      { name:"Cash", holdings:[
+        ["USD CASH","Cash / Short-Term Reserves",2,2]]},
+      { name:"Proposed WAM Strategies", holdings:[
+        ["MIFIX","Miller Intermediate Bond Fund Class I",0,0],
+        ["MMNIX","Miller Market Neutral Income Fund",0,5]]}
+    ],
+    groups: {
+      "Equities (US & Non-US)": ["U.S. Equities","Non-U.S. Equities"],
+      "Municipal Fixed Income": ["Municipal Fixed Income"],
+      "Cash & Equivalents": ["Cash"],
+      "WAM Strategies": ["Proposed WAM Strategies"]
+    }
+  }
+];
+
+/* The five metric cards. `cur` / `prop` are the workbook's own inputs — null
+   means the cell was left blank and still needs a number. `calc` marks a row
+   the page derives from the allocation or from other rows, so it can never
+   drift out of step with the weights. */
+const CARDS = [
+  { n:1, title:"Performance", cap:"What the money did.", rows:[
+    { k:"annRet",  lab:"Annualized return (since Jan 2024)", type:"pct",  dir:1 },
+    { k:"t1y",     lab:"Trailing 1 year",                    type:"pct",  dir:1 },
+    { k:"ytd",     lab:"YTD 2026",                           type:"pct",  dir:1 },
+    { k:"y2025",   lab:"2025",                               type:"pct",  dir:1 },
+    { k:"y2024",   lab:"2024",                               type:"pct",  dir:1 },
+    { k:"cumRet",  lab:"Cumulative return",                  type:"pct",  dir:1 },
+    { k:"lift",    lab:"Net return lift",                    type:"bps",  dir:1, calc:"lift" }]},
+  { n:2, title:"Risk-adjusted", cap:"What the money cost in comfort.", rows:[
+    { k:"vol",     lab:"Annualized volatility",              type:"pct",  dir:-1 },
+    { k:"semiDev", lab:"Downside semi-deviation",            type:"pct",  dir:-1 },
+    { k:"sharpe",  lab:"Sharpe ratio (4.5% RFR)",            type:"num",  dir:1 },
+    { k:"sortino", lab:"Sortino ratio",                      type:"num",  dir:1 },
+    { k:"maxDD",   lab:"Maximum drawdown",                   type:"pct",  dir:1 },
+    { k:"pain",    lab:"Pain index",                         type:"num",  dir:-1 }]},
+  { n:3, title:"Sensitivity & capture", cap:"What it moves with, and how much of the fall it takes.", rows:[
+    { k:"corrAgg", lab:"Correlation vs Agg",                 type:"num",  dir:-1 },
+    { k:"corrSpx", lab:"Correlation vs S&P 500",             type:"num",  dir:-1 },
+    { k:"betaAgg", lab:"Beta vs Agg",                        type:"num",  dir:0 },
+    { k:"betaSpx", lab:"Beta vs S&P 500",                    type:"num",  dir:0 },
+    { k:"dnCapAgg",lab:"Downside capture vs Agg",            type:"pctW", dir:-1 }]},
+  { n:4, title:"Stress days", cap:"Behaviour on the days that unsettle clients.", rows:[
+    { k:"winSpx",  lab:"Win rate on S&P down days",          type:"pct",  dir:1 },
+    { k:"winAgg",  lab:"Win rate on Agg down days",          type:"pct",  dir:1 },
+    { k:"jointDn", lab:"Joint sell-off days",                type:"int",  dir:-1 },
+    { k:"worstDay",lab:"Worst day",                          type:"pct",  dir:1 }]},
+  { n:5, title:"Exposure", cap:"What the portfolio is actually made of.", rows:[
+    { k:"dur",     lab:"Effective duration",                 type:"yrs",  dir:0 },
+    { k:"hqCore",  lab:"High quality core",                  type:"pctW", dir:1 },
+    { k:"rmbs",    lab:"Securitized RMBS",                   type:"pctW", dir:-1, calc:"rmbs" },
+    { k:"cvtArb",  lab:"Convertible arbitrage",              type:"pctW", dir:1,  calc:"cvtArb" }]}
+];
+
+/* Workbook values, per model. null = the cell was blank. */
+const METRICS = {
+  m1: {
+    annRet:[0.078,0.086], t1y:[null,null], ytd:[null,null], y2025:[null,null], y2024:[null,null], cumRet:[null,null],
+    vol:[0.065,0.058], semiDev:[null,null], sharpe:[0.51,0.71], sortino:[0.78,1.14], maxDD:[-0.085,-0.062], pain:[2.1,1.4],
+    corrAgg:[null,null], corrSpx:[null,null], betaAgg:[null,null], betaSpx:[null,null], dnCapAgg:[null,null],
+    winSpx:[0.45,0.65], winAgg:[0.40,0.55], jointDn:[42,28], worstDay:[null,null],
+    dur:[4.2,3.1], hqCore:[null,null]
+  },
+  m2: {
+    annRet:[0.078,0.086], t1y:[null,null], ytd:[null,null], y2025:[null,null], y2024:[null,null], cumRet:[null,null],
+    vol:[0.065,0.058], semiDev:[null,null], sharpe:[0.51,0.71], sortino:[0.78,1.14], maxDD:[-0.085,-0.062], pain:[2.1,1.4],
+    corrAgg:[null,null], corrSpx:[null,null], betaAgg:[null,null], betaSpx:[null,null], dnCapAgg:[null,null],
+    winSpx:[0.45,0.65], winAgg:[0.40,0.55], jointDn:[42,28], worstDay:[null,null],
+    dur:[4.2,3.1], hqCore:[null,null]
+  }
+};
+
+/* Optimizer & Efficient Frontier tab */
+const FRONTIER = [
+  { mix:"100% Current",      wam:0,  ret:0.078, vol:0.065, sharpe:0.51, maxDD:-0.085 },
+  { mix:"10% WAM",           wam:10, ret:0.082, vol:0.060, sharpe:0.65, maxDD:-0.075 },
+  { mix:"20% WAM",           wam:20, ret:0.086, vol:0.055, sharpe:0.80, maxDD:-0.065 },
+  { mix:"30% WAM",           wam:30, ret:0.090, vol:0.050, sharpe:0.95, maxDD:-0.055 },
+  { mix:"Max Sharpe optimal",wam:35, ret:0.094, vol:0.048, sharpe:1.10, maxDD:-0.050 }
+];
+const SIZING = [
+  { action:"Reduce core bonds / RMBS", shift:-10 },
+  { action:"Allocate to MIFIX",        shift:5 },
+  { action:"Allocate to MMNIX",        shift:5 }
+];
+
+/* Stress Tests tab */
+const STRESS = [
+  { name:"2022 interest rate shock",   desc:"-13.0% Agg / -18.9% S&P",            curRet:-0.155, curDD:-0.180, propRet:-0.120, propDD:-0.145 },
+  { name:"April 2024 co-decline",      desc:"Bond and equity fell together",      curRet:-0.045, curDD:-0.052, propRet:-0.031, propDD:-0.038 },
+  { name:"August 2024 volatility spike",desc:"Volatility spike",                  curRet:-0.060, curDD:-0.085, propRet:-0.045, propDD:-0.060 },
+  { name:"Joint down sessions",        desc:"Days both S&P 500 and Agg fell",     curRet:-0.012, curDD:-0.015, propRet:-0.008, propDD:-0.010 }
+];
+
+/* Daily Data Engine tab — placeholder series shipped in the workbook */
+const SERIES_SEED = {
+  placeholder: true,
+  dates: ["2024-01-01","2024-02-01","2024-03-01","2024-04-01","2024-05-01"],
+  current:   [10000,10100,10250,10400,10550],
+  proposed:  [10000,10150,10300,10500,10700],
+  benchmark: [10000,10080,10150,10250,10300]
+};
+
+/* Executive Scorecard tab */
+const TALKING_POINTS = [
+  "Swap RFXIX (2%) → MIFIX: eliminates single-sector non-agency RMBS housing credit concentration (-12.9% historical max drawdown) in favour of MIFIX's convertible-anchored core (#1 Lipper Short-Term Bond peer group, -7.7% in 2022 against -13.0% for the Agg).",
+  "Trim core duration MAHQX (6% → 3%) → MIFIX: lowers rate duration sensitivity while boosting yield and equity upside capture.",
+  "Upgrade BDMIX (6%) → MMNIX (6%): replaces equity long/short market neutral, which is subject to pair-trading dispersion, with convertible arbitrage.",
+  "Optimise PSDYX in Model 2 → MMNIX (5%): turns static cash and ultrashort yield into active market-neutral alpha without disturbing the tax-exempt municipal core (MUB, PZA, JMUB)."
+];
+
+/* ==================================================================
+   9. FORMATTING & SVG PLUMBING
+   ================================================================== */
+const pct  = (x,d=1) => (x*100).toFixed(d) + "%";
+const pctS = (x,d=1) => (x>=0?"+":"") + (x*100).toFixed(d) + "%";
+const nm   = (x,d=2) => (x===null||x===undefined||!isFinite(x)) ? "—" : x.toFixed(d);
+const money = x => "$" + Math.round(x).toLocaleString("en-US");
+const moneyShort = x => x>=1e9 ? "$"+(x/1e9).toFixed(2)+"B" : x>=1e6 ? "$"+(x/1e6).toFixed(2)+"M"
+                       : x>=1e3 ? "$"+Math.round(x/1e3)+"K" : "$"+Math.round(x);
+const bps = x => (x>=0?"+":"") + Math.round(x) + " bp";
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const iso = d => d.toISOString().slice(0,10);
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const dLabel = (d,ppy) => ppy>=52 ? (MON[d.getUTCMonth()]+" "+d.getUTCDate()+", "+d.getUTCFullYear())
+                                  : (MON[d.getUTCMonth()]+" "+d.getUTCFullYear());
+const SERIES_VARS = ["--series-1","--series-2","--series-3"];
+const sc = i => "var(" + SERIES_VARS[i % 3] + ")";
+const riskColor = b => "var(--risk-" + (b+1) + ")";
+const riskInk = b => "var(--risk-ink-" + (b+1) + ")";
+
+function scale(d0,d1,r0,r1){ const s=(d1-d0)||1; return v => r0 + (v-d0)/s*(r1-r0); }
+function niceTicks(lo,hi,count){
+  if (lo===hi){ lo-=1; hi+=1; }
+  const raw=(hi-lo)/count, mag=Math.pow(10,Math.floor(Math.log10(Math.abs(raw)||1))), n=raw/mag;
+  const step=(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*mag;
+  const out=[]; for(let v=Math.ceil(lo/step)*step; v<=hi+step*1e-6; v+=step) out.push(Math.abs(v)<step*1e-9?0:v);
+  return out.length?out:[lo,hi];
+}
+const svgOpen = (w,h) => '<svg class="chart" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" role="img" preserveAspectRatio="xMinYMin meet">';
+function barPath(x,y,w,h,r,dir){
+  r=Math.max(0,Math.min(r,Math.abs(w)/2,Math.abs(h)));
+  if (h<=0.4||w<=0.4) return "";
+  if (dir==="right") return `M${x},${y} h${w-r} a${r},${r} 0 0 1 ${r},${r} v${h-2*r} a${r},${r} 0 0 1 ${-r},${r} h${-(w-r)} z`;
+  if (dir==="left")  return `M${x+w},${y} h${-(w-r)} a${r},${r} 0 0 0 ${-r},${r} v${h-2*r} a${r},${r} 0 0 0 ${r},${r} h${w-r} z`;
+  if (dir==="up")    return `M${x},${y+h} v${-(h-r)} a${r},${r} 0 0 1 ${r},${-r} h${w-2*r} a${r},${r} 0 0 1 ${r},${r} v${h-r} z`;
+  return `M${x},${y} v${h-r} a${r},${r} 0 0 0 ${r},${r} h${w-2*r} a${r},${r} 0 0 0 ${r},${-r} v${-(h-r)} z`;
+}
+const TT = document.getElementById("tooltip");
+function showTT(html, ev){
+  TT.innerHTML = html; TT.style.opacity = "1";
+  const pad=14, r=TT.getBoundingClientRect();
+  let x=ev.clientX+pad, y=ev.clientY-r.height-pad;
+  if (x+r.width > window.innerWidth-8) x = ev.clientX-r.width-pad;
+  if (y < 8) y = ev.clientY+pad;
+  TT.style.left = x+"px"; TT.style.top = y+"px";
+}
+const hideTT = () => { TT.style.opacity = "0"; };
+const ttRows = (title, rows) => '<div class="tt-h">'+esc(title)+"</div>" + rows.map(r =>
+  '<div class="row">' + (r.color?'<span class="key" style="background:'+r.color+'"></span>':"") +
+  '<span class="nm">'+esc(r.name)+'</span><span class="vl">'+esc(r.value)+"</span></div>").join("");
+function bindTips(host, fn){
+  host.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", ev => showTT(fn(el.getAttribute("data-tip")), ev));
+    el.addEventListener("mouseleave", hideTT);
+  });
+}
+function legendHTML(items, square){
+  return items.map(s => '<li><span class="key'+(square?" sq":"")+'" style="background:'+s.color+'"></span>'+esc(s.name)+"</li>").join("");
+}
+function tableHTML(head, rows, note){
+  return '<table class="data"><thead><tr>' + head.map(h=>"<th>"+h+"</th>").join("") + "</tr></thead><tbody>" +
+    rows.map(r => r.group ? '<tr class="grp"><td colspan="'+head.length+'">'+esc(r.group)+"</td></tr>"
+                          : "<tr>" + r.map(c=>"<td>"+c+"</td>").join("") + "</tr>").join("") +
+    "</tbody></table>" + (note ? '<p class="tbl-note">'+note+"</p>" : "");
+}
+
+/* ---- multi-series line with crosshair ---- */
+function drawLineChart(host, o){
+  const w=o.width, h=o.height, padL=o.padL||62, padR=o.endLabel?86:18, padT=10, padB=26;
+  const plotW=w-padL-padR, plotH=h-padT-padB, n=o.series[0].vals.length;
+  const x=scale(0,n-1,padL,padL+plotW);
+  const t=niceTicks(o.yDomain[0],o.yDomain[1],5);
+  const y=scale(Math.min(o.yDomain[0],t[0]), Math.max(o.yDomain[1],t[t.length-1]), padT+plotH, padT);
+  const out=[svgOpen(w,h)];
+  for (const v of t){
+    out.push('<line class="grid-line" x1="'+padL+'" y1="'+y(v)+'" x2="'+(padL+plotW)+'" y2="'+y(v)+'"/>');
+    out.push('<text class="tick-txt" x="'+(padL-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(o.yFmt(v))+"</text>");
+  }
+  if (o.baselineAt !== undefined)
+    out.push('<line class="axis-line" x1="'+padL+'" y1="'+y(o.baselineAt)+'" x2="'+(padL+plotW)+'" y2="'+y(o.baselineAt)+'"/>');
+  for (const tk of o.xTicks)
+    out.push('<text class="tick-txt" x="'+x(tk.i)+'" y="'+(h-8)+'" text-anchor="middle">'+esc(tk.label)+"</text>");
+  o.series.forEach(s => {
+    const pts = s.vals.map((v,i) => x(i).toFixed(1)+","+y(v).toFixed(1));
+    if (o.fill){
+      const base = y(o.baselineAt !== undefined ? o.baselineAt : t[0]).toFixed(1);
+      out.push('<path d="M'+x(0).toFixed(1)+','+base+' L'+pts.join(" L")+' L'+x(n-1).toFixed(1)+','+base+' Z" fill="'+s.color+'" opacity="0.10"/>');
+    }
+    out.push('<path d="M'+pts.join(" L")+'" fill="none" stroke="'+s.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+  });
+  if (o.endLabel){
+    const placed=[];
+    o.series.map((s,i)=>({s,yy:y(s.vals[n-1])})).sort((a,b)=>a.yy-b.yy).forEach(it=>{
+      let yy=it.yy;
+      for (const p of placed) if (Math.abs(yy-p) < 15) yy = p+15;
+      placed.push(yy);
+      out.push('<circle cx="'+x(n-1)+'" cy="'+it.yy+'" r="4" fill="'+it.s.color+'" stroke="var(--surface)" stroke-width="2"/>');
+      if (Math.abs(yy-it.yy) > 2)
+        out.push('<path d="M'+(x(n-1)+6)+','+it.yy+' L'+(x(n-1)+12)+','+yy+'" stroke="var(--axis)" stroke-width="1" fill="none"/>');
+      out.push('<text class="lbl-strong" x="'+(x(n-1)+14)+'" y="'+(yy+4)+'">'+esc(o.endFmt(it.s.vals[n-1]))+"</text>");
+    });
+  }
+  out.push('<g id="cross" style="display:none"><line class="axis-line" y1="'+padT+'" y2="'+(padT+plotH)+'"/></g>');
+  out.push('<rect x="'+padL+'" y="'+padT+'" width="'+plotW+'" height="'+plotH+'" fill="transparent" data-hit="1"/></svg>');
+  host.innerHTML = out.join("");
+  const svg=host.querySelector("svg"), cross=svg.querySelector("#cross"), hit=svg.querySelector("[data-hit]");
+  const line=cross.querySelector("line");
+  const dots=o.series.map(s=>{ const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("r","4.5"); c.setAttribute("fill",s.color); c.setAttribute("stroke","var(--surface)");
+    c.setAttribute("stroke-width","2"); cross.appendChild(c); return c; });
+  hit.addEventListener("mousemove", ev => {
+    const rc=svg.getBoundingClientRect(), px=(ev.clientX-rc.left)*(w/rc.width);
+    let i=Math.round((px-padL)/plotW*(n-1)); i=Math.max(0,Math.min(n-1,i));
+    cross.style.display=""; line.setAttribute("x1",x(i)); line.setAttribute("x2",x(i));
+    o.series.forEach((s,k)=>{ dots[k].setAttribute("cx",x(i)); dots[k].setAttribute("cy",y(s.vals[i])); });
+    showTT(ttRows(o.xLabel(i), o.series.map(s=>({name:s.name, value:o.tipFmt(s.vals[i]), color:s.color}))), ev);
+  });
+  hit.addEventListener("mouseleave", ()=>{ cross.style.display="none"; hideTT(); });
+}
+
+/* ---- grouped columns ---- */
+function drawColumns(host, o){
+  const w=o.width, h=o.height||250, padL=o.padL||54, padR=14, padT=12, padB=o.padB||34;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const all=o.series.flatMap(s=>s.vals).filter(v=>v!==null&&v!==undefined&&isFinite(v));
+  const lo=Math.min(o.floor!==undefined?o.floor:-0.02, ...all), hi=Math.max(0.02, ...all);
+  const t=niceTicks(lo,hi,5);
+  const y=scale(Math.min(lo,t[0]),Math.max(hi,t[t.length-1]),padT+plotH,padT);
+  const band=plotW/o.cats.length, gap=2, k=o.series.length;
+  const bw=Math.max(3, Math.min(26,(band-Math.min(14,band*0.28)-gap*(k-1))/k));
+  const out=[svgOpen(w,h)];
+  for (const v of t){
+    out.push('<line class="grid-line" x1="'+padL+'" y1="'+y(v)+'" x2="'+(padL+plotW)+'" y2="'+y(v)+'"/>');
+    out.push('<text class="tick-txt" x="'+(padL-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(o.yFmt(v))+"</text>");
+  }
+  const zero=y(0);
+  out.push('<line class="axis-line" x1="'+padL+'" y1="'+zero+'" x2="'+(padL+plotW)+'" y2="'+zero+'"/>');
+  o.cats.forEach((c,i)=>{
+    const cx=padL+band*i+band/2, gw=k*bw+(k-1)*gap;
+    o.series.forEach((s,j)=>{
+      const v=s.vals[i];
+      if (v===null||v===undefined||!isFinite(v)) return;
+      const bx=cx-gw/2+j*(bw+gap), top=v>=0?y(v):zero, bh=Math.abs(y(v)-zero);
+      out.push('<path d="'+barPath(bx,top,bw,bh,4,v>=0?"up":"down")+'" fill="'+s.color+'"/>');
+    });
+    if (o.showEvery === undefined || i % o.showEvery === 0){
+      const lab=String(o.labels?o.labels[i]:c);
+      const rot = o.rotate ? ' transform="rotate(-38 '+cx+' '+(padT+plotH+14)+')" text-anchor="end"' : ' text-anchor="middle"';
+      out.push('<text class="tick-txt" x="'+cx+'" y="'+(padT+plotH+(o.rotate?14:16))+'"'+rot+'>'+esc(lab)+"</text>");
+    }
+    out.push('<rect x="'+(padL+band*i)+'" y="'+padT+'" width="'+band+'" height="'+plotH+'" fill="transparent" data-tip="'+i+'"/>');
+  });
+  out.push("</svg>");
+  host.innerHTML=out.join("");
+  bindTips(host, idx => ttRows(String(o.cats[+idx]), o.series.map(s=>({
+    name:s.name, value:(s.vals[+idx]===null||s.vals[+idx]===undefined)?"—":o.tipFmt(s.vals[+idx]), color:s.color }))));
+}
+
+/* ---- grouped horizontal bars ---- */
+function drawBarsH(host, o){
+  const rowH=o.rowH||34, padT=6, padB=28;
+  const labW=Math.min(o.labW||178, Math.max(96, o.width*0.30));
+  const h=padT+o.cats.length*rowH+padB, plotL=labW+12, plotR=o.width-(o.padR||58);
+  const all=o.series.flatMap(s=>s.vals).filter(isFinite);
+  const lo=Math.min(0,...all), hi=Math.max(0,...all);
+  const t=niceTicks(lo,hi,4);
+  const x=scale(Math.min(lo,t[0]),Math.max(hi,t[t.length-1]),plotL,plotR);
+  const zero=x(0), k=o.series.length, gap=2;
+  const bh=Math.max(5, Math.min(22,(rowH-11-gap*(k-1))/k));
+  const out=[svgOpen(o.width,h)];
+  for (const v of t){
+    out.push('<line class="grid-line" x1="'+x(v)+'" y1="'+padT+'" x2="'+x(v)+'" y2="'+(padT+o.cats.length*rowH)+'"/>');
+    out.push('<text class="tick-txt" x="'+x(v)+'" y="'+(h-9)+'" text-anchor="middle">'+esc(o.xFmt(v))+"</text>");
+  }
+  o.cats.forEach((c,i)=>{
+    const cy=padT+i*rowH+rowH/2, gh=k*bh+(k-1)*gap;
+    out.push('<text class="lbl-txt" x="'+labW+'" y="'+(cy+4)+'" text-anchor="end">'+esc(c)+"</text>");
+    o.series.forEach((s,j)=>{
+      const v=s.vals[i];
+      if (!isFinite(v)) return;
+      const by=cy-gh/2+j*(bh+gap), bx=v>=0?zero:x(v), bwid=Math.abs(x(v)-zero);
+      out.push('<path d="'+barPath(bx,by,bwid,bh,4,v>=0?"right":"left")+'" fill="'+s.color+'"/>');
+      if (o.valueLabels){
+        const tx=v>=0?x(v)+6:x(v)-6;
+        out.push('<text class="lbl-txt" x="'+tx+'" y="'+(by+bh/2+4)+'" text-anchor="'+(v>=0?"start":"end")+'">'+esc(o.xFmt(v,true))+"</text>");
+      }
+    });
+    out.push('<rect x="'+plotL+'" y="'+(padT+i*rowH)+'" width="'+Math.max(1,plotR-plotL)+'" height="'+rowH+'" fill="transparent" data-tip="'+i+'"/>');
+  });
+  out.push('<line class="axis-line" x1="'+zero+'" y1="'+padT+'" x2="'+zero+'" y2="'+(padT+o.cats.length*rowH)+'"/></svg>');
+  host.innerHTML=out.join("");
+  bindTips(host, idx => ttRows(String(o.cats[+idx]), o.series.map(s=>({
+    name:s.name, value:isFinite(s.vals[+idx])?o.xFmt(s.vals[+idx],true):"—", color:s.color }))));
+}
+
+/* ---- x/y plot: labelled points, with an optional frontier line ---- */
+function drawXY(host, o){
+  const w=o.width, h=o.height||310, padL=58, padR=26, padT=16, padB=44;
+  const plotW=w-padL-padR, plotH=h-padT-padB;
+  const xs=o.points.map(p=>p.x).concat((o.line||[]).map(p=>p.x));
+  const ys=o.points.map(p=>p.y).concat((o.line||[]).map(p=>p.y));
+  const xp=(Math.max(...xs)-Math.min(...xs))*0.14||0.01, yp=(Math.max(...ys)-Math.min(...ys))*0.20||0.01;
+  const xdLo=Math.max(0,Math.min(...xs)-xp), xdHi=Math.max(...xs)+xp;
+  const ydLo=Math.min(...ys)-yp, ydHi=Math.max(...ys)+yp;
+  const xt=niceTicks(xdLo,xdHi,5), yt=niceTicks(ydLo,ydHi,5);
+  const x=scale(Math.min(xdLo,xt[0]),Math.max(xdHi,xt[xt.length-1]),padL,padL+plotW);
+  const y=scale(Math.min(ydLo,yt[0]),Math.max(ydHi,yt[yt.length-1]),padT+plotH,padT);
+  const out=[svgOpen(w,h)];
+  for (const v of yt){
+    out.push('<line class="grid-line" x1="'+padL+'" y1="'+y(v)+'" x2="'+(padL+plotW)+'" y2="'+y(v)+'"/>');
+    out.push('<text class="tick-txt" x="'+(padL-9)+'" y="'+(y(v)+4)+'" text-anchor="end">'+esc(o.yFmt(v))+"</text>");
+  }
+  for (const v of xt)
+    out.push('<text class="tick-txt" x="'+x(v)+'" y="'+(padT+plotH+18)+'" text-anchor="middle">'+esc(o.xFmt(v))+"</text>");
+  out.push('<line class="axis-line" x1="'+padL+'" y1="'+(padT+plotH)+'" x2="'+(padL+plotW)+'" y2="'+(padT+plotH)+'"/>');
+  out.push('<text class="tick-txt" x="'+(padL+plotW/2)+'" y="'+(h-6)+'" text-anchor="middle">'+esc(o.xTitle)+"</text>");
+  out.push('<text class="tick-txt" transform="translate(13,'+(padT+plotH/2)+') rotate(-90)" text-anchor="middle">'+esc(o.yTitle)+"</text>");
+  if (o.line && o.line.length > 1){
+    const d = o.line.map(p => x(p.x).toFixed(1)+","+y(p.y).toFixed(1));
+    out.push('<path d="M'+d.join(" L")+'" fill="none" stroke="'+(o.lineColor||"var(--axis)")+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>');
+  }
+  const placed=[], OFF=[-13,21,-27,35,-41,49];
+  o.points.slice().sort((a,b)=>a.x-b.x).forEach(p=>{
+    const cx=x(p.x), cy=y(p.y), r=p.size||5, col=p.color||sc(0);
+    let dy=OFF[0];
+    if (p.label){
+      const hw=p.label.length*3.3+5;
+      for (const cand of OFF){
+        const box={l:cx-hw,r:cx+hw,t:cy+cand-10,b:cy+cand+4};
+        if (!placed.some(q=>box.l<q.r&&box.r>q.l&&box.t<q.b&&box.b>q.t)){ dy=cand; break; }
+      }
+      placed.push({l:cx-hw,r:cx+hw,t:cy+dy-10,b:cy+dy+4});
+      if (Math.abs(dy) > 24)
+        out.push('<line x1="'+cx+'" y1="'+(cy+Math.sign(dy)*(r+3))+'" x2="'+cx+'" y2="'+(cy+dy-(dy<0?3:11))+'" stroke="var(--axis)" stroke-width="1"/>');
+    }
+    if (p.ring) out.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+6)+'" fill="none" stroke="'+col+'" stroke-width="1.5" opacity="0.5"/>');
+    out.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+col+'" stroke="var(--surface)" stroke-width="2"'+(p.faded?' opacity="0.5"':"")+'/>');
+    if (p.label) out.push('<text class="'+(p.strong?"lbl-strong":"lbl-txt")+'" x="'+cx+'" y="'+(cy+dy)+'" text-anchor="middle">'+esc(p.label)+"</text>");
+    out.push('<circle cx="'+cx+'" cy="'+cy+'" r="16" fill="transparent" data-tip="'+esc(p.id)+'"/>');
+  });
+  out.push("</svg>");
+  host.innerHTML=out.join("");
+  bindTips(host, id => {
+    const p=o.points.find(q=>String(q.id)===id);
+    return ttRows(p.name||p.label||"", [
+      {name:o.yTitle, value:o.yFmt(p.y,true), color:p.color||sc(0)},
+      {name:o.xTitle, value:o.xFmt(p.x,true)}
+    ].concat(p.extra||[]));
+  });
+}
+
+/* ==================================================================
+   10. WEIGHT STEPPER  — click a value 0-20, scroll for more, type, or wheel
+   ================================================================== */
+let openPop = null;
+function closePop(){ if (openPop){ openPop.pop.classList.remove("open"); openPop.btn.setAttribute("aria-expanded","false"); openPop = null; } }
+document.addEventListener("click", e => { if (openPop && !openPop.wrap.contains(e.target)) closePop(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closePop(); });
+
+function weightCell(rowIdx, field){
+  const row = STATE.rows[rowIdx];
+  const v = field === "cur" ? row.cur : row.prop;
+  return '<span class="wcell" data-cell="'+rowIdx+':'+field+'">' +
+    '<button type="button" class="wbtn '+(field==="cur"?"cur":"prop")+'" aria-expanded="false" ' +
+    'aria-label="'+esc(row.ticker)+' '+(field==="cur"?"current":"proposed")+' weight">'+ (+v).toFixed(v%1?1:0) +'%</button>' +
+    '<span class="wpop" role="dialog"></span></span>';
+}
+function popMarkup(val){
+  let grid = "";
+  for (let i=0;i<=100;i++)
+    grid += '<button type="button" data-w="'+i+'"'+(Math.round(val)===i?' aria-current="true"':"")+">"+i+"</button>";
+  return '<div class="wpop-top">' +
+      '<button type="button" data-step="-1" aria-label="Decrease">&minus;</button>' +
+      '<input type="number" min="0" max="100" step="0.5" value="'+(+val)+'" aria-label="Weight percent">' +
+      '<button type="button" data-step="1" aria-label="Increase">+</button></div>' +
+    '<div class="wgrid">'+grid+"</div>" +
+    '<div class="rule"></div><p class="hintline">0&ndash;20 without scrolling. Scroll the grid for more, or roll the mouse wheel over the weight itself.</p>';
+}
+function setWeight(rowIdx, field, val){
+  const v = Math.max(0, Math.min(100, Math.round(val*10)/10));
+  if (field === "cur") STATE.rows[rowIdx].cur = v; else STATE.rows[rowIdx].prop = v;
+}
+function wireWeights(host){
+  host.querySelectorAll("[data-cell]").forEach(wrap => {
+    const [ri, field] = wrap.getAttribute("data-cell").split(":");
+    const idx = +ri, btn = wrap.querySelector(".wbtn"), pop = wrap.querySelector(".wpop");
+    const cur = () => field === "cur" ? STATE.rows[idx].cur : STATE.rows[idx].prop;
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      if (openPop && openPop.pop === pop) { closePop(); return; }
+      closePop();
+      pop.innerHTML = popMarkup(cur());
+      pop.style.top = ""; pop.style.bottom = "";
+      pop.classList.add("open"); btn.setAttribute("aria-expanded","true");
+      /* flip above the weight when there is not room below it */
+      const pr = pop.getBoundingClientRect();
+      if (pr.bottom > window.innerHeight - 8 && btn.getBoundingClientRect().top > pr.height + 16){
+        pop.style.top = "auto"; pop.style.bottom = "calc(100% + 5px)";
+      }
+      openPop = { pop, btn, wrap };
+      /* the grid always opens at the top so 0-23 are one click away, whatever the
+         current weight is — the exact value is in the input box above it. */
+      const inp = pop.querySelector("input");
+      pop.querySelectorAll("[data-w]").forEach(b => b.addEventListener("click", () => {
+        setWeight(idx, field, +b.getAttribute("data-w")); closePop(); renderAll();
+      }));
+      pop.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
+        setWeight(idx, field, cur() + +b.getAttribute("data-step"));
+        inp.value = cur(); btn.textContent = (+cur()).toFixed(cur()%1?1:0)+"%"; renderSoft();
+      }));
+      inp.addEventListener("input", () => { const n = parseFloat(inp.value); if (!isNaN(n)) { setWeight(idx, field, n); renderSoft(); } });
+      inp.addEventListener("keydown", e2 => { if (e2.key === "Enter") { closePop(); renderAll(); } });
+      inp.focus(); inp.select();
+    });
+    btn.addEventListener("wheel", e => {
+      e.preventDefault();
+      setWeight(idx, field, cur() + (e.deltaY < 0 ? 1 : -1));
+      btn.textContent = (+cur()).toFixed(cur()%1?1:0)+"%";
+      clearTimeout(btn._t); btn._t = setTimeout(renderAll, 220);
+      renderSoft();
+    }, { passive:false });
+    btn.addEventListener("keydown", e => {
+      const d = e.key === "ArrowUp" ? 1 : e.key === "ArrowDown" ? -1 : e.key === "PageUp" ? 5 : e.key === "PageDown" ? -5 : 0;
+      if (!d) return;
+      e.preventDefault();
+      setWeight(idx, field, cur() + d);
+      btn.textContent = (+cur()).toFixed(cur()%1?1:0)+"%";
+      clearTimeout(btn._t); btn._t = setTimeout(renderAll, 220);
+      renderSoft();
+    });
+  });
+}
+
+
+/* Width available to a chart, never wider than the page's own content column. */
+const hostW = id => {
+  const el = document.getElementById(id);
+  const outer = document.querySelector(".wrap").clientWidth - 44;
+  return Math.max(240, Math.min(el.parentElement.clientWidth || 620, outer));
+};
+
+/* ==================================================================
+   STATE
+   ================================================================== */
+const STATE = {
+  model: "m1",
+  tab: "alloc",
+  rows: {},          /* modelId -> [{ticker,name,sleeve,cur,prop,wam}] */
+  metrics: JSON.parse(JSON.stringify(METRICS)),
+  points: TALKING_POINTS.slice(),
+  series: JSON.parse(JSON.stringify(SERIES_SEED)),
+  volTarget: null
+};
+function seedRows(){
+  STATE.rows = {};
+  for (const m of MODELS){
+    STATE.rows[m.id] = [];
+    for (const s of m.sleeves)
+      for (const [t,n,c,p] of s.holdings)
+        STATE.rows[m.id].push({ ticker:t, name:n, sleeve:s.name, cur:c, prop:p, wam:WAM_TICKERS.includes(t) });
+  }
+}
+seedRows();
+const model = () => MODELS.find(m => m.id === STATE.model);
+const rows = () => STATE.rows[STATE.model];
+const met = () => STATE.metrics[STATE.model];
+const totalCur  = () => rows().reduce((s,r)=>s+(+r.cur||0),0);
+const totalProp = () => rows().reduce((s,r)=>s+(+r.prop||0),0);
+const wamTotal  = side => rows().filter(r=>r.wam).reduce((s,r)=>s+(+r[side]||0),0);
+const weightOf  = (t, side) => { const r = rows().find(x=>x.ticker===t); return r ? (+r[side]||0) : 0; };
+
+/* the weight stepper edits STATE.rows for the model on screen */
+function setWeight(rowIdx, field, val){
+  const v = Math.max(0, Math.min(100, Math.round(val*10)/10));
+  rows()[rowIdx][field] = v;
+}
+function weightCell(rowIdx, field){
+  const r = rows()[rowIdx];
+  const v = field === "cur" ? r.cur : r.prop;
+  return '<span class="wcell" data-cell="'+rowIdx+':'+field+'">' +
+    '<button type="button" class="wbtn '+(field==="cur"?"cur":"prop")+'" aria-expanded="false" ' +
+    'aria-label="'+esc(r.ticker)+' '+(field==="cur"?"current":"proposed")+' weight">'+ (+v).toFixed(v%1?1:0) +'%</button>' +
+    '<span class="wpop" role="dialog"></span></span>';
+}
+
+/* ==================================================================
+   FORMATTING FOR METRIC ROWS
+   ================================================================== */
+function fmtMetric(type, v){
+  if (v === null || v === undefined || v === "" || !isFinite(v)) return "—";
+  switch (type){
+    case "pct":  return (v*100).toFixed(1) + "%";
+    case "pctW": return v.toFixed(1) + "%";
+    case "num":  return v.toFixed(2);
+    case "int":  return String(Math.round(v));
+    case "yrs":  return v.toFixed(1) + " yrs";
+    case "bps":  return (v >= 0 ? "+" : "−") + Math.abs(Math.round(v)) + " bp";
+    default:     return String(v);
+  }
+}
+/* what the user types, converted back to stored units */
+function parseMetric(type, s){
+  if (s === null || s === undefined) return null;
+  const t = String(s).replace(/[%,\s]|bp|yrs?/gi, "").replace("−","-").trim();
+  if (t === "" || t === "—") return null;
+  const n = parseFloat(t);
+  if (isNaN(n)) return null;
+  return (type === "pct") ? n/100 : n;
+}
+/* Inputs show the formatted value, units and all, so a bare "7.8" can never be
+   mistaken for 7.8x or 780bp. parseMetric strips %, bp and yrs on the way back. */
+const metInput = (type, v) =>
+  (v === null || v === undefined || !isFinite(v)) ? "" : fmtMetric(type, v);
+/* Rows the page derives rather than accepts */
+function calcRow(kind, side){
+  const s = side === 0 ? "cur" : "prop";
+  if (kind === "rmbs")   return weightOf("RFXIX", s);
+  if (kind === "cvtArb") return weightOf("MMNIX", s) + weightOf("MCIFX", s);
+  if (kind === "lift"){
+    const m = met().annRet;
+    if (side === 0 || m[0] === null || m[1] === null) return null;   /* a lift has no "current" */
+    return (m[1] - m[0]) * 10000;
+  }
+  return null;
+}
+function metricValue(row, side){
+  if (row.calc) return calcRow(row.calc, side);
+  const m = met()[row.k];
+  return m ? m[side] : null;
+}
+
+/* ==================================================================
+   ALLOCATION TAB
+   ================================================================== */
+const deltaCell = d => {
+  if (Math.abs(d) < 0.05) return '<span class="delta-zero">&mdash;</span>';
+  const t = (Math.round(d*10)/10).toFixed(1).replace(/\.0$/, "");
+  return '<span class="'+(d>0?"delta-pos":"delta-neg")+'">'+(d>0?"+":"")+t+"</span>";
+};
+function groupWeights(side){
+  const g = model().groups, out = {};
+  for (const label in g) out[label] = 0;
+  for (const r of rows()){
+    for (const label in g) if (g[label].includes(r.sleeve)) out[label] += (+r[side]||0);
+  }
+  return out;
+}
+const GROUP_STEP = ["Cash & Equivalents","Municipal Fixed Income","Fixed Income","WAM Strategies","Liquid Alternatives","Equities (US & Non-US)"];
+const groupColor = label => {
+  const i = GROUP_STEP.indexOf(label);
+  return i < 0 ? "var(--risk-3)" : "var(--risk-" + Math.min(5, Math.max(1, i === 0 ? 1 : i)) + ")";
+};
+const groupInk = label => {
+  const i = GROUP_STEP.indexOf(label);
+  return "var(--risk-ink-" + Math.min(5, Math.max(1, i < 0 ? 3 : (i === 0 ? 1 : i))) + ")";
+};
+function renderSleeves(){
+  const cur = groupWeights("cur"), prop = groupWeights("prop");
+  /* ordered safest to riskiest so the light-to-dark ramp actually carries meaning */
+  const labels = Object.keys(model().groups)
+    .sort((a,b) => (GROUP_STEP.indexOf(a) < 0 ? 99 : GROUP_STEP.indexOf(a)) -
+                   (GROUP_STEP.indexOf(b) < 0 ? 99 : GROUP_STEP.indexOf(b)));
+  const bar = (vals, title) =>
+    '<div class="alloc-row"><div class="cap"><b>'+title+"</b></div><div class=\"stack-bar\">" +
+    labels.map(l => vals[l] <= 0 ? "" :
+      '<i style="width:'+vals[l].toFixed(2)+'%;background:'+groupColor(l)+'" data-g="'+esc(l)+'">' +
+      (vals[l] >= 11 ? '<span class="stack-lab" style="color:'+groupInk(l)+'">'+Math.round(vals[l])+"%</span>" : "") + "</i>").join("") +
+    "</div></div>";
+  const host = document.getElementById("sleeveBars");
+  host.innerHTML = '<ul class="legend">' +
+    legendHTML(labels.map(l=>({name:l, color:groupColor(l)})), true) + "</ul>" +
+    bar(cur,"Current") + bar(prop,"Proposed");
+  host.querySelectorAll("[data-g]").forEach(el => {
+    el.addEventListener("mousemove", ev => {
+      const l = el.getAttribute("data-g");
+      showTT(ttRows(l, [{name:"Current", value:cur[l].toFixed(1)+"%", color:sc(0)},
+                        {name:"Proposed", value:prop[l].toFixed(1)+"%", color:sc(1)}]), ev);
+    });
+    el.addEventListener("mouseleave", hideTT);
+  });
+  document.getElementById("sleeveTable").innerHTML = tableHTML(
+    ["Asset class","Current","Proposed","Change"],
+    labels.map(l => ['<span class="name-key"><span class="key" style="background:'+groupColor(l)+'"></span>'+esc(l)+"</span>",
+      cur[l].toFixed(1)+"%", prop[l].toFixed(1)+"%", deltaCell(prop[l]-cur[l])])
+      .concat([["<b>Total</b>", "<b>"+totalCur().toFixed(1)+"%</b>", "<b>"+totalProp().toFixed(1)+"%</b>", ""]]));
+}
+function renderSwaps(){
+  const moves = rows().map(r => ({ t:r.ticker, n:r.name, wam:r.wam, d:(+r.prop||0)-(+r.cur||0) }))
+    .filter(m => Math.abs(m.d) >= 0.05);
+  const outs = moves.filter(m=>m.d<0).sort((a,b)=>a.d-b.d);
+  const ins  = moves.filter(m=>m.d>0).sort((a,b)=>b.d-a.d);
+  const host = document.getElementById("swapList");
+  if (!moves.length){
+    host.innerHTML = '<p class="empty">Current and proposed are identical. Change a weight to build the trade.</p>';
+    document.getElementById("swapRead").textContent = "";
+    return;
+  }
+  const line = (m, dir) =>
+    '<div class="swap '+dir+'"><div class="'+(dir==="out"?"from":"to")+'">' +
+    '<span class="t">'+esc(m.t)+(m.wam?'<span class="chip wam">WAM</span>':"")+"</span>" +
+    '<span class="n">'+esc(m.n)+"</span></div>" +
+    '<span class="amt">'+(m.d>0?"+":"")+(Math.round(m.d*10)/10)+" pts</span></div>";
+  host.innerHTML =
+    (outs.length ? '<div style="font-family:var(--font-label);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Funded by</div>' + outs.map(m=>line(m,"out")).join("") : "") +
+    (ins.length ? '<div style="font-family:var(--font-label);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin:12px 0 2px">Into</div>' + ins.map(m=>line(m,"in")).join("") : "");
+  const moved = ins.reduce((s,m)=>s+m.d,0);
+  const wamIn = ins.filter(m=>m.wam).reduce((s,m)=>s+m.d,0);
+  document.getElementById("swapRead").innerHTML =
+    "<b>"+(Math.round(moved*10)/10)+" points</b> of the portfolio move" +
+    (wamIn > 0 ? ", <b>"+(Math.round(wamIn*10)/10)+"</b> of it into the WAM strategies" : "") +
+    ". On a $5,000,000 account that is " + money(moved/100*5e6) + " repositioned" +
+    (wamIn > 0 ? ", " + money(wamIn/100*5e6) + " of it new allocation." : ".");
+}
+function renderHoldings(){
+  const m = model();
+  document.getElementById("allocTitle").textContent = m.name;
+  const out = [];
+  let i = 0;
+  const idxOf = {};
+  rows().forEach((r,k) => { idxOf[r.ticker+"|"+r.sleeve] = k; });
+  for (const s of m.sleeves){
+    const inSleeve = rows().map((r,k)=>({r,k})).filter(x => x.r.sleeve === s.name);
+    const sc_ = inSleeve.reduce((a,x)=>a+(+x.r.cur||0),0);
+    const sp_ = inSleeve.reduce((a,x)=>a+(+x.r.prop||0),0);
+    out.push('<tr class="sleeve-row"><td colspan="6">'+esc(s.name) +
+      '<span class="sub">'+sc_.toFixed(1)+"% → "+sp_.toFixed(1)+"%</span></td></tr>");
+    for (const {r,k} of inSleeve){
+      const d = (+r.prop||0)-(+r.cur||0);
+      const cls = (r.wam ? "wam" : "") + ((r.cur>0 && r.prop===0) ? " exiting" : "");
+      out.push("<tr"+(cls?' class="'+cls.trim()+'"':"")+">" +
+        '<td class="tick">'+esc(r.ticker)+(r.wam?'<span class="chip wam">WAM</span>':"")+"</td>" +
+        '<td class="nm">'+esc(r.name)+"</td>" +
+        "<td>"+weightCell(k,"cur")+"</td>" +
+        "<td>"+weightCell(k,"prop")+"</td>" +
+        "<td>"+deltaCell(d)+"</td>" +
+        '<td style="color:var(--muted);font-size:12px">'+(r.cur>0&&r.prop===0?"exit":r.cur===0&&r.prop>0?"new":"")+"</td></tr>");
+    }
+  }
+  const tc = totalCur(), tp = totalProp();
+  const flag = v => Math.abs(v-100) < 0.05 ? "" : ' <span class="badge warn">off by '+(v-100>0?"+":"")+(v-100).toFixed(1)+"</span>";
+  document.getElementById("holdingsHost").innerHTML =
+    '<table class="hold"><thead><tr><th>Ticker</th><th>Security</th><th>Current</th><th>Proposed</th><th>&Delta;</th><th></th></tr></thead>' +
+    "<tbody>"+out.join("")+"</tbody>" +
+    '<tfoot><tr><td colspan="2">Total allocation</td><td>'+tc.toFixed(1)+"%"+flag(tc)+"</td><td>"+tp.toFixed(1)+"%"+flag(tp)+
+    "</td><td></td><td></td></tr></tfoot></table>";
+  document.getElementById("allocCount").textContent =
+    rows().length + " positions · " + rows().filter(r=>r.cur>0&&r.prop===0).length + " exiting · " +
+    rows().filter(r=>r.cur===0&&r.prop>0).length + " new";
+  wireWeights(document.getElementById("holdingsHost"));
+}
+function renderHead(){
+  const wc = wamTotal("cur"), wp = wamTotal("prop");
+  const m = met();
+  const kpis = [
+    { k:"Allocation to WAM", v:wp.toFixed(0)+"%", n:wc>0 ? "from "+wc.toFixed(0)+"%" : "new allocation" },
+    { k:"Return", v:m.annRet[1]!==null ? pct(m.annRet[1]) : "—",
+      n:(m.annRet[0]!==null&&m.annRet[1]!==null) ? "from "+pct(m.annRet[0]) : "needs a number" },
+    { k:"Volatility", v:m.vol[1]!==null ? pct(m.vol[1]) : "—",
+      n:(m.vol[0]!==null&&m.vol[1]!==null) ? "from "+pct(m.vol[0]) : "needs a number" },
+    { k:"Worst fall", v:m.maxDD[1]!==null ? pct(m.maxDD[1]) : "—",
+      n:(m.maxDD[0]!==null&&m.maxDD[1]!==null) ? "from "+pct(m.maxDD[0]) : "needs a number" }
+  ];
+  document.getElementById("headKpis").innerHTML = kpis.map(x =>
+    '<div class="kpi"><div class="k">'+esc(x.k)+'</div><div class="v">'+esc(x.v)+'</div><div class="n">'+esc(x.n)+"</div></div>").join("");
+  document.getElementById("deckSub").textContent =
+    model().name + " · current allocation against the proposal, with the case behind it.";
+}
+
+/* ==================================================================
+   METRIC CARDS
+   ================================================================== */
+function changeCell(row, a, b){
+  if (a === null || b === null || a === undefined || b === undefined) return '<span class="delta-zero">&mdash;</span>';
+  const d = b - a;
+  if (fmtMetric(row.type, a) === fmtMetric(row.type, b)) return '<span class="delta-zero">&mdash;</span>';
+  const mag = fmtMetric(row.type, Math.abs(d)).replace(/^[+−-]/, "");
+  const cls = row.dir === 0 ? "delta-zero" : ((row.dir > 0 ? d > 0 : d < 0) ? "delta-pos" : "delta-neg");
+  return '<span class="mchg '+cls+'">'+(d>0?"+":"−")+mag+"</span>";
+}
+function renderCards(){
+  const blanks = [];
+  const html = CARDS.map(card => {
+    const body = card.rows.map(row => {
+      const a = metricValue(row, 0), b = metricValue(row, 1);
+      if (!row.calc && (a === null || b === null)) blanks.push(row.lab);
+      const cell = (side, v) => row.calc
+        ? '<span class="mval calc">'+fmtMetric(row.type, v)+"</span>"
+        : '<input class="mval'+(v===null?" blank":"")+'" data-m="'+row.k+':'+side+':'+row.type+'" ' +
+          'value="'+(v===null?"":metInput(row.type,v))+'" placeholder="—" aria-label="'+esc(row.lab)+' '+(side?"proposed":"current")+'">';
+      return "<tr><td>"+esc(row.lab) +
+        (row.calc ? '<span class="chip calc">Live</span>' : "") + "</td>" +
+        "<td>"+cell(0,a)+"</td><td>"+cell(1,b)+"</td><td>" +
+        (row.calc === "lift" ? '<span class="delta-zero">&mdash;</span>' : changeCell(row,a,b)) + "</td></tr>";
+    }).join("");
+    return '<div class="mcard"><h4><span class="num">'+card.n+"</span>"+esc(card.title)+"</h4>" +
+      '<p class="cap">'+esc(card.cap)+"</p>" +
+      '<table class="mtbl"><thead><tr><th>Measure</th><th>Current</th><th>Proposed</th><th>Change</th></tr></thead>' +
+      "<tbody>"+body+"</tbody></table></div>";
+  }).join("");
+  document.getElementById("metricCards").innerHTML = html;
+  document.getElementById("metricNeeds").innerHTML = blanks.length
+    ? '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 7.5v5.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="16.3" r="1" fill="currentColor"/></svg>' +
+      "<div><b>"+blanks.length+" measures are still blank in the workbook.</b> Type a value into any cell and the change column, " +
+      "the scorecard and the header all follow. Rows marked <span class=\"chip calc\">Live</span> are computed from the allocation, " +
+      "so they can never drift out of step with the weights.</div>"
+    : '<svg class="ico" viewBox="0 0 24 24" style="color:var(--good)"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+      "<div><b>Every measure has a number.</b> Rows marked <span class=\"chip calc\">Live</span> stay tied to the allocation.</div>";
+  document.querySelectorAll("[data-m]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      const [k, side, type] = inp.getAttribute("data-m").split(":");
+      met()[k][+side] = parseMetric(type, inp.value);
+      renderAll();
+    });
+  });
+}
+
+/* ==================================================================
+   SCORECARD
+   ================================================================== */
+const SCORE_ROWS = [
+  { k:"annRet", lab:"Annualized return", type:"pct", dir:1 },
+  { k:"vol",    lab:"Annualized volatility", type:"pct", dir:-1 },
+  { k:"sharpe", lab:"Sharpe ratio", type:"num", dir:1 },
+  { k:"sortino",lab:"Sortino ratio", type:"num", dir:1 },
+  { k:"maxDD",  lab:"Maximum drawdown", type:"pct", dir:1 },
+  { k:"dur",    lab:"Effective duration", type:"yrs", dir:0 },
+  { k:"winSpx", lab:"Win rate on S&P down days", type:"pct", dir:1 },
+  { k:"jointDn",lab:"Joint sell-off days", type:"int", dir:-1 }
+];
+function renderScore(){
+  const cols = [];
+  for (const m of MODELS){ cols.push([m.id,0,m.short+" current"]); cols.push([m.id,1,m.short+" proposed"]); }
+  document.getElementById("scoreTable").innerHTML = tableHTML(
+    ["Metric"].concat(cols.map(c=>esc(c[2]))),
+    SCORE_ROWS.map(r => [ "<b>"+esc(r.lab)+"</b>" ].concat(
+      cols.map(([mid,side]) => {
+        const v = STATE.metrics[mid][r.k] ? STATE.metrics[mid][r.k][side] : null;
+        return fmtMetric(r.type, v);
+      }))),
+    "Values are the metric-card inputs for each model. Blank cells are still to be filled in.");
+
+  /* averaged lift across both models, on the metrics that have both numbers */
+  const avg = (k) => {
+    const ds = MODELS.map(m => {
+      const p = STATE.metrics[m.id][k];
+      return (p && p[0] !== null && p[1] !== null) ? p[1]-p[0] : null;
+    }).filter(v => v !== null);
+    return ds.length ? { d: ds.reduce((a,b)=>a+b,0)/ds.length, n: ds.length } : null;
+  };
+  const tiles = [
+    { lab:"Return lift",        k:"annRet", type:"bps", dir:1,  scale:10000 },
+    { lab:"Volatility change",  k:"vol",    type:"bps", dir:-1, scale:10000 },
+    { lab:"Sharpe expansion",   k:"sharpe", type:"num", dir:1,  scale:1 },
+    { lab:"Drawdown cushion",   k:"maxDD",  type:"bps", dir:1,  scale:10000 }
+  ];
+  document.getElementById("scoreTiles").innerHTML = tiles.map(t => {
+    const a = avg(t.k);
+    if (!a) return '<div class="tile"><div class="t-lab">'+esc(t.lab)+'</div><div class="t-val" style="color:var(--muted)">—</div>' +
+      '<div class="t-sub">Needs both a current and a proposed number.</div></div>';
+    const val = a.d * t.scale;
+    const good = t.dir > 0 ? val > 0 : val < 0;
+    const cls = Math.abs(val) < 1e-9 ? "flat" : good ? "up" : "down";
+    return '<div class="tile"><div class="t-lab">'+esc(t.lab)+"</div>" +
+      '<div class="t-val">'+esc(t.type === "bps" ? fmtMetric("bps", val) : (val>=0?"+":"−")+Math.abs(val).toFixed(2))+"</div>" +
+      '<div class="t-delta '+cls+'"><span class="dot"></span>average across '+a.n+" model"+(a.n>1?"s":"")+"</div></div>";
+  }).join("");
+
+  document.getElementById("talkingPoints").innerHTML = STATE.points.map((p,i) =>
+    '<div class="tp"><span class="n">'+(i+1)+'.</span>' +
+    '<textarea data-tp="'+i+'" rows="3">'+esc(p)+"</textarea></div>").join("");
+  document.querySelectorAll("[data-tp]").forEach(ta => {
+    const fit = () => { ta.style.height = "auto"; ta.style.height = (ta.scrollHeight+2)+"px"; };
+    fit();
+    ta.addEventListener("input", () => { STATE.points[+ta.getAttribute("data-tp")] = ta.value; fit(); });
+  });
+}
+
+/* ==================================================================
+   OPTIMIZER
+   ================================================================== */
+function interpFrontier(volT){
+  const pts = FRONTIER.slice().sort((a,b)=>b.vol-a.vol);
+  if (volT >= pts[0].vol) return { ...pts[0], exact:true };
+  if (volT <= pts[pts.length-1].vol) return { ...pts[pts.length-1], exact:true };
+  for (let i=0;i<pts.length-1;i++){
+    const a = pts[i], b = pts[i+1];
+    if (volT <= a.vol && volT >= b.vol){
+      const f = (a.vol - volT) / (a.vol - b.vol || 1);
+      return { mix:"interpolated", wam:a.wam+(b.wam-a.wam)*f, ret:a.ret+(b.ret-a.ret)*f,
+               vol:volT, sharpe:a.sharpe+(b.sharpe-a.sharpe)*f, maxDD:a.maxDD+(b.maxDD-a.maxDD)*f, exact:false };
+    }
+  }
+  return { ...pts[0], exact:true };
+}
+/* The volatility that the frontier associates with a given sizing — used to open
+   the slider on the allocation actually being proposed rather than at 0%. */
+function volForWam(w){
+  const pts = FRONTIER.slice().sort((a,b)=>a.wam-b.wam);
+  if (w <= pts[0].wam) return pts[0].vol;
+  if (w >= pts[pts.length-1].wam) return pts[pts.length-1].vol;
+  for (let i=0;i<pts.length-1;i++){
+    const a = pts[i], b = pts[i+1];
+    if (w >= a.wam && w <= b.wam){
+      const f = (w - a.wam) / ((b.wam - a.wam) || 1);
+      return a.vol + (b.vol - a.vol) * f;
+    }
+  }
+  return pts[0].vol;
+}
+function renderFrontier(){
+  const lo = Math.min(...FRONTIER.map(p=>p.vol)), hi = Math.max(...FRONTIER.map(p=>p.vol));
+  const sl = document.getElementById("volTarget");
+  sl.min = (lo*100).toFixed(1); sl.max = (hi*100).toFixed(1); sl.step = "0.1";
+  if (STATE.volTarget === null) STATE.volTarget = volForWam(wamTotal("prop"));
+  STATE.volTarget = Math.min(hi, Math.max(lo, STATE.volTarget));
+  sl.value = (STATE.volTarget*100).toFixed(1);
+  document.getElementById("volTargetVal").textContent = pct(STATE.volTarget);
+  const pick = interpFrontier(STATE.volTarget);
+  document.getElementById("volRead").innerHTML =
+    "At " + pct(STATE.volTarget) + " volatility the sizing is about <b>" + Math.round(pick.wam) +
+    "% to the strategies</b>, for " + pct(pick.ret) + " of return, a Sharpe of " + pick.sharpe.toFixed(2) +
+    " and a worst fall of " + pct(pick.maxDD) + ".";
+
+  const pts = FRONTIER.map((p,i) => ({
+    id:"f"+i, name:p.mix, label:p.mix.replace(" optimal",""), x:p.vol, y:p.ret,
+    color: i === 0 ? sc(0) : (i === FRONTIER.length-1 ? sc(2) : sc(1)),
+    size: i === 0 || i === FRONTIER.length-1 ? 8 : 6.5, ring: i === 0 || i === FRONTIER.length-1, strong:true,
+    extra:[{name:"Sharpe", value:p.sharpe.toFixed(2)}, {name:"Max drawdown", value:pct(p.maxDD)},
+           {name:"Allocation to WAM", value:p.wam+"%"}]
+  }));
+  pts.push({ id:"target", name:"Your target", label:"Target", x:pick.vol, y:pick.ret, color:"var(--ink)", size:6, strong:true,
+             extra:[{name:"Sizing", value:Math.round(pick.wam)+"%"}] });
+  document.getElementById("frontierLegend").innerHTML = legendHTML([
+    { name:"Current", color:sc(0) }, { name:"Blended sizings", color:sc(1) },
+    { name:"Max Sharpe", color:sc(2) }, { name:"Your target", color:"var(--ink)" }], true);
+  drawXY(document.getElementById("frontierChart"), {
+    width:hostW("frontierChart"), height:330, points:pts,
+    line:FRONTIER.slice().sort((a,b)=>a.vol-b.vol).map(p=>({x:p.vol,y:p.ret})), lineColor:"var(--muted)",
+    xFmt:v=>pct(v), yFmt:v=>pct(v), xTitle:"Volatility", yTitle:"Return a year"
+  });
+  document.getElementById("frontierTable").innerHTML = tableHTML(
+    ["Portfolio mix","Allocation to WAM","Return","Volatility","Sharpe ratio","Max drawdown"],
+    FRONTIER.map(p => [esc(p.mix), p.wam+"%", pct(p.ret), pct(p.vol), p.sharpe.toFixed(2), pct(p.maxDD)]),
+    "These are the workbook's own sizing inputs, not a solved optimisation.");
+  document.getElementById("sizingTable").innerHTML = tableHTML(
+    ["Suggested action","Weight shift"],
+    SIZING.map(s => [esc(s.action), deltaCell(s.shift)+" pts"]));
+}
+
+/* ==================================================================
+   STRESS TESTS + SERIES
+   ================================================================== */
+function renderStress(){
+  const cats = STRESS.map(s=>s.name);
+  const series = [
+    { name:"Current return",  color:sc(0), vals:STRESS.map(s=>s.curRet) },
+    { name:"Proposed return", color:sc(1), vals:STRESS.map(s=>s.propRet) }
+  ];
+  document.getElementById("stressLegend").innerHTML = legendHTML(series, true);
+  drawColumns(document.getElementById("stressChart"), {
+    width:hostW("stressChart"), height:284, cats, rotate:true, padB:92, padL:96,
+    series, yFmt:v=>(v*100).toFixed(0)+"%", tipFmt:v=>pctS(v,1)
+  });
+  const worst = STRESS.slice().sort((a,b)=>a.curRet-b.curRet)[0];
+  const saved = worst.propRet - worst.curRet;
+  document.getElementById("stressRead").innerHTML =
+    "The hardest scenario on the board is <b>"+esc(worst.name)+"</b>: the current allocation gives up "+
+    pct(worst.curRet)+" against "+pct(worst.propRet)+" for the proposal, a cushion of <b>"+pct(Math.abs(saved))+
+    "</b> — on a $5,000,000 account, "+money(Math.abs(saved)*5e6)+".";
+  document.getElementById("stressTable").innerHTML =
+    '<table class="data"><thead><tr><th>Scenario</th><th>What happened</th>' +
+    '<th>Current return</th><th>Current drawdown</th><th>Proposed return</th><th>Proposed drawdown</th><th>Return cushion</th>' +
+    "</tr></thead><tbody>" + STRESS.map((s,i) =>
+      "<tr><td><b>"+esc(s.name)+"</b></td><td style='white-space:normal;color:var(--ink-2)'>"+esc(s.desc)+"</td>" +
+      ["curRet","curDD","propRet","propDD"].map(k =>
+        '<td><input class="mval" data-s="'+i+':'+k+'" value="'+(+(s[k]*100).toFixed(2))+'%" aria-label="'+esc(s.name)+' '+k+'"></td>').join("") +
+      "<td>"+(()=>{ const d=s.propRet-s.curRet;
+        return '<span class="'+(d>0?"delta-pos":"delta-neg")+'">'+pctS(d,1)+"</span>"; })()+"</td></tr>").join("") +
+    "</tbody></table><p class='tbl-note'>Every figure here is an input from the workbook. Type a new figure into any cell and the chart follows.</p>";
+  document.querySelectorAll("[data-s]").forEach(inp => {
+    inp.addEventListener("change", () => {
+      const [i,k] = inp.getAttribute("data-s").split(":");
+      const n = parseFloat(String(inp.value).replace(/[%\s]/g,""));
+      if (!isNaN(n)) { STRESS[+i][k] = n/100; renderAll(); }
+    });
+  });
+}
+function pathFromIndex(vals){
+  const out = [0];
+  let peak = vals[0];
+  for (let i=1;i<vals.length;i++){ peak = Math.max(peak, vals[i]); out.push(vals[i]/peak - 1); }
+  return out;
+}
+function renderSeries(){
+  const S = STATE.series;
+  const labels = [{ key:"current", name:"Current", color:sc(0) },
+                  { key:"proposed", name:"Proposed", color:sc(1) },
+                  { key:"benchmark", name:"Benchmark", color:sc(2) }]
+    .filter(l => S[l.key] && S[l.key].length === S.dates.length);
+  document.getElementById("growthLegend").innerHTML = legendHTML(labels) +
+    (S.placeholder ? '<li><span class="badge warn">Placeholder series from the workbook</span></li>' : "");
+  if (S.dates.length < 2){
+    document.getElementById("growthChart").innerHTML = '<p class="empty">Paste a return series to draw this.</p>';
+    document.getElementById("ddChart").innerHTML = "";
+    return;
+  }
+  const xTicks = [];
+  const step = Math.max(1, Math.floor(S.dates.length / Math.min(6, S.dates.length)));
+  for (let i=0;i<S.dates.length;i+=step) xTicks.push({ i, label:S.dates[i].slice(0,7) });
+  const all = labels.flatMap(l => S[l.key]);
+  /* $11K / $11K / $10K is a useless axis on a narrow range — pick the precision
+     from the spread actually on screen. */
+  const spread = Math.max(...all) - Math.min(...all);
+  const mf = spread < 3000 ? (v => "$" + Math.round(v).toLocaleString("en-US")) : moneyShort;
+  drawLineChart(document.getElementById("growthChart"), {
+    width:hostW("growthChart"), height:252, padL:78,
+    series:labels.map(l=>({ name:l.name, color:l.color, vals:S[l.key] })),
+    yDomain:[Math.min(...all)*0.995, Math.max(...all)*1.005],
+    yFmt:mf, endFmt:mf, tipFmt:money,
+    xLabel:i=>S.dates[i], xTicks, endLabel:true
+  });
+  const dd = labels.map(l=>({ name:l.name, color:l.color, vals:pathFromIndex(S[l.key]) }));
+  const worst = Math.min(...dd.flatMap(d=>d.vals));
+  drawLineChart(document.getElementById("ddChart"), {
+    width:hostW("ddChart"), height:252, padL:64, series:dd,
+    yDomain:[Math.min(-0.005, worst)*1.12, 0],
+    yFmt:v=>(v*100).toFixed(1)+"%", tipFmt:v=>pct(v), endFmt:v=>pct(v),
+    xLabel:i=>S.dates[i], xTicks, baselineAt:0, fill:true
+  });
+  document.getElementById("ddNote").innerHTML = worst >= -0.0001
+    ? "This series never falls below a previous high, so there is no drawdown to draw. " +
+      (S.placeholder ? "The workbook ships five placeholder months that only rise." : "") +
+      " Paste a real series to see the shape clients actually feel."
+    : "Deepest fall on this series: <b>" + pct(worst) + "</b>.";
+}
+
+/* ==================================================================
+   RENDER + EVENTS
+   ================================================================== */
+function labelCharts(){
+  document.querySelectorAll(".card").forEach(card => {
+    card.querySelectorAll("svg.chart").forEach(svg => {
+      const h = card.querySelector("h3"), sub = card.querySelector(".sub");
+      svg.setAttribute("aria-label", (h?h.textContent:"Chart") + (sub?". "+sub.textContent:"") +
+        " The same values appear in the table on this card.");
+    });
+  });
+}
+function renderAll(){
+  document.querySelectorAll(".tabpane").forEach(p => { p.hidden = p.id !== "pane-"+STATE.tab; });
+  renderHead();
+  renderSleeves();
+  renderSwaps();
+  renderHoldings();
+  if (STATE.tab === "metrics")  renderCards();
+  if (STATE.tab === "score")    renderScore();
+  if (STATE.tab === "frontier") renderFrontier();
+  if (STATE.tab === "stress")   { renderStress(); renderSeries(); }
+  document.getElementById("footNote").innerHTML =
+    "<b>Where the numbers come from.</b> Allocations, sleeve weights, the trade and the rows marked " +
+    "<span class=\"chip calc\">Live</span> are computed from the weights on this page and update as you change them. " +
+    "Every other figure — returns, volatility, Sharpe, drawdowns, capture, duration, the sizing table and the stress " +
+    "scenarios — is an input carried over from the workbook and editable in place. This page does not model or simulate " +
+    "returns for any fund named here." +
+    "<br><br><b>Not investment advice.</b> Past performance does not predict future results. Fund figures should be checked " +
+    "against current fact sheets before this is shown to a client.";
+  labelCharts();
+}
+
+document.getElementById("modelSeg").innerHTML = MODELS.map(m =>
+  '<button type="button" data-model="'+m.id+'">'+esc(m.short)+"</button>").join("");
+document.getElementById("modelSeg").addEventListener("click", e => {
+  const b = e.target.closest("[data-model]"); if (!b) return;
+  STATE.model = b.getAttribute("data-model");
+  STATE.volTarget = null;
+  document.querySelectorAll("[data-model]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  renderAll();
+});
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  STATE.tab = b.getAttribute("data-tab");
+  document.querySelectorAll("#tabs [data-tab]").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  renderAll();
+  window.scrollTo({ top:0, behavior:"smooth" });
+});
+document.getElementById("copyCurBtn").addEventListener("click", () => { rows().forEach(r => r.prop = r.cur); renderAll(); });
+document.getElementById("normPropBtn").addEventListener("click", () => {
+  const t = totalProp(); if (!t) return;
+  rows().forEach(r => r.prop = Math.round(r.prop/t*1000)/10);
+  renderAll();
+});
+document.getElementById("applySizingBtn").addEventListener("click", () => {
+  /* fund the WAM sizing out of the longest-duration core bond and RMBS sleeves first */
+  const need = SIZING.filter(s => s.shift > 0);
+  const fundOrder = ["RFXIX","MAHQX","PSDYX","BDMIX","NCRLX"];
+  let toRaise = need.reduce((s,x)=>s+x.shift,0);
+  for (const t of fundOrder){
+    if (toRaise <= 0) break;
+    const r = rows().find(x => x.ticker === t);
+    if (!r || r.prop <= 0) continue;
+    const cut = Math.min(r.prop, toRaise);
+    r.prop = Math.round((r.prop - cut)*10)/10;
+    toRaise = Math.round((toRaise - cut)*10)/10;
+  }
+  for (const s of need){
+    const t = s.action.replace(/.*to\s+/i, "").trim();
+    const r = rows().find(x => x.ticker === t);
+    if (r) r.prop = Math.round((r.prop + s.shift)*10)/10;
+  }
+  renderAll();
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+  seedRows();
+  STATE.metrics = JSON.parse(JSON.stringify(METRICS));
+  STATE.points = TALKING_POINTS.slice();
+  STATE.series = JSON.parse(JSON.stringify(SERIES_SEED));
+  STATE.volTarget = null;
+  renderAll();
+});
+document.getElementById("volTarget").addEventListener("input", e => {
+  STATE.volTarget = (+e.target.value)/100;
+  renderFrontier();
+});
+document.getElementById("seriesUse").addEventListener("click", () => {
+  const txt = document.getElementById("seriesPaste").value.trim();
+  const state = document.getElementById("seriesState");
+  if (!txt) return;
+  const rowsIn = txt.split("\n").map(l => l.split(/\t|,/).map(c=>c.trim())).filter(r => r.length >= 2);
+  const dates = [], cur = [], prop = [], bench = [];
+  for (const r of rowsIn){
+    const d = r[0];
+    if (!/\d{4}|\d{1,2}[/-]\d{1,2}/.test(d)) continue;
+    const nums = r.slice(1).map(v => parseFloat(String(v).replace(/[$,%\s]/g,"")));
+    if (!nums.length || isNaN(nums[0])) continue;
+    dates.push(d); cur.push(nums[0]);
+    if (nums.length > 1 && !isNaN(nums[1])) prop.push(nums[1]);
+    if (nums.length > 2 && !isNaN(nums[2])) bench.push(nums[2]);
+  }
+  if (dates.length < 2){ state.textContent = "Could not find at least two dated rows."; return; }
+  /* returns rather than index levels — compound them into an index */
+  const toIndex = a => { if (!a.length) return a;
+    const looksLikeReturns = a.every(v => Math.abs(v) < 50);
+    if (!looksLikeReturns) return a;
+    const out = [10000]; for (let i=1;i<a.length;i++) out.push(out[i-1]*(1+a[i]/100)); return out; };
+  STATE.series = { placeholder:false, dates,
+    current:toIndex(cur),
+    proposed:prop.length===dates.length?toIndex(prop):[],
+    benchmark:bench.length===dates.length?toIndex(bench):[] };
+  state.textContent = dates.length + " periods loaded.";
+  renderAll();
+});
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+const themeBtn = document.getElementById("themeBtn");
+const currentTheme = () => document.documentElement.getAttribute("data-theme") ||
+  (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+const syncTheme = () => { themeBtn.textContent = currentTheme() === "dark" ? "Light" : "Dark"; };
+try { const s = localStorage.getItem("cpd-theme"); if (s) document.documentElement.setAttribute("data-theme", s); } catch(e){}
+themeBtn.addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem("cpd-theme", next); } catch(e){}
+  syncTheme(); renderAll();
+});
+syncTheme();
+let rt = null;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(renderAll, 160); });
+
+document.querySelectorAll("[data-model]").forEach(x =>
+  x.setAttribute("aria-pressed", String(x.getAttribute("data-model") === STATE.model)));
+renderAll();
+</script>
+</body>
+</html>
