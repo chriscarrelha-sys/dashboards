@@ -1,8 +1,12 @@
 # Chase Forensic Evidence Retrieval
 
-Organizes an iCloud case master folder against the Chase Forensic Evidence
-Retrieval Checklist: 23 categories, SHA-256 deduplication, OCR companions,
-prove/contradict flagging, a master spreadsheet, and a P0 completion report.
+Organizes an iCloud case master folder for *Carrelha v. JPMorgan Chase Bank,
+N.A.*: 23 categories, SHA-256 deduplication, OCR companions, prove/contradict
+flagging, a master spreadsheet, and a P0 completion report.
+
+Case facts live in `case_profile.py` — the two tradelines, the identifiers, the
+20 P0 targets, and the superseded narratives. Change a case fact there and
+nowhere else.
 
 **This runs on your Mac, against your real iCloud Drive.** It cannot be run
 from a cloud session — the files are not there.
@@ -62,6 +66,59 @@ as scans.
    authentication/security records.
 9. **Writes the master spreadsheet** with all 18 required columns.
 
+## The two tradelines
+
+The matter involves two Chase tradelines with different theories. They are
+tracked separately end to end, and every row in the master index carries a
+`Tradeline` column.
+
+| Tradeline | Card | Theory |
+|---|---|---|
+| **552475** | 3816 | Charge-off / payment contradiction. Chase reports a 2023-09-06 charge-off — six days *before* the first payment attempt — while current TU/EX disclosures show $0 and "paid in full — was a charge-off". The 2023-09-28 successful $18,703.85 debit has never been ledger-accounted for. |
+| **414720** | 6974 | The objectively-falsifiable field. Chase continues to report an **$8,045** balance against Chase's own 2026-02-09 settlement letter for **$8,045.23**. |
+
+A document about 414720 that carries no 552475 marker is filed to the 414720
+folder regardless of what else it scores on, so the two records never blend.
+
+The 23-cent difference is detected precisely: `$8,045` and `$8,045.23` are
+matched by separate patterns that cannot match each other, and a document
+reporting the bare figure in a credit-reporting context is flagged as the
+falsifiable field.
+
+## The superseded-narrative guard
+
+The 2026-08-15 evidence audit determined there was **ONE** successful debit of
+$18,703.85 — **not** two totaling $37,407.70. Any document asserting the old
+figure is capped at **P3**, cannot satisfy a P0 target, and is listed in
+`SUPERSEDED_DO_NOT_CITE.md`. Prior "SEND READY" packages are treated the same
+way; only the 2026-08-26 Pre-Suit Settlement Demand is current.
+
+The guard distinguishes a document that *asserts* the corrected figure from one
+that *quotes it in order to correct it*. The August 15 audit necessarily
+mentions $37,407.70 — it is the corrective record and a P0 target, so it is
+exempt. Without that distinction the single most important corrective document
+in the case would be buried at P3.
+
+Nothing superseded is deleted. It is preserved at its original path and indexed
+in full; it simply cannot be promoted.
+
+## Source evidence vs derivative material
+
+Every row carries an `Evidence Class`: `SOURCE` (what a court can be shown),
+`DERIVATIVE` (our own analysis, drafts, indexes, strategy), or `UNDETERMINED`.
+Anything Chase or a third party produced is SOURCE regardless of filename; our
+own drafts are DERIVATIVE even when they quote source documents at length.
+
+## Retrieval order
+
+1. **Roadmap first.** `00 CHASE - Deep Forensic Audit + Pre-Litigation Case
+   Mapping - 2026-08-26.pdf` is the map. Locate every source document it cites.
+2. **Then sweep by identifier.** Independent of category or folder, every
+   document is searched for all nine case identifiers — 3816, 552475, 6974,
+   414720, $18,703.85, 6962374806, $8,045.23, CFPB 260206-28594668, and
+   ECW231003-00436-R1. Results land in `IDENTIFIER_SWEEP.md`. An identifier
+   with zero hits is a hole in the record that re-filing cannot fill.
+
 ## Output
 
 ```
@@ -70,13 +127,15 @@ as scans.
 │   ├── 01_Core_Account_Records/
 │   ├── 02_Sept2023_Payment_Evidence/
 │   ├── ...
-│   ├── 19_SEPARATE_JPMCB_8045_Tradeline_QUARANTINE/
+│   ├── 19_Tradeline_414720_card_6974/
 │   └── 00_UNCLASSIFIED_NEEDS_REVIEW/
 ├── OCR_COMPANIONS/             searchable copies of image-only documents
 └── REPORTS/
     ├── MASTER_INDEX.csv        the master spreadsheet (opens in Excel/Numbers)
     ├── MASTER_INDEX.xlsx       same, formatted, if openpyxl is installed
     ├── P0_COVERAGE_REPORT.md   READ THIS FIRST
+    ├── IDENTIFIER_SWEEP.md     hits for all nine case identifiers
+    ├── SUPERSEDED_DO_NOT_CITE.md
     ├── CONTRADICTIONS_AND_FLAGS.md
     ├── ICLOUD_NOT_DOWNLOADED.md
     └── SHA256_MANIFEST.txt
@@ -112,14 +171,6 @@ with `--download-icloud` to materialize them first, or:
 ```bash
 find ~/Library/Mobile\ Documents -name '.*.icloud' -exec brctl download {} \;
 ```
-
-## The quarantined tradeline
-
-Category 19 holds the separate ~$8,045 JPMCB tradeline. A document carrying the
-separate-tradeline markers and none of this account's markers is routed there
-regardless of what else it scores on, so it cannot be merged into the main
-analysis before provenance is established. The folder's README states the two
-questions that must be answered before anything in it is used.
 
 ## Options
 

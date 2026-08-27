@@ -11,6 +11,7 @@ import datetime as dt
 import os
 
 import taxonomy as T
+import case_profile as C
 
 
 def _stamp():
@@ -111,6 +112,16 @@ def write_coverage_report(path, rows, found_probes, reference_corpus,
     a("")
     a("Retrieval is complete only when every P0 item below reads **FOUND**, ")
     a("**CONFIRMED NOT PRESENT**, or **REFERENCED BUT SOURCE COPY NOT LOCATED**.")
+    a("")
+    a("## Tradelines")
+    a("")
+    for tl in C.TRADELINES.values():
+        n = len([r for r in rows if tl["label"] in r.get("Tradeline", "")])
+        a("- **%s** - %d document%s. %s" % (tl["label"], n,
+                                            "" if n == 1 else "s", tl["theory"]))
+    unattr = len([r for r in rows if r.get("Tradeline") == "UNATTRIBUTED"])
+    a("- **Unattributed** - %d document%s carrying no tradeline marker." % (
+        unattr, "" if unattr == 1 else "s"))
     a("")
 
     complete = True
@@ -305,16 +316,22 @@ def write_category_readmes(organized_root):
                  "Default priority: **%s**" % cat["priority"], ""]
         if cat["id"] == "19":
             lines += [
-                "## QUARANTINE",
+                "## Keep separate from tradeline 552475",
                 "",
-                "This tradeline is kept **completely separate** until provenance is "
-                "established. Nothing in this folder may be merged into the main "
-                "Chase account analysis, cited as this account's history, or "
-                "included in a demand or filing about the 3816 / 552475 account "
-                "until you have determined:",
+                "This is the **second** Chase tradeline: 414720, card 6974. It is "
+                "identified, not unattributed - but it carries a different theory "
+                "from 552475 and its record is kept separate so the two never "
+                "blend in a filing.",
                 "",
-                "1. whether the account is actually Chris Carrelha's; and",
-                "2. whether it has any relationship to the 3816 / 552475 account.",
+                "**The theory:** Chase continues to report an **$8,045** balance "
+                "against Chase's own 2026-02-09 settlement letter for "
+                "**$8,045.23**. That 23-cent difference is the strongest "
+                "objectively-falsifiable field in the record.",
+                "",
+                "Documents here reporting the bare $8,045 figure are flagged as "
+                "the falsifiable field in `CONTRADICTIONS_AND_FLAGS.md`. Chase's "
+                "own settlement letter is the proof document that contradicts "
+                "them.",
                 "",
             ]
         lines += [
@@ -336,10 +353,117 @@ def _write(path, lines):
 
 
 # --------------------------------------------------------------------------
+# Identifier sweep
+# --------------------------------------------------------------------------
+
+def write_identifier_sweep(path, identifier_hits, rows):
+    """
+    Independent of category, report which case identifiers were found anywhere
+    in the catalog. An identifier with zero hits is a hole in the record.
+    """
+    by_id = {r["Document ID"]: r for r in rows}
+    lines = []
+    a = lines.append
+    a("# Identifier Sweep")
+    a("")
+    a("Generated: %s" % _stamp())
+    a("")
+    a("Every scanned document was searched for each case identifier, regardless "
+      "of how it was classified. An identifier with **no hits** is a hole in the "
+      "record that no amount of re-filing will fill.")
+    a("")
+    a("| Identifier | Hits | Why it matters |")
+    a("|---|---|---|")
+    for label, _rx, why in C.IDENTIFIERS:
+        hits = identifier_hits.get(label, [])
+        cell = "**%d**" % len(hits) if hits else "**0 - NOT FOUND**"
+        a("| `%s` | %s | %s |" % (label, cell, why))
+    a("")
+
+    for label, _rx, _why in C.IDENTIFIERS:
+        hits = identifier_hits.get(label, [])
+        if not hits:
+            continue
+        a("## `%s` (%d)" % (label, len(hits)))
+        a("")
+        a("| Doc ID | Priority | Tradeline | Filename |")
+        a("|---|---|---|---|")
+        for doc_id in hits[:60]:
+            r = by_id.get(doc_id, {})
+            a("| %s | %s | %s | %s |" % (
+                doc_id, r.get("Priority", ""), r.get("Tradeline", ""),
+                r.get("Filename", "")))
+        if len(hits) > 60:
+            a("")
+            a("... and %d more (see the master index)." % (len(hits) - 60))
+        a("")
+
+    missing = [l for l, _r, _w in C.IDENTIFIERS if not identifier_hits.get(l)]
+    if missing:
+        a("## Identifiers with no hits anywhere")
+        a("")
+        for m in missing:
+            a("- `%s`" % m)
+        a("")
+        a("Confirm each of these before concluding the record is complete. A "
+          "zero here usually means either the document was never obtained or it "
+          "exists only as an unsearchable scan - check "
+          "`ICLOUD_NOT_DOWNLOADED.md` and the OCR status of image-only files.")
+        a("")
+
+    _write(path, lines)
+
+
+# --------------------------------------------------------------------------
+# Superseded material
+# --------------------------------------------------------------------------
+
+def write_superseded_report(path, rows):
+    """
+    The guard rail. These documents are preserved and never deleted, but they
+    assert figures the 2026-08-15 evidence audit corrected, or are prior
+    SEND-READY packages that must not go out.
+    """
+    flagged = [r for r in rows if r.get("Superseded")]
+    lines = []
+    a = lines.append
+    a("# Superseded Material - Preserve, Do Not Cite")
+    a("")
+    a("Generated: %s" % _stamp())
+    a("")
+    a("The 2026-08-15 evidence audit determined there was **ONE** successful "
+      "debit of **$18,703.85** on 2023-09-28 - **not** two successful debits "
+      "totaling $37,407.70. The control page further directs that prior "
+      "SEND-READY packages be preserved as superseded and not sent; only the "
+      "2026-08-26 Pre-Suit Settlement Demand is current.")
+    a("")
+    a("Documents below are retained in full at their original paths. They are "
+      "capped at **P3** and cannot satisfy a P0 target, so they cannot be "
+      "promoted into the canonical evidence set by any later pass.")
+    a("")
+    if not flagged:
+        a("No superseded material detected in the scanned sources.")
+        _write(path, lines)
+        return
+
+    a("## %d flagged document%s" % (len(flagged), "" if len(flagged) == 1 else "s"))
+    a("")
+    for r in _sorted(flagged):
+        a("### %s - %s" % (r["Document ID"], r["Filename"]))
+        a("")
+        a("- **Category:** %s" % r.get("Category", ""))
+        a("- **Date:** %s" % r.get("Date", ""))
+        a("- **Source:** `%s`" % r.get("Source Path", ""))
+        a("- **Why flagged:** %s" % r.get("Notes", "").split(" | ")[0])
+        a("")
+    _write(path, lines)
+
+
+# --------------------------------------------------------------------------
 # Dry-run summary
 # --------------------------------------------------------------------------
 
-def print_dry_run_summary(rows, found_probes, placeholders):
+def print_dry_run_summary(rows, found_probes, placeholders, identifier_hits=None):
     counts = {}
     for r in rows:
         cat = r.get("Category", "00 ?")
@@ -351,5 +475,13 @@ def print_dry_run_summary(rows, found_probes, placeholders):
     for probe in T.P0_PROBES:
         n = len(found_probes.get(probe["key"], []))
         print("  [%s] %-62s %d" % ("FOUND" if n else "  -  ", probe["label"][:62], n))
+    if identifier_hits is not None:
+        print("\nIdentifier sweep:")
+        for label, _rx, _why in C.IDENTIFIERS:
+            n = len(identifier_hits.get(label, []))
+            print("  %-34s %s" % (label, n if n else "0  <- NOT FOUND"))
+    sup = [r for r in rows if r.get("Superseded")]
+    if sup:
+        print("\n%d superseded document(s) flagged - capped at P3." % len(sup))
     if placeholders:
         print("\n%d iCloud files were not downloaded locally." % len(placeholders))

@@ -31,6 +31,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import taxonomy as T
+import case_profile as C
 import extract as X
 import report as R
 
@@ -184,18 +185,18 @@ def classify(filename, relpath, text):
     """Return (category_id, all_scores). Quarantine rules take precedence."""
     scores = score_categories(filename, relpath, text)
 
-    # Checklist item 19: the separate ~$8,045 JPMCB tradeline must stay
-    # quarantined until provenance is established. If a document carries the
-    # separate-tradeline markers and does NOT carry this account's markers,
-    # it goes to quarantine regardless of what else it scores on.
+    # The two tradelines carry different theories and stay separate. A document
+    # that is about 414720 / card 6974 (or its $8,045 figures) and carries no
+    # 552475 marker is filed to the 414720 folder regardless of what else it
+    # scores on, so the two records never blend.
     blob = " ".join([filename, relpath, text[:120_000] if text else ""])
-    has_separate = bool(T.RE_SEPARATE_AMOUNT.search(blob))
-    has_this_account = bool(
-        T.RE_PAYMENT_AMOUNT.search(blob)
-        or T.RE_CONFIRMATION.search(blob)
-        or T.RE_ACCOUNT_FRAG.search(blob)
-    )
-    if has_separate and not has_this_account:
+    is_414720 = bool(T.RE_TL_414720.search(blob)
+                     or T.RE_8045_EXACT.search(blob)
+                     or T.RE_8045_BARE.search(blob))
+    is_552475 = bool(T.RE_TL_552475.search(blob)
+                     or T.RE_PAYMENT_AMOUNT.search(blob)
+                     or T.RE_CONFIRMATION.search(blob))
+    if is_414720 and not is_552475:
         return "19", scores
 
     if not scores:
@@ -253,6 +254,12 @@ def detect_contradictions(blob, doc_date, flags):
     return notes
 
 
+def all_contradictions(blob, doc_date, flags, tradeline):
+    """Generic heuristics plus the detectors specific to this matter."""
+    return detect_contradictions(blob, doc_date, flags) + \
+        C.case_contradictions(blob, doc_date, tradeline)
+
+
 # --------------------------------------------------------------------------
 # Field extraction for the master spreadsheet
 # --------------------------------------------------------------------------
@@ -305,8 +312,15 @@ def find_amount(blob):
     """Prefer the case-critical amounts, else the largest dollar figure."""
     if T.RE_PAYMENT_AMOUNT.search(blob):
         return "$18,703.85"
-    if T.RE_SEPARATE_AMOUNT.search(blob):
-        return "$8,045 (separate tradeline)"
+    # The 23 cents is the whole point: report which figure the document uses.
+    has_exact = bool(T.RE_8045_EXACT.search(blob))
+    has_bare = bool(T.RE_8045_BARE.search(blob))
+    if has_exact and has_bare:
+        return "$8,045.23 AND $8,045 (both figures present)"
+    if has_exact:
+        return "$8,045.23 (Chase settlement figure)"
+    if has_bare:
+        return "$8,045 (reported figure - contradicts $8,045.23)"
     best, best_val = "", 0.0
     for m in RE_MONEY.finditer(blob[:60_000]):
         try:
@@ -398,7 +412,7 @@ LEGAL_RELEVANCE = {
     "16": "Notice, admissions, agent statements",
     "17": "Rebuts any claim payment was untimely or never tendered",
     "18": "Timeline; account status at each reporting period",
-    "19": "PROVENANCE UNRESOLVED - do not merge with main account",
+    "19": "Falsifiable field: reported $8,045 vs Chase's own $8,045.23 - 1681s-2(b) predicate for the 9/2/26 CRA dispute",
     "20": "Work product / pre-suit record",
     "21": "Actual damages under 1681n / 1681o",
     "22": "Authentication and chain of custody",
@@ -408,9 +422,14 @@ LEGAL_RELEVANCE = {
 }
 
 
-def assign_priority(category_id, blob, flags):
+def assign_priority(category_id, blob, flags, is_superseded=False):
     cat = T.CATEGORY_BY_ID[category_id]
     priority = cat["priority"]
+    # A superseded draft is preserved but never promoted. It cannot outrank P3
+    # no matter which identifiers it happens to contain, because the figures it
+    # asserts have been corrected.
+    if is_superseded:
+        return "P3"
     for rx in T.P0_ESCALATION:
         if rx.search(blob):
             return "P0"
@@ -511,6 +530,7 @@ def build(args):
     rows = []
     reference_corpus = []
     found_probes = {p["key"]: [] for p in T.P0_PROBES}
+    identifier_hits = {}
 
     for i, rec in enumerate(primaries, 1):
         if i % 200 == 0:
@@ -524,8 +544,13 @@ def build(args):
         cat = T.CATEGORY_BY_ID[cat_id]
         flags = detect_flags(blob)
         doc_date = find_date(rec["filename"], text or "")
-        contradictions = detect_contradictions(blob, doc_date, flags)
-        priority = assign_priority(cat_id, blob, flags)
+        tradeline = C.tradeline_of(blob)
+        superseded_notes, is_superseded = C.superseded_flags(blob, rec["filename"])
+        contradictions = all_contradictions(blob, doc_date, flags, tradeline)
+        priority = assign_priority(cat_id, blob, flags, is_superseded)
+        chase_produced = produced_by_chase(blob, cat_id)
+        ev_class = C.evidence_class(rec["filename"], relpath, text or "",
+                                    chase_produced)
 
         # OCR companion for image-only documents.
         companion, companion_kind = None, None
@@ -564,6 +589,7 @@ def build(args):
             "Date": doc_date or ("[file mtime] " + dt.date.fromtimestamp(rec["mtime"]).isoformat()),
             "Filename": rec["filename"],
             "Category": "%s %s" % (cat["id"], cat["title"]),
+            "Tradeline": tradeline,
             "Source Path": rec["path"],
             "Account": find_account(blob),
             "Amount": find_amount(blob),
@@ -572,24 +598,36 @@ def build(args):
             "Legal Relevance": LEGAL_RELEVANCE.get(cat_id, ""),
             "CRA": find_cra(blob),
             "Dispute Date": doc_date if cat_id in ("06", "07", "08", "09", "11") else "",
-            "Produced by Chase?": produced_by_chase(blob, cat_id),
+            "Produced by Chase?": chase_produced,
+            "Evidence Class": ev_class,
             "Original/OCR": orig_ocr,
             "Duplicate Status": dupe_status,
+            "Superseded": "SUPERSEDED - DO NOT CITE" if is_superseded else "",
             "SHA-256": rec["sha"],
             "Priority": priority,
-            "Notes": build_notes(rec, cat_id, flags, companion, companion_kind, mode),
+            "Notes": build_notes(rec, cat_id, flags, companion, companion_kind,
+                                 mode, superseded_notes),
         })
 
         if text:
             reference_corpus.append(text[:200_000])
 
-        # P0 probe evaluation.
-        for probe in T.P0_PROBES:
-            if cat_id in probe["categories"]:
+        # P0 target evaluation. A target with no category list matches on its
+        # patterns alone, because several targets legitimately land anywhere.
+        # Superseded drafts never satisfy a target.
+        if not is_superseded:
+            for probe in T.P0_PROBES:
+                if probe["categories"] and cat_id not in probe["categories"]:
+                    continue
                 for rx in probe["patterns"]:
                     if rx.search(blob):
                         found_probes[probe["key"]].append(rec["doc_id"])
                         break
+
+        # Identifier sweep across the whole catalog.
+        for label, rx, _why in C.IDENTIFIERS:
+            if rx.search(blob):
+                identifier_hits.setdefault(label, []).append(rec["doc_id"])
 
     # Duplicate rows, so every copy on disk is accounted for.
     for rec in dupes:
@@ -601,6 +639,7 @@ def build(args):
             "Date": base["Date"] if base else "",
             "Filename": rec["filename"],
             "Category": base["Category"] if base else "",
+            "Tradeline": base["Tradeline"] if base else "",
             "Source Path": rec["path"],
             "Account": base["Account"] if base else "",
             "Amount": base["Amount"] if base else "",
@@ -610,8 +649,10 @@ def build(args):
             "CRA": base["CRA"] if base else "",
             "Dispute Date": "",
             "Produced by Chase?": base["Produced by Chase?"] if base else "",
+            "Evidence Class": base["Evidence Class"] if base else "",
             "Original/OCR": "ORIGINAL (duplicate copy, not re-filed)",
             "Duplicate Status": "EXACT DUPLICATE of %s (SHA-256 match)" % primary["doc_id"],
+            "Superseded": base["Superseded"] if base else "",
             "SHA-256": rec["sha"],
             "Priority": base["Priority"] if base else "P3",
             "Notes": "Left in place at source. Not copied into the organized tree.",
@@ -621,7 +662,8 @@ def build(args):
 
     if args.dry_run:
         print("\nDRY RUN - no files copied, no reports written.")
-        R.print_dry_run_summary(rows, found_probes, placeholders)
+        R.print_dry_run_summary(rows, found_probes, placeholders,
+                                identifier_hits)
         return 0
 
     print("\nPass 3: writing reports...")
@@ -630,6 +672,10 @@ def build(args):
     R.write_coverage_report(
         os.path.join(reports, "P0_COVERAGE_REPORT.md"),
         rows, found_probes, reference_corpus, placeholders, roots)
+    R.write_identifier_sweep(
+        os.path.join(reports, "IDENTIFIER_SWEEP.md"), identifier_hits, rows)
+    R.write_superseded_report(
+        os.path.join(reports, "SUPERSEDED_DO_NOT_CITE.md"), rows)
     R.write_flag_report(os.path.join(reports, "CONTRADICTIONS_AND_FLAGS.md"), rows)
     R.write_placeholder_report(
         os.path.join(reports, "ICLOUD_NOT_DOWNLOADED.md"), placeholders)
@@ -644,12 +690,15 @@ def build(args):
     return 0
 
 
-def build_notes(rec, cat_id, flags, companion, companion_kind, mode):
+def build_notes(rec, cat_id, flags, companion, companion_kind, mode,
+                superseded_notes=()):
     notes = []
+    # Superseded warnings lead, so they are visible in a truncated cell.
+    notes.extend(superseded_notes)
     if cat_id == "00":
         notes.append("UNCLASSIFIED - manual review required")
     if cat_id == "19":
-        notes.append("QUARANTINED: separate JPMCB tradeline, provenance not established")
+        notes.append("Tradeline 414720 / card 6974 - keep separate from 552475")
     if flags:
         notes.append("Flags: " + ", ".join(flags))
     if companion:

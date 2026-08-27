@@ -10,20 +10,22 @@ Nothing in this module touches the filesystem.
 
 import re
 
+import case_profile as C
+
 # --------------------------------------------------------------------------
-# Case constants. These are the high-signal identifiers for the matter.
+# Case constants. Case facts live in case_profile.py; these are aliases so the
+# patterns below stay readable.
 # --------------------------------------------------------------------------
 
-PAYMENT_AMOUNT = "18,703.85"
-PAYMENT_CONFIRMATION = "6962374806"
-SEPARATE_TRADELINE_AMOUNT = "8,045"
-ACCOUNT_FRAGMENTS = ("3816", "552475")
+RE_PAYMENT_AMOUNT = C.RE_PAYMENT_AMOUNT
+RE_CONFIRMATION = C.RE_CONFIRMATION
+RE_8045_BARE = C.RE_8045_BARE
+RE_8045_EXACT = C.RE_8045_EXACT
 
-# Amount regexes tolerate OCR noise: optional $, optional comma, optional space.
-RE_PAYMENT_AMOUNT = re.compile(r"\$?\s*18[,.\s]?703[.,]\s?85")
-RE_CONFIRMATION = re.compile(r"6962[\s-]?374[\s-]?806")
-RE_SEPARATE_AMOUNT = re.compile(r"\$?\s*8[,.\s]?045(?:[.,]\d{2})?")
-RE_ACCOUNT_FRAG = re.compile(r"\b(?:3816|552475)\b")
+# Account-number fragments for each tradeline.
+RE_TL_552475 = re.compile(r"\b(?:3816|552475)\b")
+RE_TL_414720 = re.compile(r"\b(?:6974|414720)\b")
+RE_ACCOUNT_FRAG = re.compile(r"\b(?:3816|552475|6974|414720)\b")
 
 # Dates that matter, in the several formats documents actually use.
 RE_SEPT_2023_PAYMENT = re.compile(
@@ -328,13 +330,17 @@ CATEGORIES = [
     },
     {
         "id": "19",
-        "name": "19_SEPARATE_JPMCB_8045_Tradeline_QUARANTINE",
-        "title": "Separate / Possibly Unrelated Chase Tradeline",
-        "priority": "P1",
+        "name": "19_Tradeline_414720_card_6974",
+        "title": "Tradeline 414720 / card 6974 ($8,045 falsifiable field)",
+        # P0: this tradeline carries the strongest objectively-falsifiable
+        # field in the record - a reported $8,045 against Chase's own
+        # $8,045.23 settlement figure.
+        "priority": "P0",
         "patterns": [
-            (RE_SEPARATE_AMOUNT, 6),
-            _p(r"JPMCB(?!\s*card\s*services\s*3816)", 3),
-            _p(r"second\s+(?:chase|JPMCB)\s+tradeline|separate\s+tradeline", 5),
+            (RE_TL_414720, 6),
+            (RE_8045_EXACT, 6),
+            (RE_8045_BARE, 5),
+            _p(r"settlement\s+letter", 3),
         ],
     },
     {
@@ -413,115 +419,18 @@ MIN_SCORE = 4.0
 # document* (an index, a letter, a memo), prove the item exists somewhere.
 # --------------------------------------------------------------------------
 
-P0_PROBES = [
-    {
-        "key": "SEPT2023_PAYMENT_PROOF",
-        "label": "September 2023 payment proof (confirmation 6962374806 / $18,703.85)",
-        "categories": ["02", "03"],
-        "patterns": [RE_CONFIRMATION, RE_PAYMENT_AMOUNT],
-        "reference_patterns": [
-            re.compile(r"confirmation\s*(?:no\.?|number|#)?\s*:?\s*6962", re.I),
-            RE_PAYMENT_AMOUNT,
-        ],
-    },
-    {
-        "key": "CHASE_POSTING_LEDGER",
-        "label": "Chase posting ledger / application of the payment",
-        # Posting evidence is filed either as payment evidence or inside the
-        # recovery/charge-off accounting, so both categories satisfy it.
-        "categories": ["02", "04"],
-        "patterns": [
-            re.compile(r"post(?:ed|ing)\s+(?:to|of)|applied\s+to\s+(?:the\s+)?account", re.I),
-            re.compile(r"general\s+ledger|GL\s+entry", re.I),
-        ],
-        "reference_patterns": [re.compile(r"posting\s+ledger|payment\s+posting", re.I)],
-    },
-    {
-        "key": "CHARGEOFF_RECOVERY_ACCOUNTING",
-        "label": "Charge-off / recovery accounting (date, amount, pre- and post-payment balance)",
-        "categories": ["04", "02"],
-        "patterns": [
-            re.compile(r"charge[\s-]?off\s+(?:date|amount)", re.I),
-            re.compile(r"recovery\s+balance", re.I),
-        ],
-        "reference_patterns": [re.compile(r"charge[\s-]?off\s+(?:ledger|accounting|entry)", re.I)],
-    },
-    {
-        "key": "PAID_IN_FULL_LETTER",
-        "label": "November 8, 2023 Chase paid-in-full letter",
-        "categories": ["05"],
-        "patterns": [
-            re.compile(r"paid\s*[\s-]?in\s*[\s-]?full", re.I),
-            RE_PIF_LETTER_DATE,
-        ],
-        "reference_patterns": [
-            re.compile(r"paid[\s-]?in[\s-]?full\s+letter", re.I),
-            re.compile(r"november\s+8,?\s*2023\s+letter", re.I),
-        ],
-    },
-    {
-        "key": "ACDV_EOSCAR",
-        "label": "ACDV / AUD / e-OSCAR furnisher records",
-        "categories": ["09"],
-        "patterns": [re.compile(r"\bACDV\b|e-?OSCAR|\bAUD\b(?!IT)")],
-        "reference_patterns": [re.compile(r"\bACDV\b|e-?OSCAR", re.I)],
-    },
-    {
-        "key": "METRO2_DATA",
-        "label": "Metro 2 furnishing data (field-level)",
-        "categories": ["10"],
-        "patterns": [
-            re.compile(r"metro\s*-?\s*2\b", re.I),
-            re.compile(r"date\s+of\s+first\s+delinquenc|compliance\s+condition\s+code", re.I),
-        ],
-        "reference_patterns": [re.compile(r"metro\s*-?\s*2\b", re.I)],
-    },
-    {
-        "key": "CRA_REINVESTIGATION_RESULTS",
-        "label": "CRA reinvestigation / investigation results (TU, EXP, EFX)",
-        "categories": ["06", "07", "08"],
-        "patterns": [
-            re.compile(r"reinvestigat|investigation\s+results?|verified\s+as\s+accurate", re.I),
-        ],
-        "reference_patterns": [
-            re.compile(r"(?:dispute|investigation)\s+results?", re.I),
-        ],
-    },
-    {
-        "key": "CHASE_FRAUD_INVESTIGATION",
-        "label": "Chase fraud investigation (claim, notes, result)",
-        "categories": ["12"],
-        "patterns": [
-            re.compile(r"fraud\s+(?:claim|case|investigation)", re.I),
-        ],
-        "reference_patterns": [re.compile(r"fraud\s+(?:claim|case)\s*(?:no\.?|number|#)", re.I)],
-    },
-    {
-        "key": "IDENTITY_THEFT_RECORDS",
-        "label": "Identity-theft records (FTC report, police report, Chase ID-theft submission)",
-        "categories": ["12", "13"],
-        "patterns": [
-            re.compile(r"identity\s+theft|identitytheft\.gov|police\s+report", re.I),
-        ],
-        "reference_patterns": [re.compile(r"identity\s+theft\s+(?:report|affidavit)", re.I)],
-    },
-    {
-        "key": "AUTHENTICATION_SECURITY_RECORDS",
-        "label": "Authentication / security records (MFA, OTP, device, login, IP)",
-        "categories": ["12"],
-        "patterns": [
-            re.compile(r"\bMFA\b|\bOTP\b|device\s+registrat|trusted\s+device|login\s+history|IP\s+address", re.I),
-        ],
-        "reference_patterns": [re.compile(r"authentication\s+records|device\s+history", re.I)],
-    },
-]
+P0_PROBES = C.P0_TARGETS
 
 # Documents matching these are escalated to P0 regardless of category.
-P0_ESCALATION = [RE_CONFIRMATION, RE_PAYMENT_AMOUNT]
+P0_ESCALATION = [RE_CONFIRMATION, RE_PAYMENT_AMOUNT, RE_8045_EXACT,
+                 C.RE_CFPB, C.RE_609E_REF]
 
+# The 18 columns required by the checklist, plus three this matter needs:
+# Tradeline (two tradelines with different theories), Evidence Class (source
+# proof vs our own derivative work), and Superseded (the $37,407.70 guard).
 MASTER_COLUMNS = [
-    "Document ID", "Date", "Filename", "Category", "Source Path", "Account",
-    "Amount", "Key Fact", "Contradiction", "Legal Relevance", "CRA",
-    "Dispute Date", "Produced by Chase?", "Original/OCR", "Duplicate Status",
-    "SHA-256", "Priority", "Notes",
+    "Document ID", "Date", "Filename", "Category", "Tradeline", "Source Path",
+    "Account", "Amount", "Key Fact", "Contradiction", "Legal Relevance", "CRA",
+    "Dispute Date", "Produced by Chase?", "Evidence Class", "Original/OCR",
+    "Duplicate Status", "Superseded", "SHA-256", "Priority", "Notes",
 ]
