@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Objections Cheat Sheet — 26SC-1103-B</title>
+<style>
+  :root{
+    --paper:#ffffff;
+    --ink:#14181f;
+    --navy:#1b2a44;
+    --navy-deep:#111c2e;
+    --brass:#a8823c;
+    --brass-soft:#f4edde;
+    --muted:#5c6675;
+    --rule:#e3e7ed;
+    --rule-strong:#c9d0da;
+    --wash:#f7f8fa;
+    --red:#8f2b2b;
+    --red-wash:#fbf1f1;
+    --green:#1f5c46;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:"Inter","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --mono:"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--wash);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+  }
+
+  .sheet{
+    max-width:1080px;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 1px 3px rgba(17,28,46,.08),0 12px 40px rgba(17,28,46,.06);
+  }
+
+  /* ---------- utility bar ---------- */
+  .toolbar{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:14px 40px;
+    font-size:12px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .toolbar button{
+    font:inherit;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--navy);
+    background:var(--paper);
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{background:var(--brass-soft);border-color:var(--brass)}
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    background:var(--navy-deep);
+    color:#fff;
+    padding:38px 48px 32px;
+    border-bottom:4px solid var(--brass);
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 18px;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-size:34px;
+    line-height:1.15;
+    margin:0 0 8px;
+    font-weight:600;
+  }
+  .masthead .kicker{
+    font-family:var(--serif);
+    font-size:16px;
+    font-style:italic;
+    color:#c3cbd8;
+    margin:0 0 26px;
+    max-width:62ch;
+  }
+  .facts{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:1px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .fact{background:var(--navy-deep);padding:12px 14px}
+  .fact dt{
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#8f9cb0;
+    margin:0 0 4px;
+  }
+  .fact dd{margin:0;font-size:14px;color:#fff;font-weight:500}
+
+  /* ---------- pillars ---------- */
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:1px;
+    background:var(--rule);
+    border-bottom:1px solid var(--rule);
+  }
+  .pillar{background:var(--paper);padding:22px 24px 24px}
+  .pillar .tag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    border:1px solid var(--brass);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-bottom:12px;
+  }
+  .pillar h3{
+    font-family:var(--mono);
+    font-size:15px;
+    margin:0 0 8px;
+    color:var(--navy);
+    letter-spacing:-.01em;
+  }
+  .pillar p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ---------- sections ---------- */
+  section{padding:34px 48px;border-bottom:1px solid var(--rule)}
+  section:last-of-type{border-bottom:none}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--brass);
+    letter-spacing:.1em;
+    padding-top:3px;
+  }
+  h2{
+    font-family:var(--serif);
+    font-size:23px;
+    font-weight:600;
+    margin:0;
+    color:var(--navy);
+  }
+  .sec-note{
+    margin:0 0 22px 34px;
+    font-size:13.5px;
+    color:var(--muted);
+    max-width:78ch;
+  }
+
+  /* ---------- matrix table ---------- */
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:840px}
+  thead th{
+    text-align:left;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--navy);
+    padding:10px 12px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:13px 12px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  tbody tr:nth-child(even) td{background:#fbfcfd}
+  td.cat{font-weight:600;color:var(--navy);white-space:nowrap}
+  td.sworn{color:var(--red)}
+  td.actual{color:var(--green)}
+  td.cite{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  td.impact{font-weight:500}
+
+  /* ---------- authority cards ---------- */
+  .stack{display:grid;gap:16px}
+  .auth{
+    border:1px solid var(--rule);
+    border-left:3px solid var(--brass);
+    background:#fcfcfd;
+    padding:18px 22px;
+  }
+  .auth h3{
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--navy);
+    margin:0 0 8px;
+  }
+  .auth p{margin:0;font-size:14px;color:#333a45}
+  .auth.distinguished{border-left-color:var(--red)}
+  .auth .flag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--red);
+    background:var(--red-wash);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-left:8px;
+    vertical-align:2px;
+  }
+
+  /* ---------- two column ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .col h3{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 16px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+
+  /* ---------- cross-exam tree ---------- */
+  .tree{list-style:none;margin:0;padding:0;counter-reset:q}
+  .tree li{
+    position:relative;
+    padding:0 0 20px 30px;
+    border-left:1px solid var(--rule-strong);
+  }
+  .tree li:last-child{border-left-color:transparent;padding-bottom:0}
+  .tree li::before{
+    counter-increment:q;
+    content:counter(q);
+    position:absolute;
+    left:-11px;
+    top:0;
+    width:21px;
+    height:21px;
+    border-radius:50%;
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .tree .label{
+    font-weight:600;
+    color:var(--navy);
+    font-size:13px;
+    display:block;
+    margin-bottom:6px;
+  }
+  .tree .ask{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .tree .effect{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0;
+  }
+  .tree .effect::before{content:"→ ";color:var(--brass)}
+
+  /* ---------- scripts ---------- */
+  .script{
+    background:var(--wash);
+    border:1px solid var(--rule);
+    padding:16px 18px;
+    margin-bottom:16px;
+  }
+  .script:last-child{margin-bottom:0}
+  .script .label{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    display:block;
+    margin-bottom:10px;
+  }
+  .script blockquote{
+    margin:0;
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:14px;
+  }
+
+  footer{
+    padding:20px 48px 28px;
+    background:var(--navy-deep);
+    color:#8f9cb0;
+    font-size:11.5px;
+    letter-spacing:.04em;
+  }
+  footer strong{color:#c3cbd8;font-weight:500}
+
+  @media (max-width:760px){
+    .toolbar,.masthead,section,footer{padding-left:22px;padding-right:22px}
+    .cols{grid-template-columns:1fr;gap:28px}
+    .masthead h1{font-size:26px}
+  }
+
+  @media print{
+    @page{size:letter;margin:.6in}
+    body{background:#fff;font-size:10.5pt}
+    .sheet{box-shadow:none;max-width:none}
+    .toolbar{display:none}
+    .masthead,footer{
+      background:#fff!important;
+      color:#000;
+      border-bottom:2px solid #000;
+      padding:0 0 14px;
+    }
+    .masthead h1,.fact dd{color:#000}
+    .masthead .kicker,.fact dt,footer{color:#333}
+    .eyebrow{color:#000}
+    .fact{background:#fff;border:1px solid #999}
+    .facts{background:#fff;border-color:#999}
+    thead th{background:#e8eaee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{padding:16px 0;page-break-inside:avoid}
+    .pillars{padding:0}
+    .pillar{padding:10px 12px}
+    .tree li,.auth,.script{page-break-inside:avoid}
+    footer{border-top:1px solid #000;border-bottom:none;margin-top:12px}
+    .scroll{overflow:visible}
+    table{min-width:0}
+  }
+
+  /* ---------- verification banner ---------- */
+  .verify{
+    background:var(--red-wash);
+    border:1px solid #e6c9c9;
+    border-left:3px solid var(--red);
+    padding:14px 18px;
+    margin:0 48px 0;
+  }
+  .verify h3{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 6px;
+  }
+  .verify p{margin:0 0 6px;font-size:13px;color:#4a3232}
+  .verify p:last-child{margin-bottom:0}
+  .verify code{font-family:var(--mono);font-size:12px}
+
+  /* ---------- script blocks ---------- */
+  .beat{margin:0 0 26px}
+  .beat:last-child{margin-bottom:0}
+  .beat > h4{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--navy);
+    margin:0 0 10px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--rule);
+  }
+  .say{
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.62;
+    border-left:3px solid var(--brass);
+    background:#fdfbf6;
+    padding:12px 16px;
+    margin:0 0 10px;
+  }
+  .say p{margin:0 0 10px}
+  .say p:last-child{margin-bottom:0}
+  .stage{
+    font-style:italic;
+    color:var(--muted);
+    font-size:13px;
+    margin:0 0 10px;
+  }
+  .stage::before{content:"[ "}
+  .stage::after{content:" ]"}
+  .strat{
+    font-size:13px;
+    color:#333a45;
+    margin:0 0 10px;
+    max-width:82ch;
+  }
+  .strat:last-child{margin-bottom:0}
+  .strat b{color:var(--navy)}
+
+  /* ---------- placeholder slot ---------- */
+  .slot{
+    border:1px dashed var(--rule-strong);
+    background:repeating-linear-gradient(135deg,#fafbfc,#fafbfc 8px,#f2f4f7 8px,#f2f4f7 16px);
+    padding:12px 16px;
+    margin:0 0 10px;
+    font-size:13px;
+    color:#4a5262;
+  }
+  .slot b{
+    display:block;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:14px;
+    margin:0 0 4px;
+  }
+  .legend div{font-size:12.5px;color:var(--muted);padding-left:12px;border-left:3px solid var(--rule-strong)}
+  .legend div b{display:block;color:var(--navy);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+  .legend .l-say{border-left-color:var(--brass)}
+  .legend .l-slot{border-left-color:var(--rule-strong)}
+
+  /* ---------- checklist ---------- */
+  .check{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .check li{
+    position:relative;
+    padding-left:30px;
+    font-size:13.5px;
+    color:#333a45;
+  }
+  .check li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:2px;
+    width:14px;
+    height:14px;
+    border:1.5px solid var(--rule-strong);
+    border-radius:2px;
+  }
+  .check li b{color:var(--navy)}
+
+  /* ---------- status pills ---------- */
+  .pill{
+    display:inline-block;
+    font-family:var(--sans);
+    font-size:9.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    border-radius:2px;
+    padding:2px 6px;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .pill.ok{color:var(--green);background:#eaf3ef;border:1px solid #bcd8cb}
+  .pill.gap{color:var(--red);background:var(--red-wash);border:1px solid #e6c9c9}
+  .pill.prop{color:#7a5c17;background:var(--brass-soft);border:1px solid #e0cd9e}
+
+  /* ---------- tab divider sheets ---------- */
+  .divider{
+    border:2px solid var(--navy);
+    padding:44px 42px;
+    margin:0 0 22px;
+    background:var(--paper);
+    text-align:center;
+  }
+  .divider .rail{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding-bottom:14px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:38px;
+  }
+  .divider .tabno{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:.3em;
+    color:var(--brass);
+    margin:0 0 10px;
+  }
+  .divider h3{
+    font-family:var(--serif);
+    font-size:30px;
+    font-weight:600;
+    color:var(--navy);
+    margin:0 0 16px;
+    line-height:1.2;
+  }
+  .divider .desc{
+    font-family:var(--serif);
+    font-size:15px;
+    font-style:italic;
+    color:#333a45;
+    margin:0 auto 38px;
+    max-width:52ch;
+  }
+  .divider .foot{
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--muted);
+    padding-top:14px;
+    border-top:1px solid var(--rule);
+  }
+  .divider .foot .brand{
+    display:block;
+    margin-top:8px;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.28em;
+    color:var(--navy);
+  }
+
+  /* ---------- objection cards ---------- */
+  .obj{
+    border:1px solid var(--rule);
+    border-top:3px solid var(--navy);
+    background:var(--paper);
+    padding:18px 20px;
+  }
+  .obj.defensive{border-top-color:var(--brass)}
+  .obj h3{
+    font-family:var(--serif);
+    font-size:18px;
+    color:var(--navy);
+    margin:0 0 4px;
+    font-weight:600;
+  }
+  .obj .auth-line{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--brass);
+    margin:0 0 14px;
+  }
+  .obj dl{margin:0}
+  .obj dt{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 4px;
+  }
+  .obj dd{margin:0 0 12px;font-size:13.5px;color:#333a45}
+  .obj dd:last-child{margin-bottom:0}
+  .obj dd.quote{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:12px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+  @media (max-width:760px){
+    .verify{margin-left:22px;margin-right:22px}
+    .grid2{grid-template-columns:1fr}
+    .divider{padding:30px 22px}
+    .divider h3{font-size:23px}
+  }
+
+  @media print{
+    .verify{margin:0 0 14px;background:#fff!important;border-color:#000}
+    .verify h3,.verify p{color:#000}
+    .say{background:#fff;border-left:3px solid #000}
+    .slot{background:#fff;border:1px dashed #666}
+    .beat,.obj,.divider,.check li{page-break-inside:avoid}
+    .divider{page-break-after:always;border-color:#000;min-height:8.4in;display:flex;flex-direction:column;justify-content:space-between}
+    .divider:last-of-type{page-break-after:auto}
+    .pill{border:1px solid #666!important;color:#000!important;background:#fff!important}
+    .grid2{gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>Objections &middot; Podium reference</span>
+  <button type="button" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="eyebrow">Carrelha v. Regions Bank &middot; 26SC-1103-B</p>
+    <h1>Objections &amp; Responses<br>Cheat Sheet</h1>
+    <p class="kicker">What to object to, exactly what to say, and how to answer what Regions will throw back. Built for the Motion to Strike hearing and usable at trial.</p>
+    <dl class="facts">
+      <div class="fact"><dt>Hearing</dt><dd>September 21, 2026</dd></div>
+      <div class="fact"><dt>Presiding</dt><dd>Hon. T. Russell McClelland</dd></div>
+      <div class="fact"><dt>Code</dt><dd>O.C.G.A. Title 24 (2013 Evid. Code)</dd></div>
+      <div class="fact"><dt>Posture</dt><dd>Motion to strike affidavit</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <div class="verify">
+      <h3>Before you rely on this</h3>
+      <p><strong>Every citation here is to Georgia&rsquo;s 2013 Evidence Code (O.C.G.A. Title 24) or to Rule 56.</strong> The propositions are stated as the statutes read. <strong>Pull each section and read it yourself</strong> &mdash; a wrong subsection number said out loud costs you more than saying nothing.</p>
+      <p><strong><em>Rankin v. Smith</em> is named without a reporter citation on purpose.</strong> I have not been able to verify the volume and page. The underlying principle &mdash; that counsel&rsquo;s statements are not evidence &mdash; is settled and you can argue it without naming a case. Verify the cite before you say it aloud, or don&rsquo;t say it.</p>
+      <p>An objection you cannot state in one breath is an objection you will not make in time. Learn the short forms in &sect; 03 first; the reasoning in &sect;&sect; 01&ndash;02 is for when the Court asks you to explain.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Objections you make</h2></div>
+    <p class="sec-note">State the objection in three words, then stop. Give the ground only if the Court asks. The first four are the ones that carry this motion.</p>
+
+    <div class="grid2">
+
+      <div class="obj">
+        <h3>Lack of personal knowledge</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-6-602 &middot; &sect; 9-11-56(e)</p>
+        <dl>
+          <dt>When</dt>
+          <dd>The affidavit asserts a fact the affiant could only know from reading the file &mdash; balances, what was applied where, why an entry was made.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection, Your Honor &mdash; lack of personal knowledge.&rdquo;</dd>
+          <dt>If asked to explain</dt>
+          <dd>A witness may testify to a matter only if evidence is introduced sufficient to support a finding of personal knowledge. Rule 56(e) goes further and requires the affidavit to show that competence <em>affirmatively</em>, on its face. Review of a record is not personal knowledge of the events the record describes.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Foundation &mdash; business records</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-8-803(6)</p>
+        <dl>
+          <dt>When</dt>
+          <dd>Records are offered before the four foundation elements are established: made at or near the time, by or from a person with knowledge, kept in the regular course, and regular practice to make.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection &mdash; no foundation. The 803(6) elements haven&rsquo;t been established.&rdquo;</dd>
+          <dt>If asked to explain</dt>
+          <dd>The burden of laying the foundation is on the proponent. Until all four elements are shown by the custodian or another qualified witness, the exception does not open and the records remain hearsay.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Trustworthiness &mdash; the 803(6) escape clause</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-8-803(6), final clause</p>
+        <dl>
+          <dt>When</dt>
+          <dd>The foundation elements are technically met but the record itself shows post hoc alteration &mdash; the reversals, the core-conversion adjustment, the inserted fees.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection, Your Honor. Even if the foundation is laid, the circumstances of preparation indicate a lack of trustworthiness.&rdquo;</dd>
+          <dt>If asked to explain</dt>
+          <dd>The exception applies <em>unless</em> the source of information or the method or circumstances of preparation indicate lack of trustworthiness. Point to a specific entry on a specific page &mdash; the October 23, 2025 entry commented &ldquo;adjustment related to core conversion&rdquo; is the cleanest.</dd>
+          <dt>Note</dt>
+          <dd><b>This is the strongest evidentiary objection in the case.</b> It survives even if the Court finds Farr competent and the foundation adequate.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Hearsay</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-8-801 &middot; &sect; 24-8-802</p>
+        <dl>
+          <dt>When</dt>
+          <dd>An out-of-court statement is offered for its truth and no exception has been established.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection &mdash; hearsay.&rdquo;</dd>
+          <dt>If asked to explain</dt>
+          <dd>Name the statement, say it is offered for its truth, and say no exception has been laid. Do not argue the exception for them.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Conclusory / legal conclusion</h3>
+        <p class="auth-line">O.C.G.A. &sect; 9-11-56(e)</p>
+        <dl>
+          <dt>When</dt>
+          <dd>The affidavit says &ldquo;Defendants defaulted,&rdquo; &ldquo;the amount due and owing is,&rdquo; or &ldquo;the account is in default&rdquo; without the facts underneath.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection &mdash; that&rsquo;s a legal conclusion, not a fact admissible in evidence.&rdquo;</dd>
+          <dt>If asked to explain</dt>
+          <dd>Rule 56(e) requires the affidavit to <em>set forth facts</em> that would be admissible. A conclusion of law is not such a fact, and an affidavit made of conclusions is not cured by the affiant&rsquo;s employment.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Best evidence</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-10-1002</p>
+        <dl>
+          <dt>When</dt>
+          <dd>A witness or affidavit characterizes what a document says instead of putting the document in front of the Court.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection &mdash; best evidence. If the document says that, the document should be before the Court.&rdquo;</dd>
+          <dt>Note</dt>
+          <dd>Narrower than it sounds &mdash; it applies to proving the <em>content</em> of a writing, not to every mention of one. Use it sparingly so it lands when you do.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Authentication</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-9-901</p>
+        <dl>
+          <dt>When</dt>
+          <dd>An exhibit appears that no one has connected to its source &mdash; an unsigned printout, a screenshot, a summary with no underlying record.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection &mdash; not authenticated.&rdquo;</dd>
+          <dt>If asked to explain</dt>
+          <dd>The proponent must produce evidence sufficient to support a finding that the item is what it is claimed to be. Nothing before the Court does that here.</dd>
+        </dl>
+      </div>
+
+      <div class="obj">
+        <h3>Counsel is testifying</h3>
+        <p class="auth-line"><em>Rankin v. Smith</em> &mdash; verify cite before naming</p>
+        <dl>
+          <dt>When</dt>
+          <dd>Opposing counsel supplies a fact from the podium that appears in no affidavit and no exhibit. Expect this on the payment history.</dd>
+          <dt>Say</dt>
+          <dd class="quote">&ldquo;Objection, Your Honor. Counsel is testifying. That fact isn&rsquo;t in the affidavit or in any exhibit before the Court.&rdquo;</dd>
+          <dt>Note</dt>
+          <dd>Make it on the principle, not the citation. Then ask that the statement be disregarded &mdash; the ask is what makes it a ruling instead of a complaint.</dd>
+        </dl>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>What Regions will say &mdash; and your answer</h2></div>
+    <p class="sec-note">The five you should expect. The first two decide the motion; prepare those cold.</p>
+
+    <div class="stack">
+
+      <div class="obj defensive">
+        <h3>&ldquo;That goes to weight, not admissibility.&rdquo;</h3>
+        <p class="auth-line">The argument most likely to sink this motion</p>
+        <dl>
+          <dt>Answer</dt>
+          <dd class="quote">&ldquo;Your Honor, weight is the analysis <em>after</em> evidence is admitted. Rule 56(e) is a threshold: an affidavit that doesn&rsquo;t show personal knowledge on its face isn&rsquo;t weak evidence, it isn&rsquo;t evidence the Court may consider at all. And 803(6) is written the same way &mdash; the trustworthiness clause is a condition of admission, not a comment on persuasiveness.&rdquo;</dd>
+          <dt>Then</dt>
+          <dd>Return immediately to the four corners of the affidavit. Do not let the argument drift to whether the debt is owed.</dd>
+        </dl>
+      </div>
+
+      <div class="obj defensive">
+        <h3>&ldquo;The CFPB response is hearsay.&rdquo;</h3>
+        <p class="auth-line">O.C.G.A. &sect; 24-8-801(d)(2)</p>
+        <dl>
+          <dt>Answer</dt>
+          <dd class="quote">&ldquo;It&rsquo;s Regions&rsquo; own statement, offered against Regions. That&rsquo;s an admission by a party opponent under 801(d)(2) &mdash; by definition not hearsay. Regions wrote it, to its own regulator, about this account.&rdquo;</dd>
+          <dt>Note</dt>
+          <dd><b>Know this one cold.</b> Tab 04 is your best exhibit and this is the only serious objection to it. A statement by a party, or by the party&rsquo;s agent concerning a matter within the scope of the agency, offered against that party, is excluded from the definition of hearsay.</dd>
+        </dl>
+      </div>
+
+      <div class="obj defensive">
+        <h3>&ldquo;A custodian need not have made the entries&rdquo; &mdash; citing <em>Windham</em></h3>
+        <p class="auth-line"><em>Windham v. State</em>, 344 Ga. App. 721 &mdash; verify</p>
+        <dl>
+          <dt>Answer</dt>
+          <dd class="quote">&ldquo;We agree with that proposition, Your Honor, and it isn&rsquo;t our argument. <em>Windham</em> is a criminal case in which records came in at trial after a live witness laid the foundation and was cross-examined. This is a paper affidavit offered without the affiant on a Rule 56 motion. Our objection is that <em>this</em> affidavit doesn&rsquo;t make the affirmative showing 9-11-56(e) requires.&rdquo;</dd>
+          <dt>Note</dt>
+          <dd>Conceding the general proposition costs nothing and buys credibility for the narrow ground.</dd>
+        </dl>
+      </div>
+
+      <div class="obj defensive">
+        <h3>&ldquo;Argumentative&rdquo; / &ldquo;asked and answered&rdquo; on cross</h3>
+        <p class="auth-line">Form objections</p>
+        <dl>
+          <dt>Answer</dt>
+          <dd>Don&rsquo;t argue it. Rephrase shorter and ask again. If it is genuinely the same question because the witness didn&rsquo;t answer: &ldquo;Your Honor, the witness hasn&rsquo;t answered. I&rsquo;ll rephrase.&rdquo; Then rephrase.</dd>
+          <dt>Note</dt>
+          <dd>Winning a form fight gains you nothing. Getting the admission gains you everything.</dd>
+        </dl>
+      </div>
+
+      <div class="obj defensive">
+        <h3>&ldquo;The motion is untimely&rdquo; or &ldquo;this should have been raised in a response brief&rdquo;</h3>
+        <p class="auth-line">Procedural</p>
+        <dl>
+          <dt>Answer</dt>
+          <dd class="quote">&ldquo;Your Honor, an objection to the admissibility of summary judgment evidence is properly raised by motion to strike, and the Court has to satisfy itself that the evidence it relies on is admissible in any event. If the Court would prefer it briefed, we&rsquo;ll brief it.&rdquo;</dd>
+          <dt>Then</dt>
+          <dd>Never fight the judge on procedure. Offer to cure and move back to substance.</dd>
+        </dl>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>One-breath reference</h2></div>
+    <p class="sec-note">Tear-off card. This is the page you actually look at while standing. Everything above is the explanation you give only if asked.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>You hear</th><th>You say</th><th>Ground</th></tr></thead>
+        <tbody>
+          <tr><td class="cat">&ldquo;Based on my review of the records&hellip;&rdquo;</td><td class="actual">&ldquo;Objection &mdash; lack of personal knowledge.&rdquo;</td><td class="cite">&sect; 24-6-602; &sect; 9-11-56(e)</td></tr>
+          <tr><td class="cat">Records offered, no foundation laid</td><td class="actual">&ldquo;Objection &mdash; no foundation.&rdquo;</td><td class="cite">&sect; 24-8-803(6)</td></tr>
+          <tr><td class="cat">Foundation laid, but the entries are post hoc</td><td class="actual">&ldquo;Objection &mdash; circumstances indicate lack of trustworthiness.&rdquo;</td><td class="cite">&sect; 24-8-803(6)</td></tr>
+          <tr><td class="cat">&ldquo;Defendants defaulted&rdquo; / &ldquo;the amount due and owing&rdquo;</td><td class="actual">&ldquo;Objection &mdash; legal conclusion.&rdquo;</td><td class="cite">&sect; 9-11-56(e)</td></tr>
+          <tr><td class="cat">Out-of-court statement, offered for truth</td><td class="actual">&ldquo;Objection &mdash; hearsay.&rdquo;</td><td class="cite">&sect; 24-8-801, 802</td></tr>
+          <tr><td class="cat">Witness describes what a document says</td><td class="actual">&ldquo;Objection &mdash; best evidence.&rdquo;</td><td class="cite">&sect; 24-10-1002</td></tr>
+          <tr><td class="cat">Exhibit with no source established</td><td class="actual">&ldquo;Objection &mdash; not authenticated.&rdquo;</td><td class="cite">&sect; 24-9-901</td></tr>
+          <tr><td class="cat">Counsel states a fact not in the record</td><td class="actual">&ldquo;Objection &mdash; counsel is testifying. Ask that it be disregarded.&rdquo;</td><td class="cite">Argument &ne; evidence</td></tr>
+          <tr><td class="cat">&ldquo;Goes to weight, not admissibility&rdquo;</td><td class="actual">&ldquo;56(e) is a threshold, not a weight question.&rdquo;</td><td class="cite">&sect; 9-11-56(e)</td></tr>
+          <tr><td class="cat">&ldquo;The CFPB response is hearsay&rdquo;</td><td class="actual">&ldquo;Party admission &mdash; their statement, offered against them.&rdquo;</td><td class="cite">&sect; 24-8-801(d)(2)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="strat" style="margin-top:18px"><b>Two habits that matter more than any objection on this page.</b> Say the word &ldquo;objection&rdquo; before you have finished deciding which one &mdash; it stops the record and buys you two seconds. And after the Court rules, say &ldquo;thank you, Your Honor&rdquo; and move on, whichever way it went.</p>
+  </section>
+
+  <footer>
+    <strong>Objections &amp; Responses</strong> &middot; Civil Action File No. 26SC-1103-B &middot; State Court of Forsyth County, State of Georgia<br>
+    Hearing: September 21, 2026 &middot; Hon. T. Russell McClelland &middot; Chris Carrelha &amp; Kelsey D. Carrelha, Defendants <em>Pro Se</em><br>
+    Preparation aid only. Verify every statutory citation against the current O.C.G.A. before relying on it in court.
+  </footer>
+
+</div>
+</body>
+</html>
