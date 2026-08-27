@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Client Priorities Dashboard</title>
+</head>
+<body>
+<style>
+/* ============================================================
+   TOKENS  — light is the base; dark redefines the same names.
+   ============================================================ */
+:root {
+  color-scheme: light;
+  --page:        #f9f9f7;
+  --surface:     #fcfcfb;
+  --surface-2:   #f2f1ed;
+  --ink:         #0b0b0b;
+  --ink-2:       #52514e;
+  --muted:       #898781;
+  --grid:        #e1e0d9;
+  --axis:        #c3c2b7;
+  --border:      rgba(11,11,11,0.10);
+  --border-2:    rgba(11,11,11,0.18);
+  --series-1:    #2a78d6;
+  --series-2:    #eb6834;
+  --series-3:    #1baf7a;
+  --accent:      #2a78d6;
+  --accent-wash: rgba(42,120,214,0.10);
+  --good:        #0ca30c;
+  --good-ink:    #006300;
+  --warning:     #fab219;
+  --critical:    #d03b3b;
+  --shadow:      0 1px 2px rgba(11,11,11,0.05), 0 8px 24px rgba(11,11,11,0.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page:      #0d0d0d;
+    --surface:   #1a1a19;
+    --surface-2: #232322;
+    --ink:       #ffffff;
+    --ink-2:     #c3c2b7;
+    --muted:     #898781;
+    --grid:      #2c2c2a;
+    --axis:      #383835;
+    --border:    rgba(255,255,255,0.10);
+    --border-2:  rgba(255,255,255,0.18);
+    --series-1:  #3987e5;
+    --series-2:  #d95926;
+    --series-3:  #199e70;
+    --accent:    #3987e5;
+    --accent-wash: rgba(57,135,229,0.16);
+    --good-ink:  #0ca30c;
+    --shadow:    0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:      #0d0d0d;
+  --surface:   #1a1a19;
+  --surface-2: #232322;
+  --ink:       #ffffff;
+  --ink-2:     #c3c2b7;
+  --muted:     #898781;
+  --grid:      #2c2c2a;
+  --axis:      #383835;
+  --border:    rgba(255,255,255,0.10);
+  --border-2:  rgba(255,255,255,0.18);
+  --series-1:  #3987e5;
+  --series-2:  #d95926;
+  --series-3:  #199e70;
+  --accent:    #3987e5;
+  --accent-wash: rgba(57,135,229,0.16);
+  --good-ink:  #0ca30c;
+  --shadow:    0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 24px 72px; }
+
+/* ---------- header ---------- */
+.masthead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; margin-bottom: 26px; }
+.masthead h1 { font-size: 27px; line-height: 1.2; font-weight: 640; margin: 0 0 4px; letter-spacing: -0.015em; }
+.masthead p { margin: 0; color: var(--ink-2); font-size: 14.5px; max-width: 60ch; }
+.masthead .spacer { flex: 1 1 40px; }
+.mast-actions { display: flex; gap: 8px; align-items: center; }
+
+/* ---------- generic controls ---------- */
+.btn {
+  font: inherit; font-size: 13.5px; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--border-2); border-radius: 999px;
+  padding: 7px 14px; cursor: pointer; white-space: nowrap;
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
+}
+.btn:hover { background: var(--surface-2); color: var(--ink); }
+.btn[aria-pressed="true"] { background: var(--accent-wash); border-color: var(--accent); color: var(--ink); }
+.btn:focus-visible, .prio:focus-visible, .seg button:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+/* ---------- step blocks ---------- */
+.step { margin-bottom: 30px; }
+.step-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.step-num {
+  font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--muted);
+}
+.step-head h2 { font-size: 18px; font-weight: 620; margin: 0; letter-spacing: -0.01em; }
+.step-head .hint { font-size: 13.5px; color: var(--muted); margin-left: auto; }
+
+/* ---------- priority buttons (the pressable part) ---------- */
+.prio-grid {
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+}
+.prio {
+  position: relative; text-align: left; font: inherit; cursor: pointer;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--border-2); border-radius: 14px;
+  padding: 14px 15px 13px; min-height: 104px;
+  display: flex; flex-direction: column; gap: 3px;
+  transition: transform .1s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+}
+.prio:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
+.prio:active { transform: translateY(0); }
+.prio .glyph { width: 22px; height: 22px; margin-bottom: 5px; color: var(--muted); }
+.prio .glyph svg { width: 100%; height: 100%; display: block; }
+.prio .name { font-weight: 620; font-size: 15px; letter-spacing: -0.005em; }
+.prio .say { font-size: 12.5px; color: var(--ink-2); line-height: 1.35; }
+.prio[aria-pressed="true"] {
+  border-color: var(--accent); background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.prio[aria-pressed="true"] .glyph { color: var(--accent); }
+.prio .tick {
+  position: absolute; top: 11px; right: 11px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+.prio[aria-pressed="true"] .tick { display: flex; }
+
+/* ---------- filter row ---------- */
+.filterbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  padding: 11px 14px; margin-bottom: 22px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+}
+.filterbar .lab { font-size: 12px; font-weight: 640; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button {
+  font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--ink-2);
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.filterbar .grow { flex: 1 1 20px; }
+
+/* ---------- answer band ---------- */
+.answer {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: var(--shadow); padding: 22px 24px; margin-bottom: 22px;
+  display: grid; grid-template-columns: minmax(180px, 250px) 1fr; gap: 24px 30px; align-items: center;
+}
+.answer .hero-label { font-size: 12px; font-weight: 640; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.answer .hero-name { font-size: 21px; font-weight: 640; letter-spacing: -0.015em; line-height: 1.2; margin-bottom: 10px; }
+.answer .hero-fig { font-size: 52px; font-weight: 650; line-height: 1; letter-spacing: -0.03em; }
+.answer .hero-fig span { font-size: 19px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.meter { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 12px; max-width: 220px; }
+.meter i { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+.answer .talk { font-size: 15.5px; line-height: 1.62; color: var(--ink); }
+.answer .talk b { font-weight: 640; }
+.answer .talk .sub { display: block; margin-top: 9px; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+.empty-note { color: var(--ink-2); font-size: 14.5px; }
+
+/* ---------- stat tiles ---------- */
+.tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(198px, 1fr)); margin-bottom: 24px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 15px 16px 14px; }
+.tile .t-lab { font-size: 12.5px; color: var(--ink-2); margin-bottom: 6px; line-height: 1.3; }
+.tile .t-val { font-size: 30px; font-weight: 640; letter-spacing: -0.02em; line-height: 1.05; }
+.tile .t-mean { font-size: 12.5px; color: var(--muted); margin-top: 7px; line-height: 1.4; }
+.tile .t-delta { font-size: 12.5px; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+.t-delta .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.t-delta.up   { color: var(--good-ink); }
+.t-delta.up .dot { background: var(--good); }
+.t-delta.down { color: var(--critical); }
+.t-delta.down .dot { background: var(--critical); }
+.t-delta.flat { color: var(--muted); }
+.t-delta.flat .dot { background: var(--axis); }
+
+/* ---------- cards & charts ---------- */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)); gap: 16px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 18px 20px 16px; margin-bottom: 16px;
+}
+.card h3 { font-size: 15.5px; font-weight: 620; margin: 0 0 3px; letter-spacing: -0.005em; }
+.card .sub { font-size: 13px; color: var(--ink-2); margin: 0 0 14px; line-height: 1.45; max-width: 68ch; }
+.card .read { font-size: 13px; color: var(--ink-2); margin: 12px 0 0; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 11px; }
+.card .read b { font-weight: 620; color: var(--ink); }
+.chart-scroll { overflow-x: auto; }
+svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.tick-txt { font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.axis-line { stroke: var(--axis); stroke-width: 1; }
+.grid-line { stroke: var(--grid); stroke-width: 1; }
+.lbl-txt { font-size: 11.5px; fill: var(--ink-2); }
+.lbl-strong { font-size: 12px; fill: var(--ink); font-weight: 620; }
+
+/* ---------- legend ---------- */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 12px; padding: 0; list-style: none; }
+.legend li { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
+.legend .key { width: 14px; height: 3px; border-radius: 2px; flex: none; }
+.legend .key.dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ---------- tooltip ---------- */
+.tt {
+  position: fixed; pointer-events: none; z-index: 40; opacity: 0;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--border-2); border-radius: 10px;
+  box-shadow: var(--shadow); padding: 9px 11px; font-size: 12.5px; line-height: 1.5;
+  min-width: 150px; transition: opacity .08s ease;
+}
+.tt .tt-h { font-weight: 640; margin-bottom: 5px; font-size: 12.5px; }
+.tt .row { display: flex; align-items: center; gap: 8px; }
+.tt .row .key { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.tt .row .nm { color: var(--ink-2); }
+.tt .row .vl { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ---------- tables ---------- */
+.tbl-wrap { overflow-x: auto; }
+table.data { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.data th, table.data td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; font-variant-numeric: tabular-nums; }
+table.data th:first-child, table.data td:first-child { text-align: left; font-variant-numeric: normal; }
+table.data thead th { font-size: 11.5px; font-weight: 640; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--axis); }
+table.data tbody tr:hover { background: var(--surface-2); }
+table.data tr.hot { background: var(--accent-wash); }
+table.data tr.hot td:first-child { font-weight: 640; }
+table.data .why { font-size: 11.5px; color: var(--muted); font-weight: 400; display: block; }
+.tbl-note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.datatable { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+.datatable[hidden] { display: none; }
+.name-key { display: inline-flex; align-items: center; gap: 7px; }
+.name-key .key { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+
+/* ---------- compare picker ---------- */
+.pick-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pick {
+  font: inherit; font-size: 13.5px; cursor: pointer; border-radius: 999px;
+  border: 1px solid var(--border-2); background: var(--surface); color: var(--ink-2);
+  padding: 6px 13px 6px 10px; display: inline-flex; align-items: center; gap: 8px;
+}
+.pick:hover { border-color: var(--accent); color: var(--ink); }
+.pick .key { width: 10px; height: 10px; border-radius: 3px; background: var(--axis); flex: none; }
+.pick[aria-pressed="true"] { color: var(--ink); font-weight: 600; border-color: var(--border-2); background: var(--surface-2); }
+.pick[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ---------- talk track ---------- */
+details.talkbox { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0; margin-bottom: 16px; }
+details.talkbox > summary {
+  cursor: pointer; list-style: none; padding: 14px 20px; font-weight: 620; font-size: 15px;
+  display: flex; align-items: center; gap: 10px;
+}
+details.talkbox > summary::-webkit-details-marker { display: none; }
+details.talkbox > summary::after { content: "＋"; margin-left: auto; color: var(--muted); font-weight: 400; }
+details.talkbox[open] > summary::after { content: "－"; }
+.talk-body { padding: 0 20px 18px; }
+.talk-item { border-top: 1px solid var(--border); padding: 13px 0 2px; }
+.talk-item h4 { margin: 0 0 5px; font-size: 13.5px; font-weight: 640; display: flex; align-items: center; gap: 8px; }
+.talk-item h4 .glyph { width: 15px; height: 15px; color: var(--accent); }
+.talk-item .quote { font-size: 14.5px; line-height: 1.55; margin: 0 0 5px; }
+.talk-item .proof { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0; }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.foot b { color: var(--ink-2); font-weight: 620; }
+
+@media (max-width: 720px) {
+  .wrap { padding: 20px 16px 56px; }
+  .answer { grid-template-columns: 1fr; gap: 18px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .masthead h1 { font-size: 23px; }
+}
+@media print {
+  body { background: #fff; }
+  .prio-grid, .filterbar, .pick-row, .mast-actions { break-inside: avoid; }
+  .card, .answer, .tile { break-inside: avoid; box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div>
+      <h1>What matters most to you?</h1>
+      <p>Press what your client cares about. The numbers, the charts and the language all
+         re-shape around their answer &mdash; so the conversation stays on their terms, not the market's.</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="mast-actions">
+      <button class="btn" id="themeBtn" type="button" title="Switch light / dark">Dark</button>
+      <button class="btn" id="printBtn" type="button">Print</button>
+      <button class="btn" id="resetBtn" type="button">Reset</button>
+    </div>
+  </header>
+
+  <!-- STEP 1 — the pressable priorities -->
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">Step 1</span>
+      <h2>Pick the priorities</h2>
+      <span class="hint">Press one or more &mdash; press again to remove</span>
+    </div>
+    <div class="prio-grid" id="prioGrid"></div>
+  </section>
+
+  <!-- filter row: scopes every chart and number below it -->
+  <div class="filterbar">
+    <span class="lab">Period</span>
+    <div class="seg" id="periodSeg" role="group" aria-label="Time period"></div>
+    <span class="grow"></span>
+    <button class="btn" id="tablesBtn" type="button" aria-pressed="false">Show data tables</button>
+  </div>
+
+  <!-- the answer -->
+  <section id="answerZone"></section>
+
+  <!-- STEP 2 — the numbers that matter for those priorities -->
+  <section class="step" id="tilesStep" hidden>
+    <div class="step-head">
+      <span class="step-num">Step 2</span>
+      <h2>The numbers behind that</h2>
+      <span class="hint" id="tilesHint"></span>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <!-- fit ranking -->
+  <section class="step" id="rankStep" hidden>
+    <div class="step-head">
+      <span class="step-num">Step 3</span>
+      <h2>How each portfolio scores on what you said</h2>
+    </div>
+    <div class="card">
+      <h3 id="rankTitle">Fit score</h3>
+      <p class="sub" id="rankSub"></p>
+      <div class="chart-scroll"><div id="rankChart"></div></div>
+      <p class="read" id="rankRead"></p>
+      <div class="datatable" id="rankTable" hidden></div>
+    </div>
+  </section>
+
+  <!-- STEP 4 — compare -->
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">Step 4</span>
+      <h2>Compare side by side</h2>
+      <span class="hint">Choose up to three</span>
+    </div>
+    <div class="card" style="padding-bottom:18px">
+      <div class="pick-row" id="pickRow"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Growth of $100,000</h3>
+        <p class="sub">What the same starting amount would have become, month by month.</p>
+        <ul class="legend" id="growthLegend"></ul>
+        <div class="chart-scroll"><div id="growthChart"></div></div>
+        <p class="read" id="growthRead"></p>
+        <div class="datatable" id="growthTable" hidden></div>
+      </div>
+
+      <div class="card">
+        <h3>Drawdowns &mdash; how far below the last high point</h3>
+        <p class="sub">This is the chart clients actually feel. Zero means at an all-time high; the dips are the losses they would have lived through.</p>
+        <ul class="legend" id="ddLegend"></ul>
+        <div class="chart-scroll"><div id="ddChart"></div></div>
+        <p class="read" id="ddRead"></p>
+        <div class="datatable" id="ddTable" hidden></div>
+      </div>
+
+      <div class="card">
+        <h3>Year by year</h3>
+        <p class="sub">Every calendar year, good and bad. Useful when a client asks &ldquo;what does a bad year look like?&rdquo;</p>
+        <ul class="legend" id="calLegend"></ul>
+        <div class="chart-scroll"><div id="calChart"></div></div>
+        <p class="read" id="calRead"></p>
+        <div class="datatable" id="calTable" hidden></div>
+      </div>
+
+      <div class="card">
+        <h3>Risk taken vs. return earned</h3>
+        <p class="sub">Every portfolio on one map. Further right means a bumpier ride; higher means more growth.</p>
+        <div class="chart-scroll"><div id="scatterChart"></div></div>
+        <p class="read" id="scatterRead"></p>
+        <div class="datatable" id="scatterTable" hidden></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- talk track -->
+  <details class="talkbox" id="talkBox">
+    <summary>What to say &mdash; talk track for the priorities you pressed</summary>
+    <div class="talk-body" id="talkBody"></div>
+  </details>
+
+  <!-- full metric table -->
+  <section class="step">
+    <div class="step-head">
+      <span class="step-num">Reference</span>
+      <h2>Every metric, every portfolio</h2>
+      <span class="hint">Rows tied to the pressed priorities are highlighted</span>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap" id="fullTable"></div>
+      <p class="tbl-note" id="fullTableNote"></p>
+    </div>
+  </section>
+
+  <p class="foot">
+    <b>Illustrative data.</b> The portfolios here are model asset-class mixes, not real funds. Their
+    monthly return streams are generated deterministically from published-style annual asset-class
+    results for 2005&ndash;2025, so every figure on this page is internally consistent and reproducible &mdash;
+    but they are an illustration of how different mixes behave, not the track record of any specific product.
+    Swap in your own return series in the <code>DATA</code> block at the top of the script to make this a live tool.
+    <br><br>
+    <b>Not investment advice.</b> Past performance does not predict future results. Nothing here is a
+    recommendation, an offer, or a projection of what any portfolio will do.
+  </p>
+</div>
+
+<div class="tt" id="tooltip" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ==================================================================
+   DATA  —  the only block you need to touch to make this a live tool.
+   Replace ASSET_YEARS with your own annual (or monthly) return series
+   and PORTFOLIOS with your real models/funds. Everything else on the
+   page is derived, so the whole dashboard follows automatically.
+   ================================================================== */
+
+/* Annual total returns, %, by asset class. Illustrative figures modelled on
+   published broad-market asset-class results. */
+const ASSET_YEARS = {
+  //        stock   bond   real   cash   infl
+  2005:  [   6.3,   2.4,   8.0,   3.0,   3.4 ],
+  2006:  [  15.8,   4.3,  22.0,   4.8,   2.5 ],
+  2007:  [   5.6,   7.0,  -8.0,   4.7,   4.1 ],
+  2008:  [ -37.0,   5.2, -33.0,   1.8,   0.1 ],
+  2009:  [  26.5,   5.9,  25.0,   0.2,   2.7 ],
+  2010:  [  15.1,   6.5,  18.0,   0.1,   1.5 ],
+  2011:  [   2.1,   7.8,   6.0,   0.1,   3.0 ],
+  2012:  [  16.0,   4.2,  17.0,   0.1,   1.7 ],
+  2013:  [  32.4,  -2.0,   2.0,   0.1,   1.5 ],
+  2014:  [  13.7,   6.0,  20.0,   0.0,   0.8 ],
+  2015:  [   1.4,   0.5,  -3.0,   0.1,   0.7 ],
+  2016:  [  12.0,   2.6,   9.0,   0.3,   2.1 ],
+  2017:  [  21.8,   3.5,   6.0,   0.9,   2.1 ],
+  2018:  [  -4.4,   0.0,  -6.0,   1.9,   1.9 ],
+  2019:  [  31.5,   8.7,  24.0,   2.2,   2.3 ],
+  2020:  [  18.4,   7.5,  -3.0,   0.5,   1.4 ],
+  2021:  [  28.7,  -1.5,  32.0,   0.0,   7.0 ],
+  2022:  [ -18.1, -13.0,  -8.0,   1.5,   6.5 ],
+  2023:  [  26.3,   5.5,   5.0,   5.0,   3.4 ],
+  2024:  [  25.0,   1.3,   8.0,   5.2,   2.9 ],
+  2025:  [  12.0,   4.5,  10.0,   4.2,   2.8 ]
+};
+
+/* Monthly volatility used to spread each annual figure across its 12 months.
+   The annual total is preserved exactly; only the path inside the year varies. */
+const MONTHLY_SIGMA = { stock: 0.040, bond: 0.013, real: 0.036, cash: 0.0008, infl: 0.0015 };
+
+/* Asset-class characteristics that are not return-series derived. */
+const ASSET_TRAITS = {
+  //          yield%  incomeStability(0-100)
+  stock:     [ 1.5,    30 ],
+  divStock:  [ 3.4,    78 ],
+  bond:      [ 4.3,    92 ],
+  shortBond: [ 4.4,    96 ],
+  real:      [ 3.9,    60 ],
+  cash:      [ 4.2,    99 ]
+};
+
+/* The models a client can be shown. Weights are percentages and must total 100. */
+const PORTFOLIOS = [
+  { id:"preserve", name:"Capital Preservation", short:"Preserve",
+    blurb:"Cash and short bonds. Built so the number on the statement barely moves.",
+    w:{ stock:5,  divStock:0,  bond:25, shortBond:45, real:0,  cash:25 },
+    er:0.09, liquidity:96, taxScore:52, turnover:30 },
+
+  { id:"consinc", name:"Conservative Income", short:"Cons. Income",
+    blurb:"Mostly bonds with a slice of dividend equity. Income first, growth second.",
+    w:{ stock:0,  divStock:20, bond:45, shortBond:20, real:5,  cash:10 },
+    er:0.14, liquidity:88, taxScore:48, turnover:35 },
+
+  { id:"divinc", name:"Dividend Income", short:"Dividend",
+    blurb:"Dividend-paying equity at the core. The cash-flow answer for a client who spends the portfolio.",
+    w:{ stock:0,  divStock:55, bond:25, shortBond:0,  real:10, cash:10 },
+    er:0.19, liquidity:85, taxScore:42, turnover:28 },
+
+  { id:"sixtyforty", name:"Classic 60/40", short:"60/40",
+    blurb:"The industry's default reference point. Useful as the anchor in any comparison.",
+    w:{ stock:60, divStock:0,  bond:40, shortBond:0,  real:0,  cash:0 },
+    er:0.06, liquidity:95, taxScore:70, turnover:12 },
+
+  { id:"balanced", name:"Balanced", short:"Balanced",
+    blurb:"A middle path with a real-asset sleeve. Designed to be held through a bad year.",
+    w:{ stock:35, divStock:15, bond:35, shortBond:0,  real:8,  cash:7 },
+    er:0.11, liquidity:90, taxScore:68, turnover:22 },
+
+  { id:"realasset", name:"Real Assets & Inflation Hedge", short:"Real Assets",
+    blurb:"Property, commodities and inflation-linked bonds. Aimed at purchasing power, not smoothness.",
+    w:{ stock:28, divStock:12, bond:12, shortBond:0,  real:40, cash:8 },
+    er:0.28, liquidity:72, taxScore:45, turnover:45 },
+
+  { id:"growth", name:"Growth", short:"Growth",
+    blurb:"Equity-led with a bond ballast. For money that will not be touched for a decade.",
+    w:{ stock:62, divStock:10, bond:20, shortBond:0,  real:5,  cash:3 },
+    er:0.10, liquidity:92, taxScore:78, turnover:15 },
+
+  { id:"aggressive", name:"Aggressive Growth", short:"Aggressive",
+    blurb:"Almost all equity. The most growth on offer, and the roughest ride to get it.",
+    w:{ stock:88, divStock:4,  bond:5,  shortBond:0,  real:3,  cash:0 },
+    er:0.08, liquidity:94, taxScore:85, turnover:8 }
+];
+
+/* ==================================================================
+   RETURN ENGINE — deterministic; same output on every load.
+   ================================================================== */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function gauss(rnd) {
+  let u = 0, v = 0;
+  while (u === 0) u = rnd();
+  while (v === 0) v = rnd();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+/* Spread one annual return over 12 months in log space: the noise sets the
+   path, the level is solved so the 12 months compound to exactly the year. */
+function monthsFromYear(annualPct, sigma, rnd) {
+  const noise = [];
+  for (let i = 0; i < 12; i++) noise.push(gauss(rnd) * sigma);
+  const mean = noise.reduce((a, b) => a + b, 0) / 12;
+  const target = Math.log(1 + annualPct / 100) / 12;
+  return noise.map(n => Math.exp(n - mean + target) - 1);
+}
+
+const YEARS = Object.keys(ASSET_YEARS).map(Number).sort((a, b) => a - b);
+
+/* Monthly factor series, keyed by factor name. */
+const FACTORS = (function build() {
+  const rnd = mulberry32(20260827);
+  const base = { stock: [], bond: [], real: [], cash: [], infl: [] };
+  const months = [];
+  for (const y of YEARS) {
+    const [s, b, r, c, i] = ASSET_YEARS[y];
+    const ms = monthsFromYear(s, MONTHLY_SIGMA.stock, rnd);
+    const mb = monthsFromYear(b, MONTHLY_SIGMA.bond, rnd);
+    const mr = monthsFromYear(r, MONTHLY_SIGMA.real, rnd);
+    const mc = monthsFromYear(c, MONTHLY_SIGMA.cash, rnd);
+    const mi = monthsFromYear(i, MONTHLY_SIGMA.infl, rnd);
+    for (let m = 0; m < 12; m++) {
+      base.stock.push(ms[m]); base.bond.push(mb[m]); base.real.push(mr[m]);
+      base.cash.push(mc[m]);  base.infl.push(mi[m]);
+      months.push({ year: y, month: m });
+    }
+  }
+  /* Derived factors: dividend equity is lower-beta equity with a yield tilt;
+     short bonds sit between cash and core bonds. */
+  base.divStock = base.stock.map((v, i) => 0.80 * v + 0.20 * base.bond[i] + 0.0018 + gauss(rnd) * 0.006);
+  base.shortBond = base.bond.map((v, i) => 0.34 * v + 0.66 * base.cash[i] + 0.0004);
+  base.months = months;
+  return base;
+})();
+
+const ALL_MONTHS = FACTORS.months;
+
+/* Monthly return stream for one portfolio, net of its expense ratio. */
+function seriesFor(p) {
+  const feeM = Math.pow(1 + p.er / 100, 1 / 12) - 1;
+  const out = new Array(ALL_MONTHS.length);
+  for (let i = 0; i < ALL_MONTHS.length; i++) {
+    let r = 0;
+    for (const k in p.w) if (p.w[k]) r += (p.w[k] / 100) * FACTORS[k][i];
+    out[i] = r - feeM;
+  }
+  return out;
+}
+const SERIES = {};
+PORTFOLIOS.forEach(p => { SERIES[p.id] = seriesFor(p); });
+
+/* ==================================================================
+   METRICS — every figure on the page is computed from the series above.
+   ================================================================== */
+const PERIODS = [
+  { id: "full", label: "Since 2005", years: null },
+  { id: "y15",  label: "15 years",   years: 15 },
+  { id: "y10",  label: "10 years",   years: 10 },
+  { id: "y5",   label: "5 years",    years: 5 }
+];
+
+function sliceIndex(periodId) {
+  const p = PERIODS.find(x => x.id === periodId) || PERIODS[0];
+  if (!p.years) return 0;
+  return Math.max(0, ALL_MONTHS.length - p.years * 12);
+}
+
+const compound = a => a.reduce((acc, r) => acc * (1 + r), 1);
+const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+function stdev(a) {
+  const m = mean(a);
+  return Math.sqrt(a.reduce((s, v) => s + (v - m) * (v - m), 0) / (a.length - 1));
+}
+function cagrOf(rets) {
+  return Math.pow(compound(rets), 12 / rets.length) - 1;
+}
+/* Cumulative index and the drawdown path that comes with it. */
+function pathOf(rets, start) {
+  const idx = [start], dd = [0];
+  let v = start, peak = start;
+  for (const r of rets) {
+    v *= (1 + r);
+    peak = Math.max(peak, v);
+    idx.push(v);
+    dd.push(v / peak - 1);
+  }
+  return { idx, dd };
+}
+function calendarYears(rets, from) {
+  const out = [];
+  let cur = null;
+  for (let i = 0; i < rets.length; i++) {
+    const y = ALL_MONTHS[from + i].year;
+    if (!cur || cur.year !== y) { cur = { year: y, r: 1, n: 0 }; out.push(cur); }
+    cur.r *= (1 + rets[i]); cur.n++;
+  }
+  return out.filter(c => c.n === 12).map(c => ({ year: c.year, ret: c.r - 1 }));
+}
+/* Capture ratios measured against the equity factor over the same months. */
+function capture(rets, from, up) {
+  let pf = 1, mk = 1, n = 0;
+  for (let i = 0; i < rets.length; i++) {
+    const m = FACTORS.stock[from + i];
+    if (up ? m > 0 : m < 0) { pf *= (1 + rets[i]); mk *= (1 + m); n++; }
+  }
+  if (!n || mk === 1) return null;
+  const pa = Math.pow(pf, 12 / n) - 1, ma = Math.pow(mk, 12 / n) - 1;
+  return (pa / ma) * 100;
+}
+/* Slope of annual portfolio return against inflation surprise (vs a 2.5% norm). */
+function inflationBeta(calYears, from) {
+  const xs = [], ys = [];
+  for (const c of calYears) {
+    const infl = ASSET_YEARS[c.year] ? ASSET_YEARS[c.year][4] / 100 : null;
+    if (infl === null) continue;
+    xs.push(infl - 0.025); ys.push(c.ret);
+  }
+  if (xs.length < 3) return 0;
+  const mx = mean(xs), my = mean(ys);
+  let num = 0, den = 0;
+  for (let i = 0; i < xs.length; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
+  return den === 0 ? 0 : num / den;
+}
+function weightedTrait(p, col) {
+  let tot = 0, acc = 0;
+  for (const k in p.w) {
+    if (!p.w[k] || !ASSET_TRAITS[k]) continue;
+    acc += (p.w[k] / 100) * ASSET_TRAITS[k][col];
+    tot += p.w[k] / 100;
+  }
+  return tot ? acc / tot : 0;
+}
+
+function metricsFor(p, periodId) {
+  const from = sliceIndex(periodId);
+  const rets = SERIES[p.id].slice(from);
+  const path = pathOf(rets, 100000);
+  const cal = calendarYears(rets, from);
+  const inflRets = FACTORS.infl.slice(from);
+
+  const cagr = cagrOf(rets);
+  const vol = stdev(rets) * Math.sqrt(12);
+  const maxDD = Math.min(...path.dd);
+  const cashCagr = cagrOf(FACTORS.cash.slice(from));
+  const inflCagr = cagrOf(inflRets);
+
+  const down = rets.filter(r => r < 0);
+  const downDev = down.length
+    ? Math.sqrt(down.reduce((s, r) => s + r * r, 0) / rets.length) * Math.sqrt(12)
+    : 0.0001;
+
+  /* Longest run of months spent below a previous high. */
+  let underwater = 0, run = 0;
+  for (const d of path.dd) {
+    if (d < -0.0005) { run++; underwater = Math.max(underwater, run); } else run = 0;
+  }
+
+  const rets12 = [];
+  for (let i = 11; i < rets.length; i++) rets12.push(compound(rets.slice(i - 11, i + 1)) - 1);
+
+  return {
+    id: p.id, from, rets, path, cal,
+    cagr, vol, maxDD,
+    realCagr: (1 + cagr) / (1 + inflCagr) - 1,
+    sharpe: vol ? (cagr - cashCagr) / vol : 0,
+    sortino: downDev ? (cagr - cashCagr) / downDev : 0,
+    worstYear: cal.length ? Math.min(...cal.map(c => c.ret)) : 0,
+    bestYear: cal.length ? Math.max(...cal.map(c => c.ret)) : 0,
+    pctPosYears: cal.length ? cal.filter(c => c.ret > 0).length / cal.length * 100 : 0,
+    worst12: rets12.length ? Math.min(...rets12) : 0,
+    underwater,
+    upCapture: capture(rets, from, true),
+    downCapture: capture(rets, from, false),
+    yieldPct: weightedTrait(p, 0),
+    incomeStability: weightedTrait(p, 1),
+    inflationBeta: inflationBeta(cal, from),
+    realAssetPct: p.w.real || 0,
+    equityPct: (p.w.stock || 0) + (p.w.divStock || 0),
+    er: p.er,
+    liquidity: p.liquidity,
+    taxScore: p.taxScore,
+    turnover: p.turnover,
+    endValue: path.idx[path.idx.length - 1]
+  };
+}
+
+/* ==================================================================
+   PRIORITIES — what a client says, and which numbers answer it.
+   ================================================================== */
+const GLYPH = {
+  shield:'<path d="M12 3l7 3v5.5c0 4.2-2.9 7.6-7 8.5-4.1-.9-7-4.3-7-8.5V6l7-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  spark: '<path d="M4 16.5l4.5-5 3.5 3.2L20 6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6.5h5v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  coins: '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.5v9M14.4 9.6c-.5-.7-1.4-1.1-2.4-1.1-1.4 0-2.4.7-2.4 1.8 0 2.5 4.9 1.2 4.9 3.7 0 1.1-1.1 1.8-2.5 1.8-1.1 0-2-.4-2.5-1.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  net:   '<path d="M4 7h16M6 7v4a6 6 0 0 0 12 0V7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  flame: '<path d="M12 3s5 4.2 5 8.6A5 5 0 0 1 7 11.6C7 7.2 12 3 12 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 20a3 3 0 0 1-3-3c0-1.8 3-3.6 3-3.6s3 1.8 3 3.6a3 3 0 0 1-3 3z" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+  drop:  '<path d="M12 3.5c3 3.6 5.5 6.4 5.5 9.4A5.5 5.5 0 0 1 6.5 12.9c0-3 2.5-5.8 5.5-9.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+  tag:   '<path d="M4 11V5a1 1 0 0 1 1-1h6l8.5 8.5a1.4 1.4 0 0 1 0 2L14 20a1.4 1.4 0 0 1-2 0L4 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="8.3" cy="8.3" r="1.3" fill="currentColor"/>',
+  scale: '<path d="M12 4v16M6 20h12M5 9h14M5 9l-2.5 5.5a3 3 0 0 0 5 0L5 9zM19 9l-2.5 5.5a3 3 0 0 0 5 0L19 9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+};
+
+/* Each priority scores portfolios on a weighted set of metrics.
+   dir: +1 = higher is better, -1 = lower is better. */
+const PRIORITIES = [
+  { id:"stability", name:"Stability", glyph:"shield",
+    say:"“I don't want it bouncing around.”",
+    metrics:[ {k:"vol",w:.35,dir:-1}, {k:"maxDD",w:.25,dir:1}, {k:"pctPosYears",w:.20,dir:1}, {k:"downCapture",w:.20,dir:-1} ] },
+
+  { id:"growth", name:"Growth", glyph:"spark",
+    say:"“I want this money to grow.”",
+    metrics:[ {k:"cagr",w:.55,dir:1}, {k:"upCapture",w:.25,dir:1}, {k:"endValue",w:.20,dir:1} ] },
+
+  { id:"income", name:"Income", glyph:"coins",
+    say:"“I need it to pay me.”",
+    metrics:[ {k:"yieldPct",w:.65,dir:1}, {k:"incomeStability",w:.35,dir:1} ] },
+
+  { id:"downside", name:"Downside protection", glyph:"net",
+    say:"“I can't afford a big loss.”",
+    metrics:[ {k:"maxDD",w:.35,dir:1}, {k:"worstYear",w:.25,dir:1}, {k:"underwater",w:.20,dir:-1}, {k:"downCapture",w:.20,dir:-1} ] },
+
+  { id:"inflation", name:"Beat inflation", glyph:"flame",
+    say:"“I don't want to lose ground to prices.”",
+    metrics:[ {k:"realCagr",w:.45,dir:1}, {k:"inflationBeta",w:.35,dir:1}, {k:"realAssetPct",w:.20,dir:1} ] },
+
+  { id:"access", name:"Access to my money", glyph:"drop",
+    say:"“I might need it sooner than I think.”",
+    metrics:[ {k:"liquidity",w:.60,dir:1}, {k:"vol",w:.25,dir:-1}, {k:"maxDD",w:.15,dir:1} ] },
+
+  { id:"cost", name:"Keep costs low", glyph:"tag",
+    say:"“I don't want to be nickel-and-dimed.”",
+    metrics:[ {k:"er",w:.75,dir:-1}, {k:"turnover",w:.25,dir:-1} ] },
+
+  { id:"tax", name:"Tax efficiency", glyph:"scale",
+    say:"“I'd rather not hand it to the IRS.”",
+    metrics:[ {k:"taxScore",w:.65,dir:1}, {k:"turnover",w:.35,dir:-1} ] }
+];
+
+/* Min-max normalise a metric across the portfolios on screen, then weight.
+   Scores are relative to this set only — 100 means "best of these", not "perfect". */
+function scoreAll(mets, priorityIds) {
+  const ids = priorityIds.length ? priorityIds : [];
+  const perPriority = {};
+  for (const pid of ids) {
+    const pr = PRIORITIES.find(x => x.id === pid);
+    const raw = {};
+    for (const m of mets) raw[m.id] = 0;
+    for (const spec of pr.metrics) {
+      const vals = mets.map(m => (m[spec.k] === null || m[spec.k] === undefined) ? 0 : m[spec.k]);
+      const lo = Math.min(...vals), hi = Math.max(...vals);
+      mets.forEach((m, i) => {
+        let n = hi === lo ? 0.5 : (vals[i] - lo) / (hi - lo);
+        if (spec.dir < 0) n = 1 - n;
+        raw[m.id] += spec.w * n;
+      });
+    }
+    for (const m of mets) perPriority[pid] = perPriority[pid] || {};
+    for (const m of mets) perPriority[pid][m.id] = 10 + 90 * raw[m.id];
+  }
+  const combined = {};
+  for (const m of mets) {
+    combined[m.id] = ids.length
+      ? ids.reduce((s, pid) => s + perPriority[pid][m.id], 0) / ids.length
+      : 0;
+  }
+  return { perPriority, combined };
+}
+
+/* ==================================================================
+   FORMATTING
+   ================================================================== */
+const pct  = (x, d = 1) => (x * 100).toFixed(d) + "%";
+const pctS = (x, d = 1) => (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%";
+const num  = (x, d = 2) => x.toFixed(d);
+const money = x => "$" + Math.round(x).toLocaleString("en-US");
+function moneyShort(x) {
+  if (x >= 1e6) return "$" + (x / 1e6).toFixed(2) + "M";
+  if (x >= 1e3) return "$" + Math.round(x / 1e3) + "K";
+  return "$" + Math.round(x);
+}
+const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const monthLabel = m => MONTH_ABBR[m.month] + " " + m.year;
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+/* ==================================================================
+   SVG PLUMBING
+   ================================================================== */
+const SERIES_VARS = ["--series-1", "--series-2", "--series-3"];
+const seriesColor = i => "var(" + SERIES_VARS[i % 3] + ")";
+
+function scale(d0, d1, r0, r1) {
+  const span = (d1 - d0) || 1;
+  return v => r0 + (v - d0) / span * (r1 - r0);
+}
+/* Round tick values to 1 / 2 / 2.5 / 5 × a power of ten. */
+function niceTicks(lo, hi, count) {
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  const start = Math.ceil(lo / step) * step;
+  const out = [];
+  for (let v = start; v <= hi + step * 1e-6; v += step) out.push(Math.abs(v) < step * 1e-9 ? 0 : v);
+  return out;
+}
+function svgOpen(w, h) {
+  return '<svg class="chart" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h +
+         '" role="img" preserveAspectRatio="xMinYMin meet">';
+}
+/* Bar with a 4px rounded data-end and a square baseline end. */
+function barPath(x, y, w, h, r, dir) {
+  r = Math.max(0, Math.min(r, w / 2, h));
+  if (h <= 0.5) return "";
+  if (dir === "right")
+    return `M${x},${y} h${w - r} a${r},${r} 0 0 1 ${r},${r} v${h - 2 * r} a${r},${r} 0 0 1 ${-r},${r} h${-(w - r)} z`;
+  if (dir === "up")
+    return `M${x},${y + h} v${-(h - r)} a${r},${r} 0 0 1 ${r},${-r} h${w - 2 * r} a${r},${r} 0 0 1 ${r},${r} v${h - r} z`;
+  /* down */
+  return `M${x},${y} v${h - r} a${r},${r} 0 0 0 ${r},${r} h${w - 2 * r} a${r},${r} 0 0 0 ${r},${-r} v${-(h - r)} z`;
+}
+
+/* ---- tooltip ---- */
+const TT = document.getElementById("tooltip");
+function showTT(html, ev) {
+  TT.innerHTML = html;
+  TT.style.opacity = "1";
+  const pad = 14, r = TT.getBoundingClientRect();
+  let x = ev.clientX + pad, y = ev.clientY - r.height - pad;
+  if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - pad;
+  if (y < 8) y = ev.clientY + pad;
+  TT.style.left = x + "px";
+  TT.style.top = y + "px";
+}
+function hideTT() { TT.style.opacity = "0"; }
+function ttRows(title, rows) {
+  return '<div class="tt-h">' + esc(title) + "</div>" + rows.map(r =>
+    '<div class="row">' + (r.color ? '<span class="key" style="background:' + r.color + '"></span>' : "") +
+    '<span class="nm">' + esc(r.name) + '</span><span class="vl">' + esc(r.value) + "</span></div>").join("");
+}
+
+/* ==================================================================
+   CHART — fit score ranking (one series, one colour, badge on the leader)
+   ================================================================== */
+function drawRank(host, rows, width) {
+  const rowH = 36, padT = 8, padB = 26, labW = Math.min(178, Math.max(120, width * 0.26));
+  const h = padT + rows.length * rowH + padB;
+  const plotL = labW + 12, plotR = width - 132;
+  const x = scale(0, 100, plotL, plotR);
+  const out = [svgOpen(width, h)];
+
+  for (const t of [0, 25, 50, 75, 100]) {
+    out.push('<line class="grid-line" x1="' + x(t) + '" y1="' + padT + '" x2="' + x(t) + '" y2="' + (padT + rows.length * rowH) + '"/>');
+    out.push('<text class="tick-txt" x="' + x(t) + '" y="' + (h - 9) + '" text-anchor="middle">' + t + "</text>");
+  }
+  rows.forEach((r, i) => {
+    const cy = padT + i * rowH + rowH / 2;
+    const bh = 18, w = Math.max(2, x(r.score) - plotL);
+    out.push('<text class="lbl-txt" x="' + labW + '" y="' + (cy + 4) + '" text-anchor="end">' + esc(r.short) + "</text>");
+    out.push('<path d="' + barPath(plotL, cy - bh / 2, w, bh, 4, "right") + '" fill="' + seriesColor(0) +
+             '" data-tip="' + esc(r.name) + '|' + Math.round(r.score) + '"/>');
+    out.push('<text class="lbl-strong" x="' + (plotL + w + 8) + '" y="' + (cy + 4) + '">' + Math.round(r.score) + "</text>");
+    if (i === 0) {
+      const bx = plotL + w + 44;
+      out.push('<rect x="' + bx + '" y="' + (cy - 9) + '" rx="9" width="58" height="18" fill="var(--accent-wash)" stroke="var(--accent)"/>');
+      out.push('<text class="tick-txt" x="' + (bx + 29) + '" y="' + (cy + 4) + '" text-anchor="middle" fill="var(--ink)">Best fit</text>');
+    }
+  });
+  out.push('<text class="tick-txt" x="' + ((plotL + plotR) / 2) + '" y="' + (h - 9) + '" text-anchor="middle" opacity="0"></text>');
+  out.push("</svg>");
+  host.innerHTML = out.join("");
+  host.querySelectorAll("[data-tip]").forEach(el => {
+    el.style.cursor = "default";
+    el.addEventListener("mousemove", ev => {
+      const [nm, sc] = el.getAttribute("data-tip").split("|");
+      showTT(ttRows(nm, [{ name: "Fit score", value: sc + " / 100", color: seriesColor(0) }]), ev);
+    });
+    el.addEventListener("mouseleave", hideTT);
+  });
+}
+
+/* ==================================================================
+   CHART — generic multi-series line, with crosshair + end labels
+   ================================================================== */
+function drawLineChart(host, o) {
+  const w = o.width, h = o.height;
+  const padL = 58, padR = o.endLabel ? 74 : 18, padT = 10, padB = 26;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const n = o.series[0].vals.length;
+  const x = scale(0, n - 1, padL, padL + plotW);
+  const ticks = niceTicks(o.yDomain[0], o.yDomain[1], 5);
+  const yLo = Math.min(o.yDomain[0], ticks[0]), yHi = Math.max(o.yDomain[1], ticks[ticks.length - 1]);
+  const y = scale(yLo, yHi, padT + plotH, padT);
+  const out = [svgOpen(w, h)];
+
+  for (const t of ticks) {
+    out.push('<line class="grid-line" x1="' + padL + '" y1="' + y(t) + '" x2="' + (padL + plotW) + '" y2="' + y(t) + '"/>');
+    out.push('<text class="tick-txt" x="' + (padL - 9) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + esc(o.yFmt(t)) + "</text>");
+  }
+  if (o.baselineAt !== undefined) {
+    out.push('<line class="axis-line" x1="' + padL + '" y1="' + y(o.baselineAt) + '" x2="' + (padL + plotW) + '" y2="' + y(o.baselineAt) + '"/>');
+  }
+  for (const t of o.xTicks) {
+    out.push('<text class="tick-txt" x="' + x(t.i) + '" y="' + (h - 8) + '" text-anchor="middle">' + esc(t.label) + "</text>");
+  }
+
+  o.series.forEach(s => {
+    const pts = s.vals.map((v, i) => x(i).toFixed(1) + "," + y(v).toFixed(1));
+    if (o.fill) {
+      const base = y(o.baselineAt !== undefined ? o.baselineAt : yLo).toFixed(1);
+      out.push('<path d="M' + x(0).toFixed(1) + "," + base + " L" + pts.join(" L") + " L" + x(n - 1).toFixed(1) + "," + base +
+               ' Z" fill="' + s.color + '" opacity="0.10"/>');
+    }
+    out.push('<path d="M' + pts.join(" L") + '" fill="none" stroke="' + s.color +
+             '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+  });
+
+  if (o.endLabel) {
+    const placed = [];
+    o.series.map((s, i) => ({ s, i, yy: y(s.vals[n - 1]) }))
+      .sort((a, b) => a.yy - b.yy)
+      .forEach(item => {
+        let yy = item.yy;
+        for (const p of placed) if (Math.abs(yy - p) < 15) yy = p + 15;
+        placed.push(yy);
+        out.push('<circle cx="' + x(n - 1) + '" cy="' + item.yy + '" r="4" fill="' + item.s.color +
+                 '" stroke="var(--surface)" stroke-width="2"/>');
+        if (Math.abs(yy - item.yy) > 2) {
+          out.push('<path d="M' + (x(n - 1) + 6) + ',' + item.yy + ' L' + (x(n - 1) + 12) + ',' + yy + '" stroke="var(--axis)" stroke-width="1" fill="none"/>');
+        }
+        out.push('<text class="lbl-strong" x="' + (x(n - 1) + 14) + '" y="' + (yy + 4) + '">' + esc(o.endFmt(item.s.vals[n - 1])) + "</text>");
+      });
+  }
+
+  out.push('<g id="cross" style="display:none"><line class="axis-line" y1="' + padT + '" y2="' + (padT + plotH) + '"/></g>');
+  out.push('<rect x="' + padL + '" y="' + padT + '" width="' + plotW + '" height="' + plotH + '" fill="transparent" data-hit="1"/>');
+  out.push("</svg>");
+  host.innerHTML = out.join("");
+
+  const svg = host.querySelector("svg"), cross = svg.querySelector("#cross"), hit = svg.querySelector('[data-hit]');
+  const line = cross.querySelector("line");
+  const dots = o.series.map(s => {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("r", "4.5"); c.setAttribute("fill", s.color);
+    c.setAttribute("stroke", "var(--surface)"); c.setAttribute("stroke-width", "2");
+    cross.appendChild(c); return c;
+  });
+  hit.addEventListener("mousemove", ev => {
+    const r = svg.getBoundingClientRect();
+    const px = (ev.clientX - r.left) * (w / r.width);
+    let i = Math.round((px - padL) / plotW * (n - 1));
+    i = Math.max(0, Math.min(n - 1, i));
+    cross.style.display = "";
+    line.setAttribute("x1", x(i)); line.setAttribute("x2", x(i));
+    o.series.forEach((s, k) => { dots[k].setAttribute("cx", x(i)); dots[k].setAttribute("cy", y(s.vals[i])); });
+    showTT(ttRows(o.xLabel(i), o.series.map(s => ({ name: s.name, value: o.tipFmt(s.vals[i]), color: s.color }))), ev);
+  });
+  hit.addEventListener("mouseleave", () => { cross.style.display = "none"; hideTT(); });
+}
+
+/* ==================================================================
+   CHART — calendar-year grouped columns
+   ================================================================== */
+function drawCalendar(host, series, years, width) {
+  const h = 250, padL = 50, padR = 12, padT = 10, padB = 30;
+  const plotW = width - padL - padR, plotH = h - padT - padB;
+  const all = series.flatMap(s => s.vals);
+  const lo = Math.min(-0.02, Math.min(...all)), hi = Math.max(0.02, Math.max(...all));
+  const ticks = niceTicks(lo, hi, 5);
+  const y = scale(Math.min(lo, ticks[0]), Math.max(hi, ticks[ticks.length - 1]), padT + plotH, padT);
+  const band = plotW / years.length;
+  const gap = 2, k = series.length;
+  const bw = Math.max(3, Math.min(24, (band - 10 - gap * (k - 1)) / k));
+  const out = [svgOpen(width, h)];
+
+  for (const t of ticks) {
+    out.push('<line class="grid-line" x1="' + padL + '" y1="' + y(t) + '" x2="' + (padL + plotW) + '" y2="' + y(t) + '"/>');
+    out.push('<text class="tick-txt" x="' + (padL - 9) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + (t * 100).toFixed(0) + "%</text>");
+  }
+  const zero = y(0);
+  out.push('<line class="axis-line" x1="' + padL + '" y1="' + zero + '" x2="' + (padL + plotW) + '" y2="' + zero + '"/>');
+
+  years.forEach((yr, i) => {
+    const cx = padL + band * i + band / 2;
+    const groupW = k * bw + (k - 1) * gap;
+    series.forEach((s, j) => {
+      const v = s.vals[i];
+      if (v === undefined || v === null) return;
+      const bx = cx - groupW / 2 + j * (bw + gap);
+      const top = v >= 0 ? y(v) : zero, hh = Math.abs(y(v) - zero);
+      out.push('<path d="' + barPath(bx, top, bw, hh, 4, v >= 0 ? "up" : "down") + '" fill="' + s.color + '"/>');
+    });
+    if (band > 30 || i % 2 === 0) {
+      out.push('<text class="tick-txt" x="' + cx + '" y="' + (h - 9) + '" text-anchor="middle">' + ("" + yr).slice(2) + "</text>");
+    }
+    out.push('<rect x="' + (padL + band * i) + '" y="' + padT + '" width="' + band + '" height="' + plotH +
+             '" fill="transparent" data-yr="' + i + '"/>');
+  });
+  out.push("</svg>");
+  host.innerHTML = out.join("");
+  host.querySelectorAll("[data-yr]").forEach(el => {
+    el.addEventListener("mousemove", ev => {
+      const i = +el.getAttribute("data-yr");
+      showTT(ttRows(String(years[i]), series.map(s => ({
+        name: s.name, value: s.vals[i] === undefined ? "—" : pctS(s.vals[i]), color: s.color
+      }))), ev);
+    });
+    el.addEventListener("mouseleave", hideTT);
+  });
+}
+
+/* ==================================================================
+   CHART — risk / return scatter (one colour + direct labels)
+   ================================================================== */
+function drawScatter(host, pts, width, highlightId) {
+  const h = 300, padL = 54, padR = 30, padT = 14, padB = 42;
+  const plotW = width - padL - padR, plotH = h - padT - padB;
+  const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+  /* Domain comes from the data with breathing room, then is widened to cover the
+     ticks — never the other way round, or points land outside the plot. */
+  const xPad = (Math.max(...xs) - Math.min(...xs)) * 0.14 || 0.01;
+  const yPad = (Math.max(...ys) - Math.min(...ys)) * 0.18 || 0.01;
+  const xdLo = Math.max(0, Math.min(...xs) - xPad), xdHi = Math.max(...xs) + xPad;
+  const ydLo = Math.max(0, Math.min(...ys) - yPad), ydHi = Math.max(...ys) + yPad;
+  const xTicks = niceTicks(xdLo, xdHi, 5);
+  const yTicks = niceTicks(ydLo, ydHi, 5);
+  const x = scale(Math.min(xdLo, xTicks[0]), Math.max(xdHi, xTicks[xTicks.length - 1]), padL, padL + plotW);
+  const y = scale(Math.min(ydLo, yTicks[0]), Math.max(ydHi, yTicks[yTicks.length - 1]), padT + plotH, padT);
+  const out = [svgOpen(width, h)];
+
+  for (const t of yTicks) {
+    out.push('<line class="grid-line" x1="' + padL + '" y1="' + y(t) + '" x2="' + (padL + plotW) + '" y2="' + y(t) + '"/>');
+    out.push('<text class="tick-txt" x="' + (padL - 9) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + (t * 100).toFixed(0) + "%</text>");
+  }
+  for (const t of xTicks) {
+    out.push('<text class="tick-txt" x="' + x(t) + '" y="' + (padT + plotH + 18) + '" text-anchor="middle">' + (t * 100).toFixed(0) + "%</text>");
+  }
+  out.push('<line class="axis-line" x1="' + padL + '" y1="' + (padT + plotH) + '" x2="' + (padL + plotW) + '" y2="' + (padT + plotH) + '"/>');
+  out.push('<text class="tick-txt" x="' + (padL + plotW / 2) + '" y="' + (h - 6) + '" text-anchor="middle">Volatility — how bumpy the ride was</text>');
+  out.push('<text class="tick-txt" transform="translate(13,' + (padT + plotH / 2) + ') rotate(-90)" text-anchor="middle">Return a year</text>');
+
+  /* Labels sit just off their dot; where two would collide the label steps to the
+     next free slot and a leader line keeps it tied to the point it belongs to. */
+  const placed = [];
+  const OFFSETS = [-12, 20, -26, 34, -40, 48];
+  pts.slice().sort((a, b) => a.x - b.x).forEach(p => {
+    const cx = x(p.x), cy = y(p.y), hot = p.id === highlightId;
+    const halfW = p.short.length * 3.3 + 5;
+    let dy = OFFSETS[0];
+    for (const cand of OFFSETS) {
+      const box = { l: cx - halfW, r: cx + halfW, t: cy + cand - 10, b: cy + cand + 4 };
+      if (!placed.some(q => box.l < q.r && box.r > q.l && box.t < q.b && box.b > q.t)) { dy = cand; break; }
+    }
+    placed.push({ l: cx - halfW, r: cx + halfW, t: cy + dy - 10, b: cy + dy + 4 });
+    if (Math.abs(dy) > 22) {
+      const y0 = cy + Math.sign(dy) * 9, y1 = cy + dy - (dy < 0 ? 3 : 11);
+      out.push('<line x1="' + cx + '" y1="' + y0 + '" x2="' + cx + '" y2="' + y1 + '" stroke="var(--axis)" stroke-width="1"/>');
+    }
+    out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (hot ? 8 : 5.5) + '" fill="' + seriesColor(0) +
+             '" stroke="var(--surface)" stroke-width="2"' + (hot ? '' : ' opacity="0.55"') + '/>');
+    if (hot) out.push('<circle cx="' + cx + '" cy="' + cy + '" r="13" fill="none" stroke="' + seriesColor(0) + '" stroke-width="1.5" opacity="0.5"/>');
+    out.push('<text class="' + (hot ? "lbl-strong" : "lbl-txt") + '" x="' + cx + '" y="' + (cy + dy) + '" text-anchor="middle">' + esc(p.short) + "</text>");
+    out.push('<circle cx="' + cx + '" cy="' + cy + '" r="16" fill="transparent" data-pt="' + esc(p.id) + '"/>');
+  });
+  out.push("</svg>");
+  host.innerHTML = out.join("");
+  host.querySelectorAll("[data-pt]").forEach(el => {
+    el.addEventListener("mousemove", ev => {
+      const p = pts.find(q => q.id === el.getAttribute("data-pt"));
+      showTT(ttRows(p.name, [
+        { name: "Return a year", value: pct(p.y), color: seriesColor(0) },
+        { name: "Volatility", value: pct(p.x) },
+        { name: "Worst fall", value: pct(p.dd) }
+      ]), ev);
+    });
+    el.addEventListener("mouseleave", hideTT);
+  });
+}
+
+/* ==================================================================
+   METRIC DICTIONARY — label, format, and the plain-English meaning
+   ================================================================== */
+const META = {
+  cagr:            { lab:"Growth a year",           fmt:v=>pct(v),                 better:1,  mean:"What it grew by in an average year, after costs." },
+  realCagr:        { lab:"Growth after inflation",  fmt:v=>pct(v),                 better:1,  mean:"What was left once rising prices were paid for." },
+  endValue:        { lab:"$100,000 became",         fmt:v=>moneyShort(v),          better:1,  mean:"The same starting sum at the end of the period." },
+  vol:             { lab:"Typical swing",           fmt:v=>pct(v),                 better:-1, mean:"How far the value tends to move in a normal year, either way." },
+  maxDD:           { lab:"Worst fall",              fmt:v=>pct(v),                 better:1,  mean:"The deepest drop from a high point before it recovered." },
+  worstYear:       { lab:"Worst calendar year",     fmt:v=>pctS(v),                better:1,  mean:"The single worst January-to-December on record here." },
+  bestYear:        { lab:"Best calendar year",      fmt:v=>pctS(v),                better:1,  mean:"The single best January-to-December on record here." },
+  worst12:         { lab:"Worst 12 months",         fmt:v=>pctS(v),                better:1,  mean:"The worst any twelve-month stretch ever felt." },
+  underwater:      { lab:"Longest time down",       fmt:v=>v+" mo",                better:-1, mean:"The longest wait to get back to a previous high." },
+  pctPosYears:     { lab:"Years that finished up",  fmt:v=>Math.round(v)+"%",      better:1,  mean:"How often a calendar year ended in the black." },
+  downCapture:     { lab:"Share of market falls",   fmt:v=>v===null?"—":Math.round(v)+"%", better:-1, mean:"When shares fell, this took about this much of the fall — below zero means it rose instead." },
+  upCapture:       { lab:"Share of market rises",   fmt:v=>v===null?"—":Math.round(v)+"%", better:1,  mean:"When shares rose, this captured roughly this much of the rise." },
+  yieldPct:        { lab:"Income yield",            fmt:v=>v.toFixed(2)+"%",       better:1,  mean:"Cash paid out each year, as a share of the balance." },
+  incomeStability: { lab:"Income reliability",      fmt:v=>Math.round(v)+" / 100", better:1,  mean:"How dependable that payout is year to year." },
+  inflationBeta:   { lab:"Response to inflation",   fmt:v=>(v>=0?"+":"")+v.toFixed(2)+"×", better:1, mean:"How returns moved for each 1% of unexpected inflation." },
+  realAssetPct:    { lab:"In real assets",          fmt:v=>v+"%",                  better:1,  mean:"Property, commodities and inflation-linked bonds." },
+  equityPct:       { lab:"In shares",               fmt:v=>v+"%",                  better:0,  mean:"The growth engine — and the source of most of the movement." },
+  liquidity:       { lab:"Ease of access",          fmt:v=>Math.round(v)+" / 100", better:1,  mean:"How quickly it turns into spendable cash without a haircut." },
+  er:              { lab:"Yearly cost",             fmt:v=>v.toFixed(2)+"%",       better:-1, mean:"The running charge, already taken out of every figure here." },
+  turnover:        { lab:"Turnover",                fmt:v=>Math.round(v)+"%",      better:-1, mean:"How much of the portfolio is traded each year." },
+  taxScore:        { lab:"Tax efficiency",          fmt:v=>Math.round(v)+" / 100", better:1,  mean:"How much of the return survives in a taxable account." },
+  sharpe:          { lab:"Return per unit of risk", fmt:v=>num(v,2),               better:1,  mean:"Reward earned for each unit of bumpiness taken on." },
+  sortino:         { lab:"Return per unit of loss", fmt:v=>num(v,2),               better:1,  mean:"The same idea, counting only the downward moves." }
+};
+const TABLE_ROWS = ["cagr","realCagr","endValue","vol","maxDD","worst12","worstYear","bestYear","underwater",
+                    "pctPosYears","upCapture","downCapture","sharpe","sortino","yieldPct","incomeStability",
+                    "inflationBeta","equityPct","realAssetPct","liquidity","er","turnover","taxScore"];
+
+/* ==================================================================
+   STATE
+   ================================================================== */
+const STATE = {
+  priorities: [],
+  compare: ["balanced", "sixtyforty", "aggressive"],
+  compareTouched: false,
+  period: "full",
+  tables: false
+};
+const METRIC_CACHE = {};
+function metricsAll() {
+  if (!METRIC_CACHE[STATE.period]) {
+    METRIC_CACHE[STATE.period] = PORTFOLIOS.map(p => metricsFor(p, STATE.period));
+  }
+  return METRIC_CACHE[STATE.period];
+}
+const byId = id => PORTFOLIOS.find(p => p.id === id);
+const metById = (mets, id) => mets.find(m => m.id === id);
+const ANCHOR = "sixtyforty";
+
+/* Which metrics matter most for the pressed priorities, heaviest first. */
+function activeMetrics() {
+  const acc = {};
+  for (const pid of STATE.priorities) {
+    for (const m of PRIORITIES.find(x => x.id === pid).metrics) acc[m.k] = (acc[m.k] || 0) + m.w;
+  }
+  return Object.keys(acc).sort((a, b) => acc[b] - acc[a]);
+}
+
+/* ==================================================================
+   RENDER — priorities, filter bar, compare picker
+   ================================================================== */
+function renderPriorities() {
+  document.getElementById("prioGrid").innerHTML = PRIORITIES.map(p =>
+    '<button class="prio" type="button" data-prio="' + p.id + '" aria-pressed="' +
+    (STATE.priorities.includes(p.id) ? "true" : "false") + '">' +
+    '<span class="tick" aria-hidden="true">✓</span>' +
+    '<span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24">' + GLYPH[p.glyph] + "</svg></span>" +
+    '<span class="name">' + esc(p.name) + "</span>" +
+    '<span class="say">' + esc(p.say) + "</span></button>"
+  ).join("");
+}
+function renderPeriod() {
+  document.getElementById("periodSeg").innerHTML = PERIODS.map(p =>
+    '<button type="button" data-period="' + p.id + '" aria-pressed="' + (STATE.period === p.id) + '">' + esc(p.label) + "</button>"
+  ).join("");
+}
+function renderPicks() {
+  document.getElementById("pickRow").innerHTML = PORTFOLIOS.map(p => {
+    const i = STATE.compare.indexOf(p.id), on = i >= 0;
+    const full = STATE.compare.length >= 3 && !on;
+    return '<button class="pick" type="button" data-pick="' + p.id + '" aria-pressed="' + on + '"' + (full ? " disabled" : "") + '>' +
+      '<span class="key" style="background:' + (on ? seriesColor(i) : "var(--axis)") + '"></span>' + esc(p.name) + "</button>";
+  }).join("");
+}
+function legendHTML(sel) {
+  return sel.map((m, i) =>
+    '<li><span class="key" style="background:' + seriesColor(i) + '"></span>' + esc(byId(m.id).name) + "</li>").join("");
+}
+
+/* ==================================================================
+   RENDER — the answer band
+   ================================================================== */
+function renderAnswer(mets, scores, ranked) {
+  const zone = document.getElementById("answerZone");
+  if (!STATE.priorities.length) {
+    zone.innerHTML = '<div class="answer" style="grid-template-columns:1fr">' +
+      '<p class="empty-note">Nothing pressed yet. Pick one or more priorities above and this page rewrites itself ' +
+      'around them — the headline, the five numbers that matter, the ranking, and the words to say. ' +
+      'The charts below stay live in the meantime.</p></div>';
+    return;
+  }
+  const top = ranked[0], second = ranked[1];
+  const p = byId(top.id), m = metById(mets, top.id);
+  const anchor = metById(mets, ANCHOR);
+  const names = STATE.priorities.map(id => PRIORITIES.find(x => x.id === id).name.toLowerCase());
+  const list = names.length === 1 ? names[0]
+    : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+
+  const bits = [];
+  if (STATE.priorities.includes("stability") || STATE.priorities.includes("downside"))
+    bits.push("its worst fall was " + pct(m.maxDD) + " against " + pct(anchor.maxDD) + " for a classic 60/40");
+  if (STATE.priorities.includes("growth"))
+    bits.push("$100,000 became " + moneyShort(m.endValue));
+  if (STATE.priorities.includes("income"))
+    bits.push("it pays " + m.yieldPct.toFixed(2) + "% a year");
+  if (STATE.priorities.includes("inflation"))
+    bits.push("it grew " + pct(m.realCagr) + " a year after inflation");
+  if (STATE.priorities.includes("cost"))
+    bits.push("it costs " + m.er.toFixed(2) + "% a year to run");
+  if (STATE.priorities.includes("access"))
+    bits.push("it scores " + Math.round(m.liquidity) + "/100 on getting to your money");
+  if (STATE.priorities.includes("tax"))
+    bits.push("it keeps " + Math.round(m.taxScore) + "/100 of its return out of the tax net");
+  if (!bits.length) bits.push("it grew " + pct(m.cagr) + " a year");
+
+  const period = PERIODS.find(x => x.id === STATE.period).label.toLowerCase();
+  zone.innerHTML =
+    '<div class="answer">' +
+      "<div>" +
+        '<div class="hero-label">Best fit for what you said</div>' +
+        '<div class="hero-name">' + esc(p.name) + "</div>" +
+        '<div class="hero-fig">' + Math.round(top.score) + '<span> / 100</span></div>' +
+        '<div class="meter"><i style="width:' + Math.round(top.score) + '%"></i></div>' +
+      "</div>" +
+      '<div class="talk">Because you said <b>' + esc(list) + "</b>, this mix comes out on top &mdash; " +
+        esc(bits.slice(0, 2).join(", and ")) + " over the period shown (" + esc(period) + ")." +
+        '<span class="sub">' + esc(p.blurb) + " Next closest is <b>" + esc(byId(second.id).name) +
+        "</b> at " + Math.round(second.score) + "/100. Scores are relative to the eight portfolios on this page &mdash; " +
+        "100 means best of this group, not perfect.</span></div>" +
+    "</div>";
+}
+
+/* ==================================================================
+   RENDER — stat tiles for the pressed priorities
+   ================================================================== */
+function renderTiles(mets, ranked) {
+  const step = document.getElementById("tilesStep");
+  if (!STATE.priorities.length) { step.hidden = true; return; }
+  step.hidden = false;
+  const top = ranked[0], m = metById(mets, top.id), anchor = metById(mets, ANCHOR);
+  document.getElementById("tilesHint").textContent = byId(top.id).name + " — the metrics your priorities are scored on";
+
+  const keys = activeMetrics().slice(0, 5);
+  document.getElementById("tiles").innerHTML = keys.map(k => {
+    const meta = META[k];
+    if (!meta) return "";
+    const v = m[k], a = anchor[k];
+    let delta = '<div class="t-delta flat"><span class="dot"></span>Same as a classic 60/40</div>';
+    if (typeof v === "number" && typeof a === "number" && meta.better !== 0) {
+      const raw = v - a;
+      const good = meta.better > 0 ? raw > 0 : raw < 0;
+      const cls = Math.abs(raw) < 1e-9 ? "flat" : good ? "up" : "down";
+      const word = Math.abs(raw) < 1e-9 ? "Same as" : good ? "Better than" : "Behind";
+      delta = '<div class="t-delta ' + cls + '"><span class="dot"></span>' + word +
+              " a classic 60/40 (" + esc(meta.fmt(a)) + ")</div>";
+    }
+    return '<div class="tile"><div class="t-lab">' + esc(meta.lab) + "</div>" +
+      '<div class="t-val">' + esc(meta.fmt(v)) + "</div>" + delta +
+      '<div class="t-mean">' + esc(meta.mean) + "</div></div>";
+  }).join("");
+}
+
+/* ==================================================================
+   RENDER — ranking, charts, and their table twins
+   ================================================================== */
+function tableHTML(head, rows, note) {
+  return '<div class="tbl-wrap"><table class="data"><thead><tr>' +
+    head.map((h, i) => "<th" + (i === 0 ? "" : "") + ">" + h + "</th>").join("") +
+    "</tr></thead><tbody>" +
+    rows.map(r => "<tr>" + r.map(c => "<td>" + c + "</td>").join("") + "</tr>").join("") +
+    "</tbody></table>" + (note ? '<p class="tbl-note">' + note + "</p>" : "") + "</div>";
+}
+const nameKey = (id, i) => '<span class="name-key"><span class="key" style="background:' + seriesColor(i) + '"></span>' + esc(byId(id).name) + "</span>";
+
+function renderRank(mets, scores, ranked) {
+  const step = document.getElementById("rankStep");
+  if (!STATE.priorities.length) { step.hidden = true; return; }
+  step.hidden = false;
+  const names = STATE.priorities.map(id => PRIORITIES.find(x => x.id === id).name);
+  document.getElementById("rankTitle").textContent =
+    "Fit score — " + names.join(" + ");
+  document.getElementById("rankSub").textContent =
+    STATE.priorities.length > 1
+      ? "Each portfolio is scored on every priority you pressed, then averaged. Press a priority off to see the ranking move."
+      : "Every portfolio scored on " + names[0].toLowerCase() + " alone, relative to the others shown.";
+
+  const host = document.getElementById("rankChart");
+  drawRank(host, ranked.map(r => ({ id: r.id, score: r.score, name: byId(r.id).name, short: byId(r.id).short })),
+           host.parentElement.clientWidth || 600);
+
+  const top = ranked[0], bottom = ranked[ranked.length - 1];
+  const gap = Math.round(top.score - ranked[1].score);
+  document.getElementById("rankRead").innerHTML =
+    "<b>" + esc(byId(top.id).name) + "</b> leads by " + gap + " point" + (gap === 1 ? "" : "s") +
+    ". <b>" + esc(byId(bottom.id).name) + "</b> ranks last here — which is not a verdict on the portfolio, only on " +
+    "how well it serves what this client just told you.";
+
+  const t = document.getElementById("rankTable");
+  t.hidden = !STATE.tables;
+  if (STATE.tables) {
+    const heads = ["Portfolio", "Fit score"].concat(STATE.priorities.map(id => PRIORITIES.find(x => x.id === id).name));
+    t.innerHTML = tableHTML(heads, ranked.map(r =>
+      [esc(byId(r.id).name), Math.round(r.score)].concat(
+        STATE.priorities.map(pid => Math.round(scores.perPriority[pid][r.id])))));
+  }
+}
+
+function compareMets(mets) { return STATE.compare.map(id => metById(mets, id)); }
+
+function renderGrowth(mets) {
+  const sel = compareMets(mets);
+  document.getElementById("growthLegend").innerHTML = legendHTML(sel);
+  const host = document.getElementById("growthChart");
+  const w = host.parentElement.clientWidth || 600;
+  const from = sel[0].from;
+  const n = sel[0].path.idx.length;
+  const xTicks = [];
+  const step = n > 160 ? 36 : n > 90 ? 24 : 12;
+  for (let i = 0; i < n - 1; i += step) xTicks.push({ i, label: String(ALL_MONTHS[from + i].year) });
+  const all = sel.flatMap(s => s.path.idx);
+  drawLineChart(host, {
+    width: w, height: 268,
+    series: sel.map((s, i) => ({ name: byId(s.id).name, color: seriesColor(i), vals: s.path.idx })),
+    yDomain: [Math.min(...all) * 0.97, Math.max(...all) * 1.02],
+    yFmt: moneyShort, endFmt: moneyShort, tipFmt: money,
+    xLabel: i => (i === 0 ? "Start" : monthLabel(ALL_MONTHS[from + i - 1])),
+    xTicks, endLabel: true, fill: false
+  });
+  const best = sel.slice().sort((a, b) => b.endValue - a.endValue)[0];
+  const worst = sel.slice().sort((a, b) => a.endValue - b.endValue)[0];
+  document.getElementById("growthRead").innerHTML =
+    "$100,000 in <b>" + esc(byId(best.id).name) + "</b> ends at " + money(best.endValue) + "; in <b>" +
+    esc(byId(worst.id).name) + "</b>, " + money(worst.endValue) + ". That gap of " +
+    money(best.endValue - worst.endValue) + " is what the client is being paid for the extra movement in the next chart.";
+
+  const t = document.getElementById("growthTable");
+  t.hidden = !STATE.tables;
+  if (STATE.tables) {
+    const rows = [];
+    for (let i = 11; i < n; i += 12) {
+      rows.push([String(ALL_MONTHS[from + i - 1].year)].concat(sel.map(s => money(s.path.idx[i]))));
+    }
+    t.innerHTML = tableHTML(["Year end"].concat(sel.map((s, i) => nameKey(s.id, i))), rows,
+      "Value of $100,000 at each year end.");
+  }
+}
+
+function renderDrawdown(mets) {
+  const sel = compareMets(mets);
+  document.getElementById("ddLegend").innerHTML = legendHTML(sel);
+  const host = document.getElementById("ddChart");
+  const w = host.parentElement.clientWidth || 600;
+  const from = sel[0].from, n = sel[0].path.dd.length;
+  const xTicks = [];
+  const step = n > 160 ? 36 : n > 90 ? 24 : 12;
+  for (let i = 0; i < n - 1; i += step) xTicks.push({ i, label: String(ALL_MONTHS[from + i].year) });
+  drawLineChart(host, {
+    width: w, height: 248,
+    series: sel.map((s, i) => ({ name: byId(s.id).name, color: seriesColor(i), vals: s.path.dd })),
+    yDomain: [Math.min(...sel.flatMap(s => s.path.dd)) * 1.06, 0],
+    yFmt: v => (v * 100).toFixed(0) + "%", endFmt: v => pct(v), tipFmt: v => pct(v),
+    xLabel: i => (i === 0 ? "Start" : monthLabel(ALL_MONTHS[from + i - 1])),
+    xTicks, baselineAt: 0, fill: true, endLabel: false
+  });
+  const deep = sel.slice().sort((a, b) => a.maxDD - b.maxDD)[0];
+  const calm = sel.slice().sort((a, b) => b.maxDD - a.maxDD)[0];
+  document.getElementById("ddRead").innerHTML =
+    "The deepest hole belongs to <b>" + esc(byId(deep.id).name) + "</b> at " + pct(deep.maxDD) +
+    ", and it stayed below its previous high for as long as " + deep.underwater + " months. <b>" +
+    esc(byId(calm.id).name) + "</b> never fell further than " + pct(calm.maxDD) +
+    ". Ask the client which of those two lines they could have sat through without calling you.";
+
+  const t = document.getElementById("ddTable");
+  t.hidden = !STATE.tables;
+  if (STATE.tables) {
+    const rows = sel.map((s, i) => [nameKey(s.id, i), pct(s.maxDD), s.underwater + " mo", pctS(s.worst12), pctS(s.worstYear)]);
+    t.innerHTML = tableHTML(["Portfolio", "Worst fall", "Longest time down", "Worst 12 months", "Worst calendar year"], rows);
+  }
+}
+
+function renderCalendar(mets) {
+  const sel = compareMets(mets);
+  document.getElementById("calLegend").innerHTML = legendHTML(sel);
+  const host = document.getElementById("calChart");
+  const years = sel[0].cal.map(c => c.year);
+  drawCalendar(host, sel.map((s, i) => ({
+    name: byId(s.id).name, color: seriesColor(i),
+    vals: years.map(y => { const f = s.cal.find(c => c.year === y); return f ? f.ret : undefined; })
+  })), years, host.parentElement.clientWidth || 600);
+
+  const worstYear = years.reduce((acc, y) => {
+    const v = Math.min(...sel.map(s => { const f = s.cal.find(c => c.year === y); return f ? f.ret : 0; }));
+    return v < acc.v ? { y, v } : acc;
+  }, { y: years[0], v: 1 });
+  const spread = sel.map(s => { const f = s.cal.find(c => c.year === worstYear.y); return f ? f.ret : 0; });
+  document.getElementById("calRead").innerHTML =
+    "<b>" + worstYear.y + "</b> was the hardest year on screen: " +
+    sel.map((s, i) => esc(byId(s.id).short) + " " + pctS(spread[i])).join(", ") +
+    ". Every portfolio here finished up in " +
+    years.filter(y => sel.every(s => { const f = s.cal.find(c => c.year === y); return f && f.ret > 0; })).length +
+    " of " + years.length + " years.";
+
+  const t = document.getElementById("calTable");
+  t.hidden = !STATE.tables;
+  if (STATE.tables) {
+    t.innerHTML = tableHTML(["Year"].concat(sel.map((s, i) => nameKey(s.id, i))),
+      years.map(y => [String(y)].concat(sel.map(s => {
+        const f = s.cal.find(c => c.year === y); return f ? pctS(f.ret) : "—";
+      }))));
+  }
+}
+
+function renderScatter(mets, ranked) {
+  const host = document.getElementById("scatterChart");
+  const hot = STATE.priorities.length ? ranked[0].id : null;
+  drawScatter(host, mets.map(m => ({
+    id: m.id, name: byId(m.id).name, short: byId(m.id).short, x: m.vol, y: m.cagr, dd: m.maxDD
+  })), host.parentElement.clientWidth || 600, hot);
+
+  const eff = mets.slice().sort((a, b) => (b.sharpe - a.sharpe))[0];
+  document.getElementById("scatterRead").innerHTML = (hot
+      ? "<b>" + esc(byId(hot).name) + "</b> — the best fit for what your client said — sits at " +
+        pct(metById(mets, hot).vol) + " volatility for " + pct(metById(mets, hot).cagr) + " a year. "
+      : "") +
+    "<b>" + esc(byId(eff.id).name) + "</b> got the most return per unit of movement on this map. " +
+    "Points further right are not worse — they are simply asking the client to tolerate more to get more.";
+
+  const t = document.getElementById("scatterTable");
+  t.hidden = !STATE.tables;
+  if (STATE.tables) {
+    t.innerHTML = tableHTML(["Portfolio", "Return a year", "Volatility", "Worst fall", "Return per unit of risk"],
+      mets.slice().sort((a, b) => b.cagr - a.cagr).map(m =>
+        [esc(byId(m.id).name), pct(m.cagr), pct(m.vol), pct(m.maxDD), num(m.sharpe, 2)]));
+  }
+}
+
+/* ==================================================================
+   RENDER — talk track
+   ================================================================== */
+const TALK = {
+  stability: (m, a, p) => ({
+    quote: "“You told me steady matters more than spectacular. Here is what steady actually looked like.”",
+    proof: p.name + " moved about " + pct(m.vol) + " in a typical year against " + pct(a.vol) +
+           " for a classic 60/40, finished " + Math.round(m.pctPosYears) + "% of calendar years in the black, and when shares fell it only took " +
+           (m.downCapture === null ? "—" : Math.round(m.downCapture) + "%") + " of the fall."
+  }),
+  growth: (m, a, p) => ({
+    quote: "“Growth is the goal, so the job is to make sure you can stay invested long enough to get it.”",
+    proof: "$100,000 became " + money(m.endValue) + " — " + pct(m.cagr) + " a year. The price of admission was a " +
+           pct(m.maxDD) + " fall along the way, and " + m.underwater + " months waiting to get back to level."
+  }),
+  income: (m, a, p) => ({
+    quote: "“You need this to pay you. Let's look at the cheque, not the share price.”",
+    proof: p.name + " yields " + m.yieldPct.toFixed(2) + "% a year — on $1,000,000 that is roughly " +
+           money(m.yieldPct * 10000) + " before tax — and scores " + Math.round(m.incomeStability) +
+           "/100 on how reliable that payout is."
+  }),
+  downside: (m, a, p) => ({
+    quote: "“Let's talk about the worst day, not the average day. If the worst is survivable, the plan holds.”",
+    proof: "The deepest fall was " + pct(m.maxDD) + " and the worst calendar year was " + pctS(m.worstYear) +
+           ". A classic 60/40 fell " + pct(a.maxDD) + " over the same stretch."
+  }),
+  inflation: (m, a, p) => ({
+    quote: "“The risk isn't only losing money. It's money that stops buying what it used to.”",
+    proof: "After inflation this grew " + pct(m.realCagr) + " a year, with " + m.realAssetPct +
+           "% in real assets. Each 1% of unexpected inflation moved returns by " +
+           (m.inflationBeta >= 0 ? "+" : "") + m.inflationBeta.toFixed(2) + "×."
+  }),
+  access: (m, a, p) => ({
+    quote: "“Plans change. Let's make sure getting to your money is never the hard part.”",
+    proof: p.name + " scores " + Math.round(m.liquidity) + "/100 on access, and its typical swing of " +
+           pct(m.vol) + " means the balance you see is close to the balance you can take."
+  }),
+  cost: (m, a, p) => ({
+    quote: "“Fees are the one part of this that is guaranteed. Everything else is a forecast.”",
+    proof: "This runs at " + m.er.toFixed(2) + "% a year — on $1,000,000, " + money(m.er * 10000) +
+           " a year — and trades " + Math.round(m.turnover) + "% of itself annually. Every return shown is already net of that."
+  }),
+  tax: (m, a, p) => ({
+    quote: "“It isn't what it earns. It's what you keep.”",
+    proof: p.name + " scores " + Math.round(m.taxScore) + "/100 on tax efficiency with " +
+           Math.round(m.turnover) + "% turnover — less trading means fewer taxable events to hand over each April."
+  })
+};
+function renderTalk(mets, ranked) {
+  const box = document.getElementById("talkBox");
+  if (!STATE.priorities.length) { box.hidden = true; return; }
+  box.hidden = false;
+  const m = metById(mets, ranked[0].id), a = metById(mets, ANCHOR), p = byId(ranked[0].id);
+  document.getElementById("talkBody").innerHTML = STATE.priorities.map(id => {
+    const pr = PRIORITIES.find(x => x.id === id), t = TALK[id](m, a, p);
+    return '<div class="talk-item"><h4><span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15">' +
+      GLYPH[pr.glyph] + "</svg></span>" + esc(pr.name) + "</h4>" +
+      '<p class="quote">' + esc(t.quote) + "</p>" +
+      '<p class="proof">' + esc(t.proof) + "</p></div>";
+  }).join("");
+}
+
+/* ==================================================================
+   RENDER — the full reference table
+   ================================================================== */
+function renderFullTable(mets) {
+  const hot = activeMetrics();
+  const head = "<tr><th>Metric</th>" + PORTFOLIOS.map(p => "<th>" + esc(p.short) + "</th>").join("") + "</tr>";
+  const body = TABLE_ROWS.map(k => {
+    const meta = META[k];
+    const cells = PORTFOLIOS.map(p => "<td>" + esc(meta.fmt(metById(mets, p.id)[k])) + "</td>").join("");
+    return '<tr class="' + (hot.includes(k) ? "hot" : "") + '"><td>' + esc(meta.lab) +
+           '<span class="why">' + esc(meta.mean) + "</span></td>" + cells + "</tr>";
+  }).join("");
+  document.getElementById("fullTable").innerHTML =
+    '<table class="data"><thead>' + head + "</thead><tbody>" + body + "</tbody></table>";
+  document.getElementById("fullTableNote").textContent =
+    hot.length
+      ? "Highlighted rows are the ones feeding the fit scores for the priorities you pressed."
+      : "Press a priority above to highlight the rows it is scored on. Period: " +
+        PERIODS.find(p => p.id === STATE.period).label + ", net of costs.";
+}
+
+/* ==================================================================
+   MAIN RENDER
+   ================================================================== */
+function render() {
+  const mets = metricsAll();
+  const scores = scoreAll(mets, STATE.priorities);
+  const ranked = mets.map(m => ({ id: m.id, score: scores.combined[m.id] }))
+                     .sort((a, b) => b.score - a.score);
+
+  if (STATE.priorities.length && !STATE.compareTouched) {
+    const picks = [ranked[0].id];
+    if (!picks.includes(ANCHOR)) picks.push(ANCHOR);
+    for (const r of ranked) { if (picks.length >= 3) break; if (!picks.includes(r.id)) picks.push(r.id); }
+    STATE.compare = picks.slice(0, 3);
+  }
+
+  renderPriorities();
+  renderPeriod();
+  renderPicks();
+  renderAnswer(mets, scores, ranked);
+  renderTiles(mets, ranked);
+  renderRank(mets, scores, ranked);
+  renderGrowth(mets);
+  renderDrawdown(mets);
+  renderCalendar(mets);
+  renderScatter(mets, ranked);
+  renderTalk(mets, ranked);
+  renderFullTable(mets);
+  labelCharts();
+}
+
+/* Give every SVG an accessible name from its own card heading, and point
+   screen-reader users at the table that carries the same values. */
+function labelCharts() {
+  document.querySelectorAll(".card").forEach(card => {
+    const svg = card.querySelector("svg.chart");
+    if (!svg) return;
+    const h = card.querySelector("h3"), sub = card.querySelector(".sub");
+    svg.setAttribute("aria-label",
+      (h ? h.textContent : "Chart") + (sub ? ". " + sub.textContent : "") +
+      " The same values are listed in the data table for this chart and in the reference table at the foot of the page.");
+  });
+}
+
+/* ==================================================================
+   EVENTS
+   ================================================================== */
+document.getElementById("prioGrid").addEventListener("click", e => {
+  const b = e.target.closest("[data-prio]");
+  if (!b) return;
+  const id = b.getAttribute("data-prio"), i = STATE.priorities.indexOf(id);
+  if (i >= 0) STATE.priorities.splice(i, 1); else STATE.priorities.push(id);
+  STATE.compareTouched = false;
+  render();
+});
+document.getElementById("periodSeg").addEventListener("click", e => {
+  const b = e.target.closest("[data-period]");
+  if (!b) return;
+  STATE.period = b.getAttribute("data-period");
+  render();
+});
+document.getElementById("pickRow").addEventListener("click", e => {
+  const b = e.target.closest("[data-pick]");
+  if (!b || b.disabled) return;
+  const id = b.getAttribute("data-pick"), i = STATE.compare.indexOf(id);
+  if (i >= 0) { if (STATE.compare.length === 1) return; STATE.compare.splice(i, 1); }
+  else { if (STATE.compare.length >= 3) return; STATE.compare.push(id); }
+  STATE.compareTouched = true;
+  render();
+});
+const tablesBtn = document.getElementById("tablesBtn");
+tablesBtn.addEventListener("click", () => {
+  STATE.tables = !STATE.tables;
+  tablesBtn.setAttribute("aria-pressed", String(STATE.tables));
+  tablesBtn.textContent = STATE.tables ? "Hide data tables" : "Show data tables";
+  render();
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+  STATE.priorities = [];
+  STATE.compare = ["balanced", "sixtyforty", "aggressive"];
+  STATE.compareTouched = false;
+  STATE.period = "full";
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+/* theme toggle — remembers the viewer's choice where storage is available */
+const themeBtn = document.getElementById("themeBtn");
+function currentTheme() {
+  const stamped = document.documentElement.getAttribute("data-theme");
+  if (stamped) return stamped;
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function syncThemeBtn() { themeBtn.textContent = currentTheme() === "dark" ? "Light" : "Dark"; }
+try {
+  const saved = localStorage.getItem("cpd-theme");
+  if (saved) document.documentElement.setAttribute("data-theme", saved);
+} catch (e) { /* storage blocked — fall back to the OS setting */ }
+themeBtn.addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  try { localStorage.setItem("cpd-theme", next); } catch (e) {}
+  syncThemeBtn();
+  render();
+});
+syncThemeBtn();
+
+/* redraw the SVGs when the container width changes */
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(render, 140);
+});
+
+render();
+</script>
+</body>
+</html>
