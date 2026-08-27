@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Legal Document Audit</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --panel: #171e2e;
+    --panel-2: #1e2739;
+    --border: #2a3550;
+    --text: #e6ecf5;
+    --muted: #93a1bd;
+    --accent: #4f8cff;
+    --accent-soft: #1d2d4d;
+    --high: #ff5c6c;
+    --high-bg: #331a20;
+    --med: #ffb14e;
+    --med-bg: #33290f;
+    --low: #57c7ff;
+    --low-bg: #10293a;
+    --good: #4ad991;
+    --good-bg: #10331f;
+    --radius: 10px;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.5;
+  }
+  header {
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--panel), var(--bg));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: 0.2px; }
+  header .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .badge {
+    font-size: 11px; color: var(--muted); border: 1px solid var(--border);
+    padding: 4px 9px; border-radius: 999px; background: var(--panel-2);
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 28px 64px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+  }
+  .card h2 { font-size: 14px; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  label.field { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  textarea {
+    width: 100%; min-height: 340px; resize: vertical;
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px; font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+  }
+  select, input[type=text] {
+    width: 100%; background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; font-size: 13px;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .row > * { flex: 1; }
+  .btns { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    cursor: pointer; border: 1px solid var(--border); background: var(--panel-2);
+    color: var(--text); padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { filter: brightness(1.08); }
+  button:hover { border-color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .filepick { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+
+  /* Score */
+  .scorewrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .dial {
+    --pct: 0;
+    width: 118px; height: 118px; border-radius: 50%; flex: 0 0 auto;
+    background: conic-gradient(var(--dialcolor, var(--accent)) calc(var(--pct) * 1%), var(--panel-2) 0);
+    display: grid; place-items: center; position: relative;
+  }
+  .dial::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: var(--panel); }
+  .dial .num { position: relative; font-size: 30px; font-weight: 700; }
+  .dial .lbl { position: relative; font-size: 10px; color: var(--muted); margin-top: -2px; }
+  .tally { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    font-size: 12px; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 7px; background: var(--panel-2);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot.high { background: var(--high); } .dot.med { background: var(--med); }
+  .dot.low { background: var(--low); } .dot.good { background: var(--good); }
+
+  /* Findings */
+  .filterbar { display: flex; gap: 8px; margin: 4px 0 14px; flex-wrap: wrap; }
+  .chip {
+    font-size: 12px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--muted); cursor: pointer; user-select: none;
+  }
+  .chip.active { color: var(--text); border-color: var(--accent); background: var(--accent-soft); }
+  .finding {
+    border: 1px solid var(--border); border-left-width: 4px; border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 10px; background: var(--panel-2);
+  }
+  .finding.high { border-left-color: var(--high); }
+  .finding.med  { border-left-color: var(--med); }
+  .finding.low  { border-left-color: var(--low); }
+  .finding.good { border-left-color: var(--good); }
+  .finding .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .finding .title { font-weight: 650; font-size: 14px; }
+  .finding .cat {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+    border: 1px solid var(--border); padding: 2px 7px; border-radius: 6px; white-space: nowrap;
+  }
+  .finding .desc { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .finding .ev {
+    font-family: var(--mono); font-size: 11.5px; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; margin-top: 8px;
+    white-space: pre-wrap; word-break: break-word; max-height: 120px; overflow: auto;
+  }
+  .sevtag { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 6px; }
+  .sevtag.high { color: var(--high); background: var(--high-bg); }
+  .sevtag.med  { color: var(--med);  background: var(--med-bg); }
+  .sevtag.low  { color: var(--low);  background: var(--low-bg); }
+  .sevtag.good { color: var(--good); background: var(--good-bg); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 6px; }
+  @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .stat .n { font-size: 19px; font-weight: 700; }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .empty { color: var(--muted); font-size: 13px; padding: 30px 10px; text-align: center; }
+  .disclaimer {
+    margin-top: 22px; font-size: 12px; color: var(--muted); border: 1px dashed var(--border);
+    border-radius: 8px; padding: 12px 14px; background: var(--panel);
+  }
+  .disclaimer b { color: var(--text); }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 10px 0 30px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Legal Document Audit</h1>
+    <div class="sub">Client-side structural &amp; completeness review for court filings and contracts. Nothing is uploaded &mdash; all analysis runs in your browser.</div>
+  </div>
+  <span class="badge" id="privacyBadge">100% local &middot; no network</span>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- INPUT -->
+    <section class="card">
+      <h2>Document</h2>
+      <div class="row">
+        <div>
+          <label class="field" for="docType">Document type</label>
+          <select id="docType">
+            <option value="generic">Generic / auto-detect</option>
+            <option value="motion">Motion / Brief</option>
+            <option value="complaint">Complaint / Petition</option>
+            <option value="affidavit">Affidavit / Declaration / Verification</option>
+            <option value="contract">Contract / Agreement / Lease</option>
+            <option value="discovery">Discovery request / response</option>
+          </select>
+        </div>
+        <div>
+          <label class="field" for="jurisdiction">Jurisdiction hint (optional)</label>
+          <input type="text" id="jurisdiction" placeholder="e.g. Forsyth County Superior Court, GA" />
+        </div>
+      </div>
+
+      <label class="field" for="docText">Paste document text</label>
+      <textarea id="docText" placeholder="Paste the full text of your filing or contract here, then click Run Audit.&#10;&#10;Tip: for PDFs, open the PDF, select all text, and paste. Scanned/image PDFs must be OCR'd first."></textarea>
+
+      <div class="btns">
+        <button class="primary" id="runBtn">Run Audit</button>
+        <button id="sampleBtn">Load sample</button>
+        <button id="clearBtn">Clear</button>
+        <label class="filepick">
+          <input type="file" id="fileInput" accept=".txt,.md,.text" hidden />
+          <button type="button" id="uploadBtn">Upload .txt / .md</button>
+        </label>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="card">
+      <h2>Result</h2>
+      <div id="scorePanel" class="scorewrap" style="display:none">
+        <div class="dial" id="dial"><div><div class="num" id="scoreNum">0</div><div class="lbl">/ 100</div></div></div>
+        <div style="flex:1; min-width:200px">
+          <div class="tally" id="tally"></div>
+          <div class="stats" id="stats"></div>
+        </div>
+      </div>
+      <div class="empty" id="resultEmpty">Run an audit to see a completeness score and findings.</div>
+    </section>
+  </div>
+
+  <!-- FINDINGS -->
+  <section class="card" style="margin-top:22px">
+    <h2>Findings</h2>
+    <div class="filterbar" id="filterbar" style="display:none">
+      <span class="chip active" data-sev="all">All</span>
+      <span class="chip" data-sev="high">High</span>
+      <span class="chip" data-sev="med">Medium</span>
+      <span class="chip" data-sev="low">Low</span>
+      <span class="chip" data-sev="good">Passed</span>
+    </div>
+    <div id="findings"><div class="empty" id="findingsEmpty">No audit run yet.</div></div>
+    <div class="btns" id="exportBtns" style="display:none">
+      <button id="exportMd">Download report (.md)</button>
+      <button id="exportHtml">Download report (.html)</button>
+      <button id="copyReport">Copy summary</button>
+    </div>
+  </section>
+
+  <div class="disclaimer">
+    <b>Not legal advice.</b> This tool performs automated, pattern-based structural and completeness checks to help you
+    spot missing elements, placeholders, deadline references, and inconsistencies before filing. It does not assess the
+    legal merits of any argument and can produce false positives or miss issues. Always review against the applicable
+    court rules and, where possible, have a licensed attorney review your documents.
+  </div>
+
+  <footer>Legal Document Audit &middot; runs entirely in your browser &middot; open-source in this repository</footer>
+</main>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Legal Document Audit engine
+   Each rule inspects the document text and returns 0+ findings.
+   A finding: { id, category, severity, title, desc, evidence }
+   severity: 'high' | 'med' | 'low' | 'good'
+   ============================================================ */
+
+const SEV_WEIGHT = { high: 12, med: 6, low: 2, good: 0 };
+
+// ---- small helpers --------------------------------------------------------
+const firstMatch = (re, text) => { const m = text.match(re); return m ? m[0].trim() : null; };
+const allMatches = (re, text) => { const out = []; let m; const r = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g"); while ((m = r.exec(text)) !== null) { out.push(m); if (m.index === r.lastIndex) r.lastIndex++; } return out; };
+const snippet = (text, idx, len = 90) => {
+  const start = Math.max(0, idx - 20);
+  return text.slice(start, Math.min(text.length, idx + len)).replace(/\s+/g, " ").trim();
+};
+const has = (re, text) => re.test(text);
+
+// Month names for date parsing
+const MONTHS = "january|february|march|april|may|june|july|august|september|october|november|december";
+
+/* ---- date extraction ---------------------------------------------------- */
+function extractDates(text) {
+  const results = [];
+  // 1) MM/DD/YYYY or M-D-YY
+  for (const m of allMatches(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/g, text)) {
+    let [ , mo, d, y ] = m;
+    y = y.length === 2 ? (parseInt(y, 10) > 50 ? "19" + y : "20" + y) : y;
+    const dt = new Date(+y, +mo - 1, +d);
+    if (!isNaN(dt) && +mo >= 1 && +mo <= 12 && +d >= 1 && +d <= 31) results.push({ date: dt, raw: m[0], idx: m.index });
+  }
+  // 2) Month DD, YYYY
+  for (const m of allMatches(new RegExp("\\b(" + MONTHS + ")\\s+(\\d{1,2})(?:st|nd|rd|th)?,?\\s+(\\d{4})\\b", "gi"), text)) {
+    const dt = new Date(m[0].replace(/(st|nd|rd|th)/i, ""));
+    if (!isNaN(dt)) results.push({ date: dt, raw: m[0], idx: m.index });
+  }
+  return results;
+}
+
+/* ---- the rule set ------------------------------------------------------- */
+const RULES = [
+  // ---------- STRUCTURE ----------
+  {
+    id: "caption",
+    run(t, ctx) {
+      const hasCourt = /\b(in the|superior|district|circuit|state|magistrate|supreme|bankruptcy|county)\s+court\b/i.test(t) || /\bU\.?S\.?\s+District Court\b/i.test(t);
+      if (["motion", "complaint", "discovery", "generic"].includes(ctx.type)) {
+        if (!hasCourt) return [{ category: "Structure", severity: ctx.type === "generic" ? "low" : "high", title: "No court name detected in caption", desc: "Court filings open with a caption naming the court. No court name pattern was found — verify the caption block is present and complete." }];
+        return [{ category: "Structure", severity: "good", title: "Court name present in caption", desc: "A court name pattern was detected." }];
+      }
+      return [];
+    }
+  },
+  {
+    id: "caseNumber",
+    run(t, ctx) {
+      const m = allMatches(/\b(?:case|civil action|docket|cause)\s*(?:no\.?|number|#)?\s*[:#]?\s*([A-Z0-9][A-Z0-9\-]{3,})/gi, t);
+      const bare = allMatches(/\b\d{2}[A-Z]{1,3}[\-\d]{2,}\b/g, t); // e.g. 25CV-0783-3
+      const nums = new Set([...m.map(x => x[1].toUpperCase()), ...bare.map(x => x[0].toUpperCase())]);
+      if (["motion", "complaint", "discovery"].includes(ctx.type) || (ctx.type === "generic" && (m.length || bare.length))) {
+        if (nums.size === 0) return [{ category: "Structure", severity: "high", title: "No case / docket number found", desc: "Filings must display the case number in the caption. None was detected." }];
+        if (nums.size > 1) return [{ category: "Consistency", severity: "med", title: "Multiple distinct case numbers detected", desc: "More than one case-number-like token appears. Confirm they are intentional (e.g. related cases) and not a copy-paste error from another matter.", evidence: [...nums].join("   |   ") }];
+        return [{ category: "Structure", severity: "good", title: "Case number present and consistent", desc: "One case number detected: " + [...nums][0] }];
+      }
+      return [];
+    }
+  },
+  {
+    id: "title",
+    run(t, ctx) {
+      const titleRe = /\b(motion|petition|complaint|response|reply|brief|memorandum|declaration|affidavit|notice|order|answer|counterclaim|request for|interrogatories|agreement|lease)\b/i;
+      if (!titleRe.test(t)) return [{ category: "Structure", severity: "med", title: "No document title / type keyword found", desc: "A document title (e.g. “Motion to Dismiss”, “Complaint”, “Affidavit of …”) helps the clerk and court route the filing. None was detected." }];
+      return [{ category: "Structure", severity: "good", title: "Document title keyword present", desc: "Detected a recognizable filing type in the text." }];
+    }
+  },
+
+  // ---------- SIGNATURE / VERIFICATION ----------
+  {
+    id: "signature",
+    run(t, ctx) {
+      const sig = /(_{3,}|\/s\/|respectfully submitted|signature|signed this|\bby:\s*_)/i.test(t);
+      if (!sig) return [{ category: "Signature", severity: "high", title: "No signature block detected", desc: "No signature line, “/s/”, or “Respectfully submitted” was found. Unsigned filings are routinely rejected." }];
+      return [{ category: "Signature", severity: "good", title: "Signature block present", desc: "A signature indicator was detected." }];
+    }
+  },
+  {
+    id: "verification",
+    run(t, ctx) {
+      if (ctx.type !== "affidavit") return [];
+      const verified = /(under penalty of perjury|being duly sworn|sworn to|notary|jurat|subscribed and sworn|I declare)/i.test(t);
+      if (!verified) return [{ category: "Verification", severity: "high", title: "Affidavit lacks a sworn / perjury clause", desc: "Affidavits and declarations need a verification clause (“under penalty of perjury” or a notarial jurat). None was detected." }];
+      const notary = /notary/i.test(t);
+      const out = [{ category: "Verification", severity: "good", title: "Verification clause present", desc: "A sworn / penalty-of-perjury clause was detected." }];
+      if (!notary && !/under penalty of perjury/i.test(t)) out.push({ category: "Verification", severity: "med", title: "No notary block for a sworn affidavit", desc: "This appears sworn but no notary block was found. Confirm whether an unsworn declaration under penalty of perjury is acceptable in your jurisdiction, or add the notary jurat." });
+      return out;
+    }
+  },
+
+  // ---------- SERVICE / PARTIES ----------
+  {
+    id: "certificateOfService",
+    run(t, ctx) {
+      if (!["motion", "complaint", "discovery", "generic"].includes(ctx.type)) return [];
+      const cos = /certificate of service|certify that.*served|served a (true )?copy|hereby certif/i.test(t);
+      if (!cos) return [{ category: "Service", severity: ctx.type === "generic" ? "low" : "med", title: "No certificate of service detected", desc: "Most filings require a certificate of service showing the opposing party received a copy. None was found." }];
+      return [{ category: "Service", severity: "good", title: "Certificate of service present", desc: "A certificate-of-service pattern was detected." }];
+    }
+  },
+  {
+    id: "parties",
+    run(t, ctx) {
+      const p = /\bplaintiff\b/i.test(t), d = /\bdefendant\b/i.test(t);
+      const pet = /\bpetitioner\b/i.test(t), resp = /\brespondent\b/i.test(t);
+      if (["motion", "complaint", "discovery"].includes(ctx.type) && !(p || d || pet || resp)) {
+        return [{ category: "Parties", severity: "med", title: "No party designations found", desc: "No “Plaintiff/Defendant” or “Petitioner/Respondent” labels were detected. Confirm the parties are properly named." }];
+      }
+      return [];
+    }
+  },
+
+  // ---------- DATES & DEADLINES ----------
+  {
+    id: "dates",
+    run(t, ctx) {
+      const dates = extractDates(t);
+      const out = [];
+      if (dates.length === 0) {
+        out.push({ category: "Dates", severity: "low", title: "No dates detected", desc: "No date was found. Filings usually carry at least a signature/service date." });
+        return out;
+      }
+      const now = ctx.now;
+      const soon = new Date(now.getTime() + 21 * 864e5); // next 21 days
+      const upcoming = dates.filter(x => x.date >= now && x.date <= soon);
+      const past = dates.filter(x => x.date < now);
+      if (upcoming.length) {
+        out.push({ category: "Dates", severity: "med", title: upcoming.length + " date(s) within the next 21 days", desc: "Verify these are not deadlines you are about to miss (response due, hearing, discovery cutoff).", evidence: upcoming.map(x => x.raw + "  →  " + x.date.toDateString()).join("\n") });
+      }
+      out.push({ category: "Dates", severity: "good", title: dates.length + " date(s) parsed", desc: "Range: " + new Date(Math.min(...dates.map(x=>+x.date))).toDateString() + " – " + new Date(Math.max(...dates.map(x=>+x.date))).toDateString() + (past.length ? "  (" + past.length + " in the past)" : "") });
+      return out;
+    }
+  },
+  {
+    id: "deadlineWords",
+    run(t) {
+      const m = allMatches(/\b(within\s+\d{1,3}\s+(?:calendar\s+|business\s+)?days?|no later than|on or before|due\s+(?:by|on)|deadline|statute of limitations|time.barred)\b/gi, t);
+      if (!m.length) return [];
+      const uniq = [...new Set(m.map(x => x[0].toLowerCase()))];
+      return [{ category: "Dates", severity: "low", title: uniq.length + " deadline-related phrase(s) found", desc: "Cross-check each against the calendar and the governing rule to be sure the computed date is correct.", evidence: uniq.join("   |   ") }];
+    }
+  },
+
+  // ---------- CITATIONS ----------
+  {
+    id: "citations",
+    run(t, ctx) {
+      const caseCites = allMatches(/\b[A-Z][A-Za-z.'\-]+\s+v\.?\s+[A-Z][A-Za-z.'\-]+/g, t);
+      const reporters = allMatches(/\b\d{1,4}\s+(?:U\.S\.|S\.\s?Ct\.|F\.(?:2d|3d|4th|\s?Supp\.?(?:\s?\d[dh])?)|S\.E\.\s?2d|Ga\.(?:\s?App\.)?|F\.R\.D\.)\s+\d{1,4}/g, t);
+      const statutes = allMatches(/\b(?:\d{1,2}\s+U\.S\.C\.|O\.C\.G\.A\.|Fed\.\s?R\.\s?Civ\.\s?P\.|U\.?S\.?C\.?S\.?)\s*§*\s*[\d\-\.\(\)a-z]+/gi, t);
+      const out = [];
+      if (caseCites.length && !reporters.length) {
+        out.push({ category: "Citations", severity: "med", title: "Case names cited without reporter citations", desc: "“X v. Y” references appear but no reporter citation (e.g. “123 S.E.2d 456”) was detected. Courts expect a full citation for each case relied on.", evidence: [...new Set(caseCites.map(x=>x[0]))].slice(0,6).join("   |   ") });
+      }
+      const total = caseCites.length + reporters.length + statutes.length;
+      if (total) out.push({ category: "Citations", severity: "good", title: total + " citation reference(s) detected", desc: caseCites.length + " case name(s), " + reporters.length + " reporter cite(s), " + statutes.length + " statute/rule cite(s)." });
+      else if (["motion"].includes(ctx.type)) out.push({ category: "Citations", severity: "low", title: "No legal citations detected", desc: "A brief with no authority cited is unusual. Confirm supporting law is included where needed." });
+      return out;
+    }
+  },
+
+  // ---------- RED FLAGS ----------
+  {
+    id: "placeholders",
+    run(t) {
+      const ph = allMatches(/(\[[^\]\n]{1,40}\]|\bTODO\b|\bTBD\b|\bFIXME\b|\bXXX+\b|_{5,}|<[^>\n]{1,30}>|\bINSERT\b|\bDRAFT\b|\bLOREM IPSUM\b|\bYOUR NAME\b|\bCLIENT NAME\b)/gi, t);
+      if (!ph.length) return [{ category: "Red flags", severity: "good", title: "No unfilled placeholders detected", desc: "No bracketed blanks, TODO/TBD markers, or template stubs were found." }];
+      const uniq = [...new Set(ph.map(x => x[0].trim()))].slice(0, 12);
+      return [{ category: "Red flags", severity: "high", title: ph.length + " possible unfilled placeholder(s)", desc: "These look like template stubs or blanks that should be filled in (or removed) before filing.", evidence: uniq.join("   |   ") }];
+    }
+  },
+  {
+    id: "brackets",
+    run(t) {
+      const m = allMatches(/\[\s*(?:date|amount|name|court|county|address|number|county|signature|attorney|party)\s*\]/gi, t);
+      if (m.length) return [{ category: "Red flags", severity: "high", title: "Bracketed field labels still present", desc: "Field labels like [DATE] or [NAME] indicate a template that was not fully completed.", evidence: [...new Set(m.map(x=>x[0]))].join("   |   ") }];
+      return [];
+    }
+  },
+  {
+    id: "moneyConsistency",
+    run(t) {
+      const amounts = allMatches(/\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?\b/g, t).map(x => x[0].replace(/\s/g, ""));
+      if (amounts.length < 2) return [];
+      // Flag if the same-looking figure appears with different cent values, a common transcription slip.
+      const seen = {};
+      const conflicts = [];
+      for (const a of amounts) {
+        const dollars = a.split(".")[0];
+        if (seen[dollars] && seen[dollars] !== a) conflicts.push(seen[dollars] + " vs " + a);
+        seen[dollars] = a;
+      }
+      if (conflicts.length) return [{ category: "Consistency", severity: "low", title: "Dollar figures with matching dollars but differing cents", desc: "Double-check these are intentionally different amounts and not a typo.", evidence: [...new Set(conflicts)].join("   |   ") }];
+      return [];
+    }
+  },
+  {
+    id: "defined-terms",
+    run(t, ctx) {
+      if (ctx.type !== "contract") return [];
+      // Contracts: terms defined in quotes/parens like ("Lessee") should be used later.
+      const defs = [...new Set(allMatches(/\(\s*[“"']([A-Z][A-Za-z ]{2,30})[”"']\s*\)/g, t).map(x => x[1]))];
+      const unused = defs.filter(term => {
+        const re = new RegExp("\\b" + term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g");
+        return (t.match(re) || []).length < 2;
+      });
+      const out = [];
+      if (unused.length) out.push({ category: "Consistency", severity: "low", title: unused.length + " defined term(s) apparently used only once", desc: "A term defined in the agreement but never referenced again may signal a dropped clause.", evidence: unused.join("   |   ") });
+      if (defs.length) out.push({ category: "Structure", severity: "good", title: defs.length + " defined term(s) detected", desc: defs.slice(0, 10).join(", ") });
+      return out;
+    }
+  },
+  {
+    id: "signatureDate",
+    run(t) {
+      // A signature block with a blank date line.
+      if (/(signed|dated|this)\s+_{2,}\s*day of|dated:\s*_{2,}|dated:\s*$/im.test(t)) {
+        return [{ category: "Red flags", severity: "med", title: "Blank date line near signature", desc: "A “dated ____ day of” style blank was found. Fill in the execution date before filing." }];
+      }
+      return [];
+    }
+  },
+
+  // ---------- READABILITY ----------
+  {
+    id: "length",
+    run(t) {
+      const words = (t.match(/\b\w+\b/g) || []).length;
+      const sentences = (t.match(/[.!?]+(\s|$)/g) || []).length || 1;
+      const avg = Math.round(words / sentences);
+      const out = [];
+      if (avg > 40) out.push({ category: "Readability", severity: "low", title: "Long average sentence length (" + avg + " words)", desc: "Very long sentences reduce clarity for the court. Consider breaking them up." });
+      return out;
+    }
+  }
+];
+
+/* ---- run all rules ------------------------------------------------------ */
+function audit(text, type, jurisdiction) {
+  const ctx = { type: type === "generic" ? detectType(text) : type, declaredType: type, now: new Date(), jurisdiction };
+  const findings = [];
+  for (const rule of RULES) {
+    try {
+      const r = rule.run(text, ctx) || [];
+      for (const f of r) findings.push(Object.assign({ id: rule.id, evidence: "" }, f));
+    } catch (e) { /* a broken rule should not sink the whole audit */ }
+  }
+  // score: start at 100, subtract weighted penalties for non-good findings.
+  let penalty = 0;
+  for (const f of findings) penalty += SEV_WEIGHT[f.severity] || 0;
+  const score = Math.max(0, Math.min(100, Math.round(100 - penalty)));
+  return { findings, score, ctx };
+}
+
+function detectType(t) {
+  if (/\baffidavit\b|\bdeclaration\b|penalty of perjury|being duly sworn/i.test(t)) return "affidavit";
+  if (/\bcomplaint\b|\bpetition\b|comes now.*plaintiff|cause of action/i.test(t)) return "complaint";
+  if (/\bmotion\b|\bbrief\b|memorandum of law|respectfully moves/i.test(t)) return "motion";
+  if (/\bagreement\b|\blease\b|this contract|witnesseth|lessor|lessee|hereinafter/i.test(t)) return "contract";
+  if (/interrogat0?ries|request for production|request for admission/i.test(t)) return "discovery";
+  return "generic";
+}
+
+/* ============================================================
+   UI wiring
+   ============================================================ */
+const $ = id => document.getElementById(id);
+let LAST = null;
+let activeSev = "all";
+
+function render(result, meta) {
+  LAST = { result, meta };
+  const { findings, score, ctx } = result;
+
+  // score dial
+  $("resultEmpty").style.display = "none";
+  $("scorePanel").style.display = "flex";
+  const dial = $("dial");
+  dial.style.setProperty("--pct", score);
+  const color = score >= 80 ? "var(--good)" : score >= 55 ? "var(--med)" : "var(--high)";
+  dial.style.setProperty("--dialcolor", color);
+  $("scoreNum").textContent = score;
+
+  // tally
+  const counts = { high: 0, med: 0, low: 0, good: 0 };
+  findings.forEach(f => counts[f.severity]++);
+  $("tally").innerHTML = [
+    ["high", "High"], ["med", "Medium"], ["low", "Low"], ["good", "Passed"]
+  ].map(([k, lbl]) => `<span class="pill"><span class="dot ${k}"></span>${counts[k]} ${lbl}</span>`).join("");
+
+  // stats
+  const words = (meta.text.match(/\b\w+\b/g) || []).length;
+  $("stats").innerHTML = [
+    ["Detected type", ctx.type],
+    ["Words", words.toLocaleString()],
+    ["Issues", counts.high + counts.med + counts.low],
+    ["Checks passed", counts.good]
+  ].map(([k, v]) => `<div class="stat"><div class="n">${v}</div><div class="k">${k}</div></div>`).join("");
+
+  // findings
+  $("filterbar").style.display = "flex";
+  $("exportBtns").style.display = "flex";
+  renderFindings();
+}
+
+function renderFindings() {
+  const { findings } = LAST.result;
+  const order = { high: 0, med: 1, low: 2, good: 3 };
+  const list = findings
+    .filter(f => activeSev === "all" ? true : f.severity === activeSev)
+    .sort((a, b) => order[a.severity] - order[b.severity]);
+  const box = $("findings");
+  if (!list.length) { box.innerHTML = `<div class="empty">No findings in this filter.</div>`; return; }
+  const sevLabel = { high: "High", med: "Med", low: "Low", good: "Pass" };
+  box.innerHTML = list.map(f => `
+    <div class="finding ${f.severity}">
+      <div class="top">
+        <span class="title">${esc(f.title)}</span>
+        <span style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <span class="sevtag ${f.severity}">${sevLabel[f.severity]}</span>
+          <span class="cat">${esc(f.category)}</span>
+        </span>
+      </div>
+      <div class="desc">${esc(f.desc)}</div>
+      ${f.evidence ? `<div class="ev">${esc(f.evidence)}</div>` : ""}
+    </div>`).join("");
+}
+
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function buildReport(fmt) {
+  const { result, meta } = LAST;
+  const { findings, score, ctx } = result;
+  const counts = { high: 0, med: 0, low: 0, good: 0 };
+  findings.forEach(f => counts[f.severity]++);
+  const order = { high: 0, med: 1, low: 2, good: 3 };
+  const sorted = [...findings].sort((a, b) => order[a.severity] - order[b.severity]);
+  const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
+
+  if (fmt === "md") {
+    let md = `# Legal Document Audit Report\n\n`;
+    md += `- **Generated:** ${stamp}\n- **Detected type:** ${ctx.type}\n`;
+    if (meta.jurisdiction) md += `- **Jurisdiction hint:** ${meta.jurisdiction}\n`;
+    md += `- **Completeness score:** ${score}/100\n`;
+    md += `- **Findings:** ${counts.high} high, ${counts.med} medium, ${counts.low} low, ${counts.good} passed\n\n`;
+    md += `> Not legal advice. Automated structural/completeness checks only.\n\n---\n\n`;
+    for (const f of sorted) {
+      md += `### [${f.severity.toUpperCase()}] ${f.title}\n`;
+      md += `*${f.category}* — ${f.desc}\n`;
+      if (f.evidence) md += `\n\`\`\`\n${f.evidence}\n\`\`\`\n`;
+      md += `\n`;
+    }
+    return md;
+  }
+  // html
+  const rows = sorted.map(f => `<tr><td class="s ${f.severity}">${f.severity}</td><td>${esc(f.category)}</td><td><b>${esc(f.title)}</b><br><span style="color:#555">${esc(f.desc)}</span>${f.evidence ? `<pre>${esc(f.evidence)}</pre>` : ""}</td></tr>`).join("");
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Audit Report</title>
+<style>body{font-family:system-ui;margin:40px;color:#111}h1{margin-bottom:4px}table{border-collapse:collapse;width:100%;margin-top:20px}td{border:1px solid #ddd;padding:8px;vertical-align:top;font-size:14px}td.s{font-weight:700;text-transform:uppercase;font-size:11px;white-space:nowrap}td.s.high{color:#c00}td.s.med{color:#b70}td.s.low{color:#06c}td.s.good{color:#080}pre{background:#f6f6f6;padding:8px;border-radius:6px;white-space:pre-wrap;font-size:12px;margin-top:6px}.meta{color:#555;font-size:13px}</style></head><body>
+<h1>Legal Document Audit Report</h1>
+<p class="meta">Generated ${stamp} &middot; Detected type: ${esc(ctx.type)}${meta.jurisdiction ? " &middot; " + esc(meta.jurisdiction) : ""} &middot; Score: <b>${score}/100</b><br>${counts.high} high &middot; ${counts.med} medium &middot; ${counts.low} low &middot; ${counts.good} passed</p>
+<p class="meta"><em>Not legal advice. Automated structural/completeness checks only.</em></p>
+<table><tr><th>Severity</th><th>Category</th><th>Finding</th></tr>${rows}</table>
+</body></html>`;
+}
+
+function download(name, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ---- events ----
+$("runBtn").addEventListener("click", () => {
+  const text = $("docText").value.trim();
+  if (!text) { alert("Paste some document text first."); return; }
+  const type = $("docType").value;
+  const jur = $("jurisdiction").value.trim();
+  const result = audit(text, type, jur);
+  render(result, { text, jurisdiction: jur });
+});
+
+$("clearBtn").addEventListener("click", () => {
+  $("docText").value = "";
+  $("scorePanel").style.display = "none";
+  $("resultEmpty").style.display = "block";
+  $("filterbar").style.display = "none";
+  $("exportBtns").style.display = "none";
+  $("findings").innerHTML = `<div class="empty">No audit run yet.</div>`;
+  LAST = null;
+});
+
+$("uploadBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { $("docText").value = reader.result; };
+  reader.readAsText(file);
+});
+
+$("filterbar").addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  activeSev = chip.dataset.sev;
+  [...$("filterbar").children].forEach(c => c.classList.toggle("active", c === chip));
+  renderFindings();
+});
+
+$("exportMd").addEventListener("click", () => LAST && download("audit-report.md", buildReport("md"), "text/markdown"));
+$("exportHtml").addEventListener("click", () => LAST && download("audit-report.html", buildReport("html"), "text/html"));
+$("copyReport").addEventListener("click", async () => {
+  if (!LAST) return;
+  try { await navigator.clipboard.writeText(buildReport("md")); $("copyReport").textContent = "Copied!"; setTimeout(() => $("copyReport").textContent = "Copy summary", 1500); }
+  catch { alert("Clipboard unavailable in this context."); }
+});
+
+$("sampleBtn").addEventListener("click", () => {
+  $("docType").value = "motion";
+  $("jurisdiction").value = "Forsyth County Superior Court, GA";
+  $("docText").value = SAMPLE;
+});
+
+const SAMPLE = `IN THE SUPERIOR COURT OF FORSYTH COUNTY
+STATE OF GEORGIA
+
+JOHN DOE,                         )
+        Plaintiff,                )
+                                  )   Civil Action No. 25CV-0783-3
+v.                                )
+                                  )
+ACME SERVICING, LLC,              )
+        Defendant.                )
+
+DEFENDANT'S MOTION TO DISMISS
+
+COMES NOW Defendant and respectfully moves this Court to dismiss the Complaint,
+and in support shows the following:
+
+1. Plaintiff filed this action on [DATE].
+2. The Complaint fails to state a claim upon which relief can be granted.
+3. Defendant must respond within 30 days of service.
+4. See Smith v. Jones for the applicable standard. TODO: add reporter citation.
+5. The amount in controversy is $12,500.00, though elsewhere stated as $12,500.50.
+
+WHEREFORE, Defendant requests that the Complaint be dismissed.
+
+Respectfully submitted,
+
+_______________________
+Attorney for Defendant`;
+</script>
+</body>
+</html>
