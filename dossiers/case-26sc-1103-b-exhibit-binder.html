@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hearing Exhibit Binder — 26SC-1103-B</title>
+<style>
+  :root{
+    --paper:#ffffff;
+    --ink:#14181f;
+    --navy:#1b2a44;
+    --navy-deep:#111c2e;
+    --brass:#a8823c;
+    --brass-soft:#f4edde;
+    --muted:#5c6675;
+    --rule:#e3e7ed;
+    --rule-strong:#c9d0da;
+    --wash:#f7f8fa;
+    --red:#8f2b2b;
+    --red-wash:#fbf1f1;
+    --green:#1f5c46;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:"Inter","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --mono:"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--wash);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+  }
+
+  .sheet{
+    max-width:1080px;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 1px 3px rgba(17,28,46,.08),0 12px 40px rgba(17,28,46,.06);
+  }
+
+  /* ---------- utility bar ---------- */
+  .toolbar{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:14px 40px;
+    font-size:12px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .toolbar button{
+    font:inherit;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--navy);
+    background:var(--paper);
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{background:var(--brass-soft);border-color:var(--brass)}
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    background:var(--navy-deep);
+    color:#fff;
+    padding:38px 48px 32px;
+    border-bottom:4px solid var(--brass);
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 18px;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-size:34px;
+    line-height:1.15;
+    margin:0 0 8px;
+    font-weight:600;
+  }
+  .masthead .kicker{
+    font-family:var(--serif);
+    font-size:16px;
+    font-style:italic;
+    color:#c3cbd8;
+    margin:0 0 26px;
+    max-width:62ch;
+  }
+  .facts{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:1px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .fact{background:var(--navy-deep);padding:12px 14px}
+  .fact dt{
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#8f9cb0;
+    margin:0 0 4px;
+  }
+  .fact dd{margin:0;font-size:14px;color:#fff;font-weight:500}
+
+  /* ---------- pillars ---------- */
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:1px;
+    background:var(--rule);
+    border-bottom:1px solid var(--rule);
+  }
+  .pillar{background:var(--paper);padding:22px 24px 24px}
+  .pillar .tag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    border:1px solid var(--brass);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-bottom:12px;
+  }
+  .pillar h3{
+    font-family:var(--mono);
+    font-size:15px;
+    margin:0 0 8px;
+    color:var(--navy);
+    letter-spacing:-.01em;
+  }
+  .pillar p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ---------- sections ---------- */
+  section{padding:34px 48px;border-bottom:1px solid var(--rule)}
+  section:last-of-type{border-bottom:none}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--brass);
+    letter-spacing:.1em;
+    padding-top:3px;
+  }
+  h2{
+    font-family:var(--serif);
+    font-size:23px;
+    font-weight:600;
+    margin:0;
+    color:var(--navy);
+  }
+  .sec-note{
+    margin:0 0 22px 34px;
+    font-size:13.5px;
+    color:var(--muted);
+    max-width:78ch;
+  }
+
+  /* ---------- matrix table ---------- */
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:840px}
+  thead th{
+    text-align:left;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--navy);
+    padding:10px 12px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:13px 12px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  tbody tr:nth-child(even) td{background:#fbfcfd}
+  td.cat{font-weight:600;color:var(--navy);white-space:nowrap}
+  td.sworn{color:var(--red)}
+  td.actual{color:var(--green)}
+  td.cite{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  td.impact{font-weight:500}
+
+  /* ---------- authority cards ---------- */
+  .stack{display:grid;gap:16px}
+  .auth{
+    border:1px solid var(--rule);
+    border-left:3px solid var(--brass);
+    background:#fcfcfd;
+    padding:18px 22px;
+  }
+  .auth h3{
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--navy);
+    margin:0 0 8px;
+  }
+  .auth p{margin:0;font-size:14px;color:#333a45}
+  .auth.distinguished{border-left-color:var(--red)}
+  .auth .flag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--red);
+    background:var(--red-wash);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-left:8px;
+    vertical-align:2px;
+  }
+
+  /* ---------- two column ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .col h3{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 16px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+
+  /* ---------- cross-exam tree ---------- */
+  .tree{list-style:none;margin:0;padding:0;counter-reset:q}
+  .tree li{
+    position:relative;
+    padding:0 0 20px 30px;
+    border-left:1px solid var(--rule-strong);
+  }
+  .tree li:last-child{border-left-color:transparent;padding-bottom:0}
+  .tree li::before{
+    counter-increment:q;
+    content:counter(q);
+    position:absolute;
+    left:-11px;
+    top:0;
+    width:21px;
+    height:21px;
+    border-radius:50%;
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .tree .label{
+    font-weight:600;
+    color:var(--navy);
+    font-size:13px;
+    display:block;
+    margin-bottom:6px;
+  }
+  .tree .ask{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .tree .effect{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0;
+  }
+  .tree .effect::before{content:"→ ";color:var(--brass)}
+
+  /* ---------- scripts ---------- */
+  .script{
+    background:var(--wash);
+    border:1px solid var(--rule);
+    padding:16px 18px;
+    margin-bottom:16px;
+  }
+  .script:last-child{margin-bottom:0}
+  .script .label{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    display:block;
+    margin-bottom:10px;
+  }
+  .script blockquote{
+    margin:0;
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:14px;
+  }
+
+  footer{
+    padding:20px 48px 28px;
+    background:var(--navy-deep);
+    color:#8f9cb0;
+    font-size:11.5px;
+    letter-spacing:.04em;
+  }
+  footer strong{color:#c3cbd8;font-weight:500}
+
+  @media (max-width:760px){
+    .toolbar,.masthead,section,footer{padding-left:22px;padding-right:22px}
+    .cols{grid-template-columns:1fr;gap:28px}
+    .masthead h1{font-size:26px}
+  }
+
+  @media print{
+    @page{size:letter;margin:.6in}
+    body{background:#fff;font-size:10.5pt}
+    .sheet{box-shadow:none;max-width:none}
+    .toolbar{display:none}
+    .masthead,footer{
+      background:#fff!important;
+      color:#000;
+      border-bottom:2px solid #000;
+      padding:0 0 14px;
+    }
+    .masthead h1,.fact dd{color:#000}
+    .masthead .kicker,.fact dt,footer{color:#333}
+    .eyebrow{color:#000}
+    .fact{background:#fff;border:1px solid #999}
+    .facts{background:#fff;border-color:#999}
+    thead th{background:#e8eaee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{padding:16px 0;page-break-inside:avoid}
+    .pillars{padding:0}
+    .pillar{padding:10px 12px}
+    .tree li,.auth,.script{page-break-inside:avoid}
+    footer{border-top:1px solid #000;border-bottom:none;margin-top:12px}
+    .scroll{overflow:visible}
+    table{min-width:0}
+  }
+
+  /* ---------- verification banner ---------- */
+  .verify{
+    background:var(--red-wash);
+    border:1px solid #e6c9c9;
+    border-left:3px solid var(--red);
+    padding:14px 18px;
+    margin:0 48px 0;
+  }
+  .verify h3{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 6px;
+  }
+  .verify p{margin:0 0 6px;font-size:13px;color:#4a3232}
+  .verify p:last-child{margin-bottom:0}
+  .verify code{font-family:var(--mono);font-size:12px}
+
+  /* ---------- script blocks ---------- */
+  .beat{margin:0 0 26px}
+  .beat:last-child{margin-bottom:0}
+  .beat > h4{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--navy);
+    margin:0 0 10px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--rule);
+  }
+  .say{
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.62;
+    border-left:3px solid var(--brass);
+    background:#fdfbf6;
+    padding:12px 16px;
+    margin:0 0 10px;
+  }
+  .say p{margin:0 0 10px}
+  .say p:last-child{margin-bottom:0}
+  .stage{
+    font-style:italic;
+    color:var(--muted);
+    font-size:13px;
+    margin:0 0 10px;
+  }
+  .stage::before{content:"[ "}
+  .stage::after{content:" ]"}
+  .strat{
+    font-size:13px;
+    color:#333a45;
+    margin:0 0 10px;
+    max-width:82ch;
+  }
+  .strat:last-child{margin-bottom:0}
+  .strat b{color:var(--navy)}
+
+  /* ---------- placeholder slot ---------- */
+  .slot{
+    border:1px dashed var(--rule-strong);
+    background:repeating-linear-gradient(135deg,#fafbfc,#fafbfc 8px,#f2f4f7 8px,#f2f4f7 16px);
+    padding:12px 16px;
+    margin:0 0 10px;
+    font-size:13px;
+    color:#4a5262;
+  }
+  .slot b{
+    display:block;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:14px;
+    margin:0 0 4px;
+  }
+  .legend div{font-size:12.5px;color:var(--muted);padding-left:12px;border-left:3px solid var(--rule-strong)}
+  .legend div b{display:block;color:var(--navy);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+  .legend .l-say{border-left-color:var(--brass)}
+  .legend .l-slot{border-left-color:var(--rule-strong)}
+
+  /* ---------- checklist ---------- */
+  .check{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .check li{
+    position:relative;
+    padding-left:30px;
+    font-size:13.5px;
+    color:#333a45;
+  }
+  .check li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:2px;
+    width:14px;
+    height:14px;
+    border:1.5px solid var(--rule-strong);
+    border-radius:2px;
+  }
+  .check li b{color:var(--navy)}
+
+  /* ---------- status pills ---------- */
+  .pill{
+    display:inline-block;
+    font-family:var(--sans);
+    font-size:9.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    border-radius:2px;
+    padding:2px 6px;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .pill.ok{color:var(--green);background:#eaf3ef;border:1px solid #bcd8cb}
+  .pill.gap{color:var(--red);background:var(--red-wash);border:1px solid #e6c9c9}
+  .pill.prop{color:#7a5c17;background:var(--brass-soft);border:1px solid #e0cd9e}
+
+  /* ---------- tab divider sheets ---------- */
+  .divider{
+    border:2px solid var(--navy);
+    padding:44px 42px;
+    margin:0 0 22px;
+    background:var(--paper);
+    text-align:center;
+  }
+  .divider .rail{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding-bottom:14px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:38px;
+  }
+  .divider .tabno{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:.3em;
+    color:var(--brass);
+    margin:0 0 10px;
+  }
+  .divider h3{
+    font-family:var(--serif);
+    font-size:30px;
+    font-weight:600;
+    color:var(--navy);
+    margin:0 0 16px;
+    line-height:1.2;
+  }
+  .divider .desc{
+    font-family:var(--serif);
+    font-size:15px;
+    font-style:italic;
+    color:#333a45;
+    margin:0 auto 38px;
+    max-width:52ch;
+  }
+  .divider .foot{
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--muted);
+    padding-top:14px;
+    border-top:1px solid var(--rule);
+  }
+  .divider .foot .brand{
+    display:block;
+    margin-top:8px;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.28em;
+    color:var(--navy);
+  }
+
+  /* ---------- objection cards ---------- */
+  .obj{
+    border:1px solid var(--rule);
+    border-top:3px solid var(--navy);
+    background:var(--paper);
+    padding:18px 20px;
+  }
+  .obj.defensive{border-top-color:var(--brass)}
+  .obj h3{
+    font-family:var(--serif);
+    font-size:18px;
+    color:var(--navy);
+    margin:0 0 4px;
+    font-weight:600;
+  }
+  .obj .auth-line{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--brass);
+    margin:0 0 14px;
+  }
+  .obj dl{margin:0}
+  .obj dt{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 4px;
+  }
+  .obj dd{margin:0 0 12px;font-size:13.5px;color:#333a45}
+  .obj dd:last-child{margin-bottom:0}
+  .obj dd.quote{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:12px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+  @media (max-width:760px){
+    .verify{margin-left:22px;margin-right:22px}
+    .grid2{grid-template-columns:1fr}
+    .divider{padding:30px 22px}
+    .divider h3{font-size:23px}
+  }
+
+  @media print{
+    .verify{margin:0 0 14px;background:#fff!important;border-color:#000}
+    .verify h3,.verify p{color:#000}
+    .say{background:#fff;border-left:3px solid #000}
+    .slot{background:#fff;border:1px dashed #666}
+    .beat,.obj,.divider,.check li{page-break-inside:avoid}
+    .divider{page-break-after:always;border-color:#000;min-height:8.4in;display:flex;flex-direction:column;justify-content:space-between}
+    .divider:last-of-type{page-break-after:auto}
+    .pill{border:1px solid #666!important;color:#000!important;background:#fff!important}
+    .grid2{gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>Exhibit Binder &middot; Index + printable tab dividers</span>
+  <button type="button" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="eyebrow">Carrelha v. Regions Bank &middot; 26SC-1103-B</p>
+    <h1>Hearing Exhibit Binder</h1>
+    <p class="kicker">Master exhibit index and tab dividers for the hearing on Defendants&rsquo; Motion to Strike the affidavit of Trenna Farr. Dividers print one to a page.</p>
+    <dl class="facts">
+      <div class="fact"><dt>Hearing</dt><dd>September 21, 2026</dd></div>
+      <div class="fact"><dt>Presiding</dt><dd>Hon. T. Russell McClelland</dd></div>
+      <div class="fact"><dt>Copies required</dt><dd>Three &mdash; Court, opposing, podium</dd></div>
+      <div class="fact"><dt>Tabs</dt><dd>10</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <div class="verify">
+      <h3>Status of this index</h3>
+      <p><strong>Tab 04 is confirmed.</strong> A divider for it already exists in the case folder, and the tab number, exhibit title, CFPB case number, and description below are reproduced from it. Its format sets the pattern every other divider follows.</p>
+      <p><strong>Tab 10 is confirmed</strong> from the filed Answer and Affirmative Defenses.</p>
+      <p><strong>Every other tab assignment is proposed.</strong> I have not been able to read the Farr affidavit, the filed Motion to Strike, or the loan ledger, so the exhibit titles for Tabs 01, 02, 03, 05, 06, 07, 08 and 09 describe documents the case record says exist but that I have not seen. Confirm each against the actual document, renumber freely, and fill in the page counts before printing.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Master exhibit index</h2></div>
+    <p class="sec-note">Print this as the first page behind the front cover. The final column ties each exhibit to the argument it supports, so you can find the right tab from the podium without reading titles.</p>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Tab</th><th>Exhibit</th><th>Description</th><th>Pp.</th><th>Supports</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="cite">01</td>
+            <td class="cat">Farr Affidavit</td>
+            <td>Affidavit of Trenna Farr, dated February 10, 2026, with the paragraphs moved against marked in the margin.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillars I, II, III</td>
+            <td><span class="pill gap">Need file</span></td>
+          </tr>
+          <tr>
+            <td class="cite">02</td>
+            <td class="cat">Loan Account Transaction History</td>
+            <td>Plaintiff&rsquo;s complete servicing ledger for the account, as produced.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillars I &amp; II</td>
+            <td><span class="pill gap">Need file</span></td>
+          </tr>
+          <tr>
+            <td class="cite">03</td>
+            <td class="cat">September 2023 Payment Records</td>
+            <td>Records of the payments tendered on or about September 13&ndash;15, 2023, totaling approximately $29,940.00, and Plaintiff&rsquo;s acceptance and posting of them.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillar I</td>
+            <td><span class="pill prop">Proposed</span></td>
+          </tr>
+          <tr>
+            <td class="cite">04</td>
+            <td class="cat">CFPB Response</td>
+            <td>Plaintiff&rsquo;s written response in CFPB Case #260101-27348878 &mdash; admission that the $20,000 payment was &ldquo;split into separate amounts.&rdquo;</td>
+            <td class="cite">&mdash;</td>
+            <td><strong>Pillar III</strong></td>
+            <td><span class="pill ok">Confirmed</span></td>
+          </tr>
+          <tr>
+            <td class="cite">05</td>
+            <td class="cat">September 18, 2023 Reversal Entries</td>
+            <td>Ledger entries reversing payments Plaintiff had previously accepted and posted, effected without notice or consent.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillars I &amp; II</td>
+            <td><span class="pill prop">Proposed</span></td>
+          </tr>
+          <tr>
+            <td class="cite">06</td>
+            <td class="cat">October 23, 2025 Interest Credit Adjustment</td>
+            <td>Entry bearing the comment &ldquo;ADJUSTMENT RELATED TO CORE CONVERSION,&rdquo; booked while this dispute was pending.</td>
+            <td class="cite">&mdash;</td>
+            <td><strong>Pillar II</strong></td>
+            <td><span class="pill prop">Proposed</span></td>
+          </tr>
+          <tr>
+            <td class="cite">07</td>
+            <td class="cat">Retroactive NSF Fee Entries</td>
+            <td>NSF fee entries carrying the &ldquo;-INSERT&rdquo; designation, added to the account after the fact.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillar II</td>
+            <td><span class="pill prop">Proposed</span></td>
+          </tr>
+          <tr>
+            <td class="cite">08</td>
+            <td class="cat">Discovery Responses</td>
+            <td>Plaintiff&rsquo;s responses to Requests for Admission and Interrogatories bearing on the payment history.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillar III</td>
+            <td><span class="pill gap">Need file</span></td>
+          </tr>
+          <tr>
+            <td class="cite">09</td>
+            <td class="cat">Correspondence</td>
+            <td>Written communications between Defendants and Plaintiff or its servicer concerning the September 2023 payments and the reversals.</td>
+            <td class="cite">&mdash;</td>
+            <td>Pillar I</td>
+            <td><span class="pill prop">Proposed</span></td>
+          </tr>
+          <tr>
+            <td class="cite">10</td>
+            <td class="cat">Answer &amp; Affirmative Defenses</td>
+            <td>Defendants&rsquo; filed Answer, with the Fifth Defense (accepted-then-reversed payments) and Eighth Defense (post hoc ledger entries) tabbed.</td>
+            <td class="cite">&mdash;</td>
+            <td>Framing</td>
+            <td><span class="pill ok">Confirmed</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Assembly notes</h2></div>
+    <div class="cols">
+      <div class="col">
+        <h3>Before you print</h3>
+        <ul class="check">
+          <li><b>Fill the page counts.</b> The Court uses them to find things; a blank column reads as unfinished work.</li>
+          <li><b>Reconcile the tab numbers</b> against the exhibit letters used in the filed Motion to Strike. If the motion calls something Exhibit L, the binder tab should say so on the divider.</li>
+          <li><b>Bates-stamp Tabs 02, 05, 06 and 07</b> if they are not already. Pillar II is an argument about specific entries on specific pages, and it fails at the podium if you cannot point to one.</li>
+          <li><b>Mark up Tab 01</b> &mdash; the affidavit &mdash; in the margin, flagging each paragraph the motion moves against.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Known gaps</h3>
+        <p class="strat"><b>The Farr affidavit, the filed Motion to Strike, and the loan ledger are not in the Drive folder.</b> They are the three documents the whole binder is built around. Everything marked &ldquo;Need file&rdquo; above is waiting on them.</p>
+        <p class="strat"><b>The Supplemental Brief in support of the Motion to Strike is flagged as unconfirmed.</b> A note in the case folder records the intent to file it before serving discovery responses, and does not record whether that happened. Confirm status on the docket &mdash; if it was filed, it becomes a tab; if not, decide whether to file.</p>
+        <p class="strat"><b>Tab 08 depends on what discovery has actually been served and answered.</b> If Plaintiff&rsquo;s RFA responses contain an admission bearing on the payment split, that exhibit becomes as important as Tab 04 and should move up in the binder.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Tab dividers</h2></div>
+    <p class="sec-note">One per page when printed. The format follows the Tab 04 divider already in the case folder. Print on cardstock if you have it.</p>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 01</p>
+        <h3>Affidavit of Trenna Farr</h3>
+        <p class="desc">Sworn February 10, 2026. The affidavit that is the subject of Defendants&rsquo; Motion to Strike. Challenged paragraphs marked in the margin.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 02</p>
+        <h3>Loan Account Transaction History</h3>
+        <p class="desc">Plaintiff&rsquo;s servicing ledger for the account, as produced. The record whose method and circumstances of preparation are challenged under O.C.G.A. &sect; 24-8-803(6).</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 03</p>
+        <h3>September 2023 Payment Records</h3>
+        <p class="desc">Payments totaling approximately $29,940.00 tendered on or about September 13&ndash;15, 2023, which Plaintiff accepted and posted to the loan account. Fifth Defense.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 04</p>
+        <h3>CFPB Response &mdash; Case #260101-27348878</h3>
+        <p class="desc">Plaintiff&rsquo;s admission that the $20,000 payment was &ldquo;split into separate amounts.&rdquo;</p>
+      </div>
+      <p class="foot">Prepared June 28, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 05</p>
+        <h3>September 18, 2023 Reversal Entries</h3>
+        <p class="desc">Ledger entries by which Plaintiff unilaterally reversed payments it had previously accepted and posted &mdash; without notice to Defendants and without their consent.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 06</p>
+        <h3>&ldquo;Interest Credit Adjustment&rdquo; &mdash; October 23, 2025</h3>
+        <p class="desc">Entry bearing the comment &ldquo;ADJUSTMENT RELATED TO CORE CONVERSION,&rdquo; booked to the account more than two years after the disputed payments and while this dispute was pending. Eighth Defense.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 07</p>
+        <h3>Retroactive NSF Fee Entries</h3>
+        <p class="desc">NSF fee entries bearing the &ldquo;-INSERT&rdquo; designation, added to the account after the fact rather than at or near the time of the events recorded. Eighth Defense.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 08</p>
+        <h3>Plaintiff&rsquo;s Discovery Responses</h3>
+        <p class="desc">Responses to Requests for Admission and Interrogatories bearing on the application, splitting, and reversal of the disputed payments.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 09</p>
+        <h3>Correspondence</h3>
+        <p class="desc">Written communications between Defendants and Plaintiff or its servicer concerning the September 2023 payments, their posting, and their subsequent reversal.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+    <div class="divider">
+      <p class="rail">Carrelha v. Regions Bank &middot; 26SC-1103-B &middot; Hearing Exhibit Binder Tab Divider</p>
+      <div>
+        <p class="tabno">TAB 10</p>
+        <h3>Answer &amp; Affirmative Defenses</h3>
+        <p class="desc">Defendants&rsquo; filed Answer. Fifth Defense &mdash; accepted and posted payments unilaterally reversed. Eighth Defense &mdash; post hoc adjustment, reversal, and fee entries.</p>
+      </div>
+      <p class="foot">Prepared August 27, 2026 &middot; Hearing: Sept 21, 2026 &middot; Hon. McClelland<span class="brand">THE SECOND SLIDE</span></p>
+    </div>
+
+  </section>
+
+  <footer>
+    <strong>Hearing Exhibit Binder</strong> &middot; Civil Action File No. 26SC-1103-B &middot; State Court of Forsyth County, State of Georgia<br>
+    <em>Regions Bank, as successor by statutory merger to EnerBank USA v. Christopher Carrelha and Kelsey Carrelha</em><br>
+    Hearing: September 21, 2026 &middot; Hon. T. Russell McClelland &middot; Defendants <em>Pro Se</em>
+  </footer>
+
+</div>
+</body>
+</html>

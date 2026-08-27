@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MTS Hearing Script — 26SC-1103-B</title>
+<style>
+  :root{
+    --paper:#ffffff;
+    --ink:#14181f;
+    --navy:#1b2a44;
+    --navy-deep:#111c2e;
+    --brass:#a8823c;
+    --brass-soft:#f4edde;
+    --muted:#5c6675;
+    --rule:#e3e7ed;
+    --rule-strong:#c9d0da;
+    --wash:#f7f8fa;
+    --red:#8f2b2b;
+    --red-wash:#fbf1f1;
+    --green:#1f5c46;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:"Inter","Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    --mono:"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--wash);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+  }
+
+  .sheet{
+    max-width:1080px;
+    margin:0 auto;
+    background:var(--paper);
+    box-shadow:0 1px 3px rgba(17,28,46,.08),0 12px 40px rgba(17,28,46,.06);
+  }
+
+  /* ---------- utility bar ---------- */
+  .toolbar{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    padding:14px 40px;
+    font-size:12px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .toolbar button{
+    font:inherit;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--navy);
+    background:var(--paper);
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{background:var(--brass-soft);border-color:var(--brass)}
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    background:var(--navy-deep);
+    color:#fff;
+    padding:38px 48px 32px;
+    border-bottom:4px solid var(--brass);
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 18px;
+  }
+  .masthead h1{
+    font-family:var(--serif);
+    font-size:34px;
+    line-height:1.15;
+    margin:0 0 8px;
+    font-weight:600;
+  }
+  .masthead .kicker{
+    font-family:var(--serif);
+    font-size:16px;
+    font-style:italic;
+    color:#c3cbd8;
+    margin:0 0 26px;
+    max-width:62ch;
+  }
+  .facts{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:1px;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.14);
+  }
+  .fact{background:var(--navy-deep);padding:12px 14px}
+  .fact dt{
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#8f9cb0;
+    margin:0 0 4px;
+  }
+  .fact dd{margin:0;font-size:14px;color:#fff;font-weight:500}
+
+  /* ---------- pillars ---------- */
+  .pillars{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:1px;
+    background:var(--rule);
+    border-bottom:1px solid var(--rule);
+  }
+  .pillar{background:var(--paper);padding:22px 24px 24px}
+  .pillar .tag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    border:1px solid var(--brass);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-bottom:12px;
+  }
+  .pillar h3{
+    font-family:var(--mono);
+    font-size:15px;
+    margin:0 0 8px;
+    color:var(--navy);
+    letter-spacing:-.01em;
+  }
+  .pillar p{margin:0;font-size:13.5px;color:var(--muted)}
+
+  /* ---------- sections ---------- */
+  section{padding:34px 48px;border-bottom:1px solid var(--rule)}
+  section:last-of-type{border-bottom:none}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .sec-num{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--brass);
+    letter-spacing:.1em;
+    padding-top:3px;
+  }
+  h2{
+    font-family:var(--serif);
+    font-size:23px;
+    font-weight:600;
+    margin:0;
+    color:var(--navy);
+  }
+  .sec-note{
+    margin:0 0 22px 34px;
+    font-size:13.5px;
+    color:var(--muted);
+    max-width:78ch;
+  }
+
+  /* ---------- matrix table ---------- */
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:840px}
+  thead th{
+    text-align:left;
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#fff;
+    background:var(--navy);
+    padding:10px 12px;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:13px 12px;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  tbody tr:nth-child(even) td{background:#fbfcfd}
+  td.cat{font-weight:600;color:var(--navy);white-space:nowrap}
+  td.sworn{color:var(--red)}
+  td.actual{color:var(--green)}
+  td.cite{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap}
+  td.impact{font-weight:500}
+
+  /* ---------- authority cards ---------- */
+  .stack{display:grid;gap:16px}
+  .auth{
+    border:1px solid var(--rule);
+    border-left:3px solid var(--brass);
+    background:#fcfcfd;
+    padding:18px 22px;
+  }
+  .auth h3{
+    font-family:var(--mono);
+    font-size:14px;
+    color:var(--navy);
+    margin:0 0 8px;
+  }
+  .auth p{margin:0;font-size:14px;color:#333a45}
+  .auth.distinguished{border-left-color:var(--red)}
+  .auth .flag{
+    display:inline-block;
+    font-size:10px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--red);
+    background:var(--red-wash);
+    border-radius:2px;
+    padding:2px 7px;
+    margin-left:8px;
+    vertical-align:2px;
+  }
+
+  /* ---------- two column ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .col h3{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 16px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+
+  /* ---------- cross-exam tree ---------- */
+  .tree{list-style:none;margin:0;padding:0;counter-reset:q}
+  .tree li{
+    position:relative;
+    padding:0 0 20px 30px;
+    border-left:1px solid var(--rule-strong);
+  }
+  .tree li:last-child{border-left-color:transparent;padding-bottom:0}
+  .tree li::before{
+    counter-increment:q;
+    content:counter(q);
+    position:absolute;
+    left:-11px;
+    top:0;
+    width:21px;
+    height:21px;
+    border-radius:50%;
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .tree .label{
+    font-weight:600;
+    color:var(--navy);
+    font-size:13px;
+    display:block;
+    margin-bottom:6px;
+  }
+  .tree .ask{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .tree .effect{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0;
+  }
+  .tree .effect::before{content:"→ ";color:var(--brass)}
+
+  /* ---------- scripts ---------- */
+  .script{
+    background:var(--wash);
+    border:1px solid var(--rule);
+    padding:16px 18px;
+    margin-bottom:16px;
+  }
+  .script:last-child{margin-bottom:0}
+  .script .label{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    display:block;
+    margin-bottom:10px;
+  }
+  .script blockquote{
+    margin:0;
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:14px;
+  }
+
+  footer{
+    padding:20px 48px 28px;
+    background:var(--navy-deep);
+    color:#8f9cb0;
+    font-size:11.5px;
+    letter-spacing:.04em;
+  }
+  footer strong{color:#c3cbd8;font-weight:500}
+
+  @media (max-width:760px){
+    .toolbar,.masthead,section,footer{padding-left:22px;padding-right:22px}
+    .cols{grid-template-columns:1fr;gap:28px}
+    .masthead h1{font-size:26px}
+  }
+
+  @media print{
+    @page{size:letter;margin:.6in}
+    body{background:#fff;font-size:10.5pt}
+    .sheet{box-shadow:none;max-width:none}
+    .toolbar{display:none}
+    .masthead,footer{
+      background:#fff!important;
+      color:#000;
+      border-bottom:2px solid #000;
+      padding:0 0 14px;
+    }
+    .masthead h1,.fact dd{color:#000}
+    .masthead .kicker,.fact dt,footer{color:#333}
+    .eyebrow{color:#000}
+    .fact{background:#fff;border:1px solid #999}
+    .facts{background:#fff;border-color:#999}
+    thead th{background:#e8eaee!important;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    section{padding:16px 0;page-break-inside:avoid}
+    .pillars{padding:0}
+    .pillar{padding:10px 12px}
+    .tree li,.auth,.script{page-break-inside:avoid}
+    footer{border-top:1px solid #000;border-bottom:none;margin-top:12px}
+    .scroll{overflow:visible}
+    table{min-width:0}
+  }
+
+  /* ---------- verification banner ---------- */
+  .verify{
+    background:var(--red-wash);
+    border:1px solid #e6c9c9;
+    border-left:3px solid var(--red);
+    padding:14px 18px;
+    margin:0 48px 0;
+  }
+  .verify h3{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--red);
+    margin:0 0 6px;
+  }
+  .verify p{margin:0 0 6px;font-size:13px;color:#4a3232}
+  .verify p:last-child{margin-bottom:0}
+  .verify code{font-family:var(--mono);font-size:12px}
+
+  /* ---------- script blocks ---------- */
+  .beat{margin:0 0 26px}
+  .beat:last-child{margin-bottom:0}
+  .beat > h4{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--navy);
+    margin:0 0 10px;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--rule);
+  }
+  .say{
+    font-family:var(--serif);
+    font-size:15px;
+    line-height:1.62;
+    border-left:3px solid var(--brass);
+    background:#fdfbf6;
+    padding:12px 16px;
+    margin:0 0 10px;
+  }
+  .say p{margin:0 0 10px}
+  .say p:last-child{margin-bottom:0}
+  .stage{
+    font-style:italic;
+    color:var(--muted);
+    font-size:13px;
+    margin:0 0 10px;
+  }
+  .stage::before{content:"[ "}
+  .stage::after{content:" ]"}
+  .strat{
+    font-size:13px;
+    color:#333a45;
+    margin:0 0 10px;
+    max-width:82ch;
+  }
+  .strat:last-child{margin-bottom:0}
+  .strat b{color:var(--navy)}
+
+  /* ---------- placeholder slot ---------- */
+  .slot{
+    border:1px dashed var(--rule-strong);
+    background:repeating-linear-gradient(135deg,#fafbfc,#fafbfc 8px,#f2f4f7 8px,#f2f4f7 16px);
+    padding:12px 16px;
+    margin:0 0 10px;
+    font-size:13px;
+    color:#4a5262;
+  }
+  .slot b{
+    display:block;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+
+  /* ---------- legend ---------- */
+  .legend{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:14px;
+    margin:0 0 4px;
+  }
+  .legend div{font-size:12.5px;color:var(--muted);padding-left:12px;border-left:3px solid var(--rule-strong)}
+  .legend div b{display:block;color:var(--navy);font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+  .legend .l-say{border-left-color:var(--brass)}
+  .legend .l-slot{border-left-color:var(--rule-strong)}
+
+  /* ---------- checklist ---------- */
+  .check{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  .check li{
+    position:relative;
+    padding-left:30px;
+    font-size:13.5px;
+    color:#333a45;
+  }
+  .check li::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:2px;
+    width:14px;
+    height:14px;
+    border:1.5px solid var(--rule-strong);
+    border-radius:2px;
+  }
+  .check li b{color:var(--navy)}
+
+  /* ---------- status pills ---------- */
+  .pill{
+    display:inline-block;
+    font-family:var(--sans);
+    font-size:9.5px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    border-radius:2px;
+    padding:2px 6px;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .pill.ok{color:var(--green);background:#eaf3ef;border:1px solid #bcd8cb}
+  .pill.gap{color:var(--red);background:var(--red-wash);border:1px solid #e6c9c9}
+  .pill.prop{color:#7a5c17;background:var(--brass-soft);border:1px solid #e0cd9e}
+
+  /* ---------- tab divider sheets ---------- */
+  .divider{
+    border:2px solid var(--navy);
+    padding:44px 42px;
+    margin:0 0 22px;
+    background:var(--paper);
+    text-align:center;
+  }
+  .divider .rail{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding-bottom:14px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:38px;
+  }
+  .divider .tabno{
+    font-family:var(--mono);
+    font-size:13px;
+    letter-spacing:.3em;
+    color:var(--brass);
+    margin:0 0 10px;
+  }
+  .divider h3{
+    font-family:var(--serif);
+    font-size:30px;
+    font-weight:600;
+    color:var(--navy);
+    margin:0 0 16px;
+    line-height:1.2;
+  }
+  .divider .desc{
+    font-family:var(--serif);
+    font-size:15px;
+    font-style:italic;
+    color:#333a45;
+    margin:0 auto 38px;
+    max-width:52ch;
+  }
+  .divider .foot{
+    font-size:11px;
+    letter-spacing:.1em;
+    color:var(--muted);
+    padding-top:14px;
+    border-top:1px solid var(--rule);
+  }
+  .divider .foot .brand{
+    display:block;
+    margin-top:8px;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.28em;
+    color:var(--navy);
+  }
+
+  /* ---------- objection cards ---------- */
+  .obj{
+    border:1px solid var(--rule);
+    border-top:3px solid var(--navy);
+    background:var(--paper);
+    padding:18px 20px;
+  }
+  .obj.defensive{border-top-color:var(--brass)}
+  .obj h3{
+    font-family:var(--serif);
+    font-size:18px;
+    color:var(--navy);
+    margin:0 0 4px;
+    font-weight:600;
+  }
+  .obj .auth-line{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--brass);
+    margin:0 0 14px;
+  }
+  .obj dl{margin:0}
+  .obj dt{
+    font-size:10px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 4px;
+  }
+  .obj dd{margin:0 0 12px;font-size:13.5px;color:#333a45}
+  .obj dd:last-child{margin-bottom:0}
+  .obj dd.quote{
+    font-family:var(--serif);
+    font-size:14.5px;
+    color:var(--ink);
+    border-left:2px solid var(--brass);
+    padding-left:12px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+  @media (max-width:760px){
+    .verify{margin-left:22px;margin-right:22px}
+    .grid2{grid-template-columns:1fr}
+    .divider{padding:30px 22px}
+    .divider h3{font-size:23px}
+  }
+
+  @media print{
+    .verify{margin:0 0 14px;background:#fff!important;border-color:#000}
+    .verify h3,.verify p{color:#000}
+    .say{background:#fff;border-left:3px solid #000}
+    .slot{background:#fff;border:1px dashed #666}
+    .beat,.obj,.divider,.check li{page-break-inside:avoid}
+    .divider{page-break-after:always;border-color:#000;min-height:8.4in;display:flex;flex-direction:column;justify-content:space-between}
+    .divider:last-of-type{page-break-after:auto}
+    .pill{border:1px solid #666!important;color:#000!important;background:#fff!important}
+    .grid2{gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>Hearing Script &middot; Prepared for podium use</span>
+  <button type="button" onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="eyebrow">State Court of Forsyth County &middot; State of Georgia</p>
+    <h1>Motion to Strike the Farr Affidavit<br>Hearing Script</h1>
+    <p class="kicker">Podium script, pre-hearing checklist, and cross-examination sequence for the hearing on Defendants&rsquo; Motion to Strike the affidavit of Trenna Farr.</p>
+    <dl class="facts">
+      <div class="fact"><dt>Hearing</dt><dd>September 21, 2026</dd></div>
+      <div class="fact"><dt>Civil Action File No.</dt><dd>26SC-1103-B</dd></div>
+      <div class="fact"><dt>Presiding</dt><dd>Hon. T. Russell McClelland</dd></div>
+      <div class="fact"><dt>Movants</dt><dd>C. Carrelha &amp; K. D. Carrelha, <em>pro se</em></dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <div class="verify">
+      <h3>Read before using &mdash; verification status</h3>
+      <p><strong>Every spoken passage below is built only from facts confirmed in the case record I can actually read</strong> &mdash; the filed Answer and Affirmative Defenses, and Regions&rsquo; written CFPB response (Tab 04). Those facts are safe to say out loud.</p>
+      <p><strong>Anything that depends on the Farr affidavit itself is left as a marked slot</strong> (the hatched boxes). I have not been able to read the affidavit, the filed Motion to Strike, or the loan ledger, so I have not guessed at paragraph numbers, dollar figures, names appearing in the ledger header, or exhibit letters. Fill each slot from the document before the hearing.</p>
+      <p>Statutory and case citations are given so you can pull and confirm them. <strong>Shepardize every cite and confirm each pin cite against the reporter before you stand up.</strong> Do not read a citation to the Court that you have not personally verified.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">00</span><h2>How to read this script</h2></div>
+    <p class="sec-note">Three kinds of text, distinguished by formatting. Nothing in the plain-text strategy notes is meant to be said aloud.</p>
+    <div class="legend">
+      <div class="l-say"><b>Say this</b>Serif text in the shaded block with the gold rule. Spoken verbatim, or close to it.</div>
+      <div><b>Stage direction</b>Italic text in brackets. What to do &mdash; pause, hand up an exhibit, sit down.</div>
+      <div><b>Strategy note</b>Plain text. Why the beat exists, and what to do if it goes sideways.</div>
+      <div class="l-slot"><b>Fill this in</b>Hatched box. A fact I could not verify. Complete it from the source document.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Pre-hearing checklist</h2></div>
+    <p class="sec-note">Work top to bottom. The subpoena item is the only one with a hard external deadline &mdash; handle it first.</p>
+
+    <div class="beat">
+      <h4>T&ndash;14 days &mdash; witness</h4>
+      <ul class="check">
+        <li><b>Decide whether to subpoena Trenna Farr.</b> A subpoena for attendance issues under O.C.G.A. &sect; 24-13-21. Confirm the current service and mileage/fee requirements and the court&rsquo;s local practice before issuing.</li>
+        <li>If she appears, &sect; 04 below is live. If she does not, the motion is decided on the four corners of the affidavit &mdash; which is the stronger posture for Pillar I.</li>
+        <li><b>Calendar the response deadline</b> for any brief Regions files in opposition.</li>
+      </ul>
+    </div>
+
+    <div class="beat">
+      <h4>T&ndash;7 days &mdash; paper</h4>
+      <ul class="check">
+        <li><b>Confirm the Supplemental Brief in support of the Motion to Strike was filed.</b> A note in the case folder flags this as planned but unconfirmed. If it was never filed, decide now whether to file or to argue on the original motion.</li>
+        <li>Pull and read the <b>Farr affidavit</b> line by line. Mark every paragraph you are moving against and write the numbers into the slots in &sect;&sect; 03&ndash;05 below.</li>
+        <li>Assemble the exhibit binder (see the companion binder document). <b>Three copies</b> &mdash; Court, opposing counsel, podium.</li>
+        <li>Shepardize <em>Prophecy Corp.</em>, <em>Windham</em>, and <em>Rankin</em>. Print the first page of each.</li>
+        <li>Draft the <b>proposed order</b> and bring it in hard copy.</li>
+      </ul>
+    </div>
+
+    <div class="beat">
+      <h4>Morning of</h4>
+      <ul class="check">
+        <li>Binder, three copies. Proposed order, two copies. This script, one copy, tabbed.</li>
+        <li>Legal pad reserved for <b>one thing only</b>: what the judge says. Do not take argument notes on it.</li>
+        <li>Confirm the calendar call time and the courtroom.</li>
+        <li>Read &sect; 09 (the ask) twice in the car. It is the only passage you must land word for word.</li>
+      </ul>
+    </div>
+
+    <div class="beat">
+      <h4>At the table</h4>
+      <p class="strat"><b>Two rules for the whole hearing.</b> First: when the judge starts speaking, you stop &mdash; mid-word if necessary. Second: you are moving to strike an affidavit, not trying the case. Every time you feel the pull to argue the merits of the debt, come back to admissibility. The merits are a different hearing.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Exhibit quick reference</h2></div>
+    <p class="sec-note">Podium copy. Tab 04 is confirmed from the existing binder divider; the remaining tab assignments are proposed and should be reconciled against the binder you actually build.</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Tab</th><th>Exhibit</th><th>Use it for</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="cite">01</td><td>Farr affidavit, Feb. 10, 2026</td><td>The document under attack &mdash; hand up marked</td><td><span class="pill gap">Need file</span></td></tr>
+          <tr><td class="cite">02</td><td>Loan account transaction history</td><td>Pillars I &amp; II</td><td><span class="pill gap">Need file</span></td></tr>
+          <tr><td class="cite">03</td><td>Sept. 13&ndash;15, 2023 payment records</td><td>Pillar I &mdash; the tender Regions accepted</td><td><span class="pill prop">Proposed</span></td></tr>
+          <tr><td class="cite">04</td><td>CFPB Response, Case #260101-27348878</td><td><strong>Pillar III &mdash; the admission</strong></td><td><span class="pill ok">Confirmed</span></td></tr>
+          <tr><td class="cite">05</td><td>Sept. 18, 2023 reversal entries</td><td>Pillar II &mdash; trustworthiness</td><td><span class="pill prop">Proposed</span></td></tr>
+          <tr><td class="cite">06</td><td>Oct. 23, 2025 &ldquo;Interest Credit Adjustment&rdquo;</td><td>Pillar II &mdash; post hoc alteration</td><td><span class="pill prop">Proposed</span></td></tr>
+          <tr><td class="cite">07</td><td>Retroactive NSF &ldquo;-INSERT&rdquo; fee entries</td><td>Pillar II &mdash; post hoc alteration</td><td><span class="pill prop">Proposed</span></td></tr>
+          <tr><td class="cite">10</td><td>Answer &amp; Affirmative Defenses (filed)</td><td>Framing &mdash; Fifth and Eighth Defenses</td><td><span class="pill ok">Confirmed</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Opening</h2></div>
+    <p class="sec-note">Ninety seconds. Name the relief, name the three grounds, name the consequence. Then stop.</p>
+
+    <div class="beat">
+      <p class="stage">Stand. Wait to be recognized. Do not begin until the judge looks up.</p>
+      <div class="say">
+        <p>Good morning, Your Honor. Chris Carrelha and Kelsey Carrelha, appearing <em>pro se</em>.</p>
+        <p>We&rsquo;re here on our motion to strike the affidavit of Trenna Farr, dated February 10, 2026. We have three grounds, and I&rsquo;ll take them in that order.</p>
+        <p>First, the affidavit does not show personal knowledge, which O.C.G.A. section 9-11-56(e) requires on the face of the affidavit itself.</p>
+        <p>Second, the records it relies on do not qualify under the business records exception, because the circumstances of their preparation indicate a lack of trustworthiness &mdash; and section 24-8-803(6) makes that an express limit on the exception, not an afterthought.</p>
+        <p>Third, the affidavit contradicts what Regions has already said in writing about this same account.</p>
+        <p>If the affidavit is stricken, Your Honor, there is no admissible evidence before the Court supporting the balance Regions claims.</p>
+      </div>
+      <p class="strat"><b>If the judge interrupts to ask which ground is strongest:</b> say Pillar I &mdash; personal knowledge. It is decided on the four corners of the affidavit, it needs no witness, and it does not require the Court to resolve any factual dispute. Then offer the other two as independently sufficient.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Pillar I &mdash; Personal knowledge &sect; 9-11-56(e)</h2></div>
+    <p class="sec-note">The four-corners argument. This is the ground you can win without a witness, without an exhibit, and without the Court weighing anything.</p>
+
+    <div class="beat">
+      <h4>The rule</h4>
+      <div class="say">
+        <p>Your Honor, section 9-11-56(e) requires three things, and it requires them to appear on the face of the affidavit: that it be made on personal knowledge; that it set forth facts that would be admissible in evidence; and that it show affirmatively that the affiant is competent to testify to the matters stated.</p>
+        <p>That last requirement is the one that matters here. It is not enough that Ms. Farr is an employee of Regions. The affidavit has to show, affirmatively, that <em>she</em> knows what she is swearing to.</p>
+      </div>
+    </div>
+
+    <div class="beat">
+      <h4>The application</h4>
+      <div class="slot">
+        <b>Fill from the affidavit</b>
+        Quote the affidavit&rsquo;s personal-knowledge recital verbatim and give the paragraph number. It is almost always a formula along the lines of &ldquo;I am over 18, I am employed by Regions Bank, and I have personal knowledge of the matters stated herein based on my review of the business records.&rdquo; <strong>The phrase &ldquo;based on my review of the records&rdquo; is the target</strong> &mdash; it is a concession that the knowledge is derived, not personal. Write the exact words and the paragraph number here before the hearing.
+      </div>
+      <div class="say">
+        <p>What the affidavit actually says is that Ms. Farr&rsquo;s knowledge comes from her review of the file. Your Honor, that is a description of reading, not of knowing.</p>
+        <p>She does not say she made any of these entries. She does not say she supervised anyone who made them. She does not say when she first looked at this account, or what she did to satisfy herself that what she was reading was accurate.</p>
+        <p>A records custodian can authenticate a document &mdash; can say, this came out of our system, this is what our system holds. That is a real and limited function. What a custodian cannot do is swear to the <em>truth</em> of what the document asserts, unless she has personal knowledge of the underlying events. This affidavit never establishes that she does.</p>
+      </div>
+      <p class="strat"><b>Hold the distinction.</b> Authentication versus substantive truth is the hinge of the whole pillar. Opposing counsel will conflate them &mdash; will argue that because Farr can authenticate, she can swear to the balance. She cannot. Say the sentence &ldquo;authentication is not the same as personal knowledge of the facts asserted&rdquo; as many times as it takes.</p>
+    </div>
+
+    <div class="beat">
+      <h4>The relief on this pillar</h4>
+      <div class="say">
+        <p>On this ground alone, Your Honor, the affidavit should be stricken &mdash; and the Court doesn&rsquo;t need to reach the records or the contradiction to get there. It&rsquo;s decided on the four corners of the affidavit.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Pillar II &mdash; Trustworthiness &sect; 24-8-803(6)</h2></div>
+    <p class="sec-note">Every fact in this passage is drawn from the filed Answer&rsquo;s Fifth and Eighth Defenses. It is all safe to say.</p>
+
+    <div class="beat">
+      <h4>The rule &mdash; read the last clause</h4>
+      <div class="say">
+        <p>Your Honor, the business records exception is not automatic, and the last clause of section 24-8-803(6) is the whole clause. The record comes in <em>unless</em> the source of the information, or the method or circumstances of preparation, indicate a lack of trustworthiness.</p>
+        <p>Here they do indicate exactly that. And the burden of laying that foundation is on Regions. It is not our burden to disprove it.</p>
+      </div>
+    </div>
+
+    <div class="beat">
+      <h4>The three marks of a rewritten record</h4>
+      <div class="say">
+        <p>Three things on the face of Regions&rsquo; own record.</p>
+        <p>First. In September of 2023 we tendered payments totaling approximately twenty-nine thousand nine hundred forty dollars. Regions accepted those payments and posted them to the account. Then it reversed them &mdash; unilaterally, without notice and without our consent. Its ledger carries reversal entries dated September 18, 2023.</p>
+        <p>Second. On October 23, 2025 &mdash; two years later, and after this dispute was underway &mdash; Regions booked an entry it labeled an &ldquo;Interest Credit Adjustment,&rdquo; carrying the comment &ldquo;adjustment related to core conversion.&rdquo;</p>
+        <p>Third. The account carries NSF fee entries that were inserted retroactively.</p>
+        <p>Your Honor, those are not the marks of a record made at or near the time of the event, in the regular course of business, by someone with knowledge. Those are the marks of a record that was reconstructed after the fact, during a system migration, while this dispute was live.</p>
+        <p>Once the method of preparation is itself in question, the exception does not apply. And Ms. Farr&rsquo;s affidavit does not address a single one of these entries.</p>
+      </div>
+      <p class="strat"><b>The strongest single sentence in the case is the core-conversion comment.</b> It is Regions&rsquo; own words, in Regions&rsquo; own system, describing a data migration as the reason for a money entry on a disputed account. If you get one sentence out before the judge cuts you off, make it that one.</p>
+      <div class="slot">
+        <b>Fill from the ledger</b>
+        Give the Court the exact page or Bates number for each of the three entry groups &mdash; the Sept. 18, 2023 reversals, the Oct. 23, 2025 adjustment, and the retroactive NSF entries &mdash; keyed to the binder tab. Do not describe an entry you cannot point to on a page you have handed up.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Pillar III &mdash; The contradiction</h2></div>
+    <p class="sec-note">The CFPB admission is confirmed. The <em>Prophecy</em> framing needs care &mdash; read the strategy note before you commit to it at the podium.</p>
+
+    <div class="beat">
+      <h4>The admission</h4>
+      <p class="stage">Hand up Tab 04. Wait until the Court has it.</p>
+      <div class="say">
+        <p>Your Honor, at Tab 4 is Regions&rsquo; own written response to our complaint to the Consumer Financial Protection Bureau, case number 260101-27348878.</p>
+        <p>In that response, Regions states that the twenty-thousand-dollar payment was split into separate amounts.</p>
+        <p>That is Regions&rsquo; document, Your Honor. It is not our characterization and it is not argument &mdash; it is what the bank wrote when it was answering to its regulator.</p>
+      </div>
+      <div class="slot">
+        <b>Fill from the Farr affidavit</b>
+        Identify the paragraph of the affidavit that describes the handling of that payment, and quote it beside the CFPB language so the Court can hold the two side by side. <strong>The contrast has to be exact.</strong> If, after reading both, the two statements can be reconciled, say so and drop this pillar &mdash; do not stretch it. Pillars I and II stand on their own.
+      </div>
+    </div>
+
+    <div class="beat">
+      <h4>The doctrine</h4>
+      <div class="say">
+        <p>Under <em>Prophecy Corp. v. Rossignol</em>, when a party offers testimony that is self-contradictory on a material point and offers no reasonable explanation for the contradiction, the contradictory testimony is construed against that party and is not considered.</p>
+        <p>Regions has offered no explanation. We would ask the Court to construe the conflict against Regions.</p>
+      </div>
+      <p class="strat"><b>Know the weakness before opposing counsel finds it.</b> <em>Prophecy</em> is classically applied to the self-contradictory testimony of a <em>party</em> on summary judgment &mdash; the same person saying two different things under oath. Here the two statements come from different places: a sworn affidavit by a bank employee, and an unsworn corporate letter to a regulator. Expect Regions to argue <em>Prophecy</em> doesn&rsquo;t reach that, and expect the argument to have some force.</p>
+      <p class="strat"><b>The fallback is better than the doctrine, so keep it in your pocket:</b> the contradiction is a <em>trustworthiness</em> fact. Whether or not <em>Prophecy</em> applies by its own terms, a record that says one thing to a regulator and another to a court is a record whose &ldquo;circumstances of preparation indicate lack of trustworthiness&rdquo; under &sect; 24-8-803(6). If the judge pushes back on <em>Prophecy</em>, say:</p>
+      <div class="say">
+        <p>Your Honor, if the Court reads <em>Prophecy</em> more narrowly than that, the conflict still matters &mdash; it goes to trustworthiness under 803(6). A record that tells the regulator one thing and this Court another is a record whose circumstances of preparation indicate a lack of trustworthiness on their face.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>If Farr testifies &mdash; cross-examination</h2></div>
+    <p class="sec-note">Only live if she is subpoenaed and appears. Short, closed questions. Each one is built to lock a single admission &mdash; ask it, get the answer, move on. Do not ask a question whose answer you do not already know.</p>
+
+    <div class="cols">
+      <div class="col">
+        <h3>Sequence</h3>
+        <ol class="tree">
+          <li>
+            <span class="label">Establish the date of first contact</span>
+            <p class="ask">&ldquo;Ms. Farr, before February 10, 2026 &mdash; the day you signed this affidavit &mdash; had you ever personally worked on this account?&rdquo;</p>
+            <p class="effect">Either answer helps. &ldquo;No&rdquo; ends Pillar I. &ldquo;Yes&rdquo; opens the question of what she did, when, and why none of it is in the affidavit.</p>
+          </li>
+          <li>
+            <span class="label">Separate her from the entries</span>
+            <p class="ask">&ldquo;Did you personally make any of the entries on the transaction history attached to your affidavit?&rdquo;</p>
+            <p class="effect">Locks in that her knowledge of the record&rsquo;s contents is derived from reading it.</p>
+          </li>
+          <li>
+            <span class="label">Separate her from the people who did</span>
+            <p class="ask">&ldquo;Do you know the name of any person who made any of those entries?&rdquo;</p>
+            <p class="effect">Confirms she cannot speak to the source of the information &mdash; the first half of the 803(6) trustworthiness clause.</p>
+          </li>
+          <li>
+            <span class="label">Open the migration</span>
+            <p class="ask">&ldquo;Was this account moved from one servicing system to another?&rdquo;</p>
+            <p class="effect">Sets up the core-conversion entry without tipping where you&rsquo;re going.</p>
+          </li>
+          <li>
+            <span class="label">Close the migration</span>
+            <p class="ask">&ldquo;Can you tell this Court which entries on that history were created before the migration and which were created by it?&rdquo;</p>
+            <p class="effect">The pillar-II admission. If she cannot, the record&rsquo;s method of preparation is unestablished &mdash; by Regions&rsquo; own witness.</p>
+          </li>
+          <li>
+            <span class="label">Set the CFPB conflict</span>
+            <p class="ask">&ldquo;Are you familiar with the written response Regions sent to the Consumer Financial Protection Bureau in case number 260101-27348878?&rdquo;</p>
+            <p class="effect">&ldquo;No&rdquo; establishes she is not the person with knowledge of the account&rsquo;s history. &ldquo;Yes&rdquo; sets up the next question.</p>
+          </li>
+          <li>
+            <span class="label">Spring it &mdash; only if she said yes</span>
+            <p class="ask">&ldquo;Regions told the Bureau that the twenty-thousand-dollar payment was split into separate amounts. Is that correct?&rdquo;</p>
+            <p class="effect">The contradiction, from the witness stand, in her voice rather than yours.</p>
+          </li>
+        </ol>
+      </div>
+      <div class="col">
+        <h3>Discipline</h3>
+        <p class="strat"><b>Never ask why.</b> Not once. &ldquo;Why&rdquo; hands her the floor and invites the explanation that cures the <em>Prophecy</em> problem. Every question above is answerable yes, no, or &ldquo;I don&rsquo;t know&rdquo; &mdash; and &ldquo;I don&rsquo;t know&rdquo; is a winning answer for you on every one of them.</p>
+        <p class="strat"><b>Stop when you have it.</b> The temptation after question 5 is to keep going and drive it home. Don&rsquo;t. You have the admission; the argument is yours to make in closing, not hers to rebut on the stand.</p>
+        <p class="strat"><b>If she volunteers narrative,</b> let her finish, then: &ldquo;Ms. Farr, my question was whether you made the entries. Did you?&rdquo; Repeat the question, unchanged, as many times as needed. The Court will notice.</p>
+        <p class="strat"><b>If opposing counsel objects to form,</b> rephrase into a shorter closed question rather than arguing the objection. You lose nothing and you keep the rhythm.</p>
+        <p class="strat"><b>If she is not present,</b> say so plainly and once: &ldquo;Your Honor, Regions offers this affidavit but has not produced the affiant. We&rsquo;ve had no opportunity to test any of it.&rdquo; Then return to the four corners.</p>
+        <div class="slot">
+          <b>Fill from the affidavit</b>
+          Add follow-up questions tied to specific paragraph numbers once you have read it. Every question you add must rest on a document already in the binder.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">08</span><h2>Rebuttal &mdash; distinguishing <em>Windham</em></h2></div>
+    <p class="sec-note">Expect Regions to cite <em>Windham v. State</em>, 344 Ga. App. 721, for the proposition that a custodian need not have made the entries personally. Confirm the citation and holding yourself before the hearing.</p>
+    <div class="beat">
+      <div class="say">
+        <p>Your Honor, <em>Windham</em> doesn&rsquo;t answer the question before the Court, for two reasons.</p>
+        <p>First, the posture. <em>Windham</em> is a criminal case, in which records were admitted at trial after a live witness laid the foundation and was subject to cross-examination. What&rsquo;s before this Court is a paper affidavit, offered without the affiant, on a motion. Section 9-11-56(e) is a summary judgment standard, and it imposes a requirement that no criminal evidentiary ruling addresses.</p>
+        <p>Second, the issue. We&rsquo;re not arguing that a custodian must personally have made every entry. We agree she need not. We&rsquo;re arguing something narrower: that <em>this</em> affidavit doesn&rsquo;t satisfy 9-11-56(e)&rsquo;s affirmative showing, and that <em>these</em> records carry circumstances of preparation that defeat the exception under the last clause of 803(6). <em>Windham</em> speaks to neither.</p>
+      </div>
+      <p class="strat"><b>Concede the point they&rsquo;re actually right about.</b> Giving up &ldquo;a custodian need not have made the entries&rdquo; costs you nothing &mdash; it was never your argument &mdash; and it buys credibility for the narrower ground that wins.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">09</span><h2>The ask</h2></div>
+    <p class="sec-note">Land this word for word. Primary relief, alternative relief, consequence, sit down.</p>
+    <div class="beat">
+      <div class="say">
+        <p>Your Honor, we ask three things.</p>
+        <p>First, that the Court strike the affidavit of Trenna Farr in its entirety.</p>
+        <p>In the alternative, that the Court strike the paragraphs identified in our motion and the exhibits attached to them.</p>
+        <p>And because Regions&rsquo; motion rests on that affidavit, that the motion be denied.</p>
+        <p>We have a proposed order, Your Honor. Thank you.</p>
+      </div>
+      <p class="stage">Hand up the proposed order only if invited. Then sit.</p>
+      <div class="slot">
+        <b>Fill from the filed motion</b>
+        Insert the specific paragraph numbers of the affidavit that the Motion to Strike moves against, so the alternative relief is concrete rather than generic. The Court is far more likely to grant partial relief it can enter without doing the work itself.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">10</span><h2>Contingency scripts</h2></div>
+    <p class="sec-note">Two passages for the moments that go wrong. Learn both cold; you will not have time to read.</p>
+
+    <div class="script">
+      <span class="label">If the Court signals it will deny &mdash; the fifteen-second rescue</span>
+      <blockquote>
+        <p>Your Honor, before the Court rules &mdash; may I have fifteen seconds?</p>
+        <p>The one fact I&rsquo;d ask the Court to hold onto is this. Regions&rsquo; own written response to the CFPB says the payment was split into separate amounts. The affidavit says otherwise. That&rsquo;s not our argument &mdash; it&rsquo;s their document, and it&rsquo;s at Tab 4.</p>
+        <p>If the Court is inclined to deny, we would ask that it be denied without prejudice, so the conflict can be taken up on a developed record. Thank you, Your Honor.</p>
+      </blockquote>
+    </div>
+
+    <div class="script">
+      <span class="label">If opposing counsel argues facts not in evidence &mdash; <em>Rankin</em> objection</span>
+      <blockquote>
+        <p>Objection, Your Honor. Counsel is testifying.</p>
+        <p>What he&rsquo;s describing isn&rsquo;t in the affidavit and isn&rsquo;t in any exhibit before the Court. If Regions wants that fact in evidence, it needs a witness. We&rsquo;d ask that the statement be disregarded.</p>
+      </blockquote>
+    </div>
+    <p class="strat"><b>On <em>Rankin v. Smith</em>:</b> the principle &mdash; that counsel&rsquo;s statements are not evidence and an advocate may not supply facts from the podium &mdash; is well settled and you can argue it without a citation. <strong>Confirm the reporter citation before naming the case aloud.</strong> If you cannot verify it in time, make the objection on the principle alone. An unverified cite read to the Court costs you more than no cite at all.</p>
+    <p class="strat"><b>If the Court takes the motion under advisement:</b> &ldquo;Thank you, Your Honor. Would the Court like anything further from us in writing?&rdquo; Then stop. Do not re-argue.</p>
+  </section>
+
+  <footer>
+    <strong>Motion to Strike &mdash; Hearing Script</strong> &middot; Civil Action File No. 26SC-1103-B &middot; State Court of Forsyth County, State of Georgia<br>
+    Hearing: September 21, 2026 &middot; Hon. T. Russell McClelland &middot; Chris Carrelha &amp; Kelsey D. Carrelha, Defendants <em>Pro Se</em><br>
+    Preparation aid only. Verify every citation and every record reference against the filed documents before use.
+  </footer>
+
+</div>
+</body>
+</html>
