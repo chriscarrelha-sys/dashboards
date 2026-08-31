@@ -1,0 +1,32 @@
+{
+  "_comment": "Order matters - first match wins. Edit freely; re-run scan to reclassify.",
+  "matters": {
+    "10-TRUIST":      ["truist", "suntrust"],
+    "11-SHELLPOINT":  ["shellpoint", "mccalla", "newrez", "foreclosure"],
+    "12-NMAC":        ["nmac", "nissan motor acceptance", "infiniti", "weltman", "qx80", "25cv-0783"],
+    "13-USBANK":      ["us bank", "usbank", "u.s. bank"],
+    "14-AMEX":        ["american express", "amex"],
+    "15-ENERBANK":    ["enerbank"],
+    "20-CREDIT":      ["experian", "equifax", "transunion", "credit report", "fcra", "dispute"],
+    "30-FINANCE":     ["ria", "convertible", "arb", "portfolio", "brokerage", "1099", "tax"],
+    "40-PERSONAL":    ["insurance", "medical", "passport", "lease", "deed", "title"],
+    "99-UNSORTED":    []
+  },
+  "doctypes": {
+    "COMPLAINT":      ["complaint", "petition"],
+    "MOTION":         ["motion", "tro", "injunction", "restraining"],
+    "BRIEF":          ["brief", "memorandum", "memo of law"],
+    "ORDER":          ["order", "ruling", "judgment", "judgement"],
+    "DISCOVERY":      ["discovery", "interrogator", "request for admission", "requests for admission", "rfp", "subpoena", "deposition"],
+    "EXHIBIT":        ["exhibit", "binder", "appendix"],
+    "DECLARATION":    ["declaration", "affidavit", "verification"],
+    "DEMAND":         ["demand", "intent to litigate", "cure", "notice of"],
+    "CORRESPONDENCE": ["letter", "email", "correspondence", "response"],
+    "SERVICE":        ["service", "summons", "certificate of service", "proof of service"],
+    "STATEMENT":      ["statement", "invoice", "billing", "payoff", "escrow"],
+    "REPORT":         ["report", "analysis", "matrix", "forensic", "audit"],
+    "CONTRACT":       ["agreement", "contract", "note", "mortgage", "security deed", "lease"],
+    "FILING":         ["filed", "court draft", "stamped"],
+    "MISC":           []
+  }
+}
