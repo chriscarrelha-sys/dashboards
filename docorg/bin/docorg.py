@@ -135,8 +135,25 @@ def classify(name, tax):
     return matter, doctype
 
 
+SELF_DIRS = (Path(__file__).resolve().parent.parent,
+             Path(os.path.expanduser("~/docorg-data")))
+
+
+def guard_roots(roots):
+    """Reject empty/blank roots. An empty string resolves to the current
+    working directory, which would silently scan - and rename - whatever
+    directory the user happens to be standing in."""
+    clean = []
+    for r in roots:
+        if not str(r).strip():
+            sys.exit("refusing to scan an empty root path (would resolve to $PWD)")
+        clean.append(r)
+    return clean
+
+
 def cmd_scan(a):
     tax = load_taxonomy(a.taxonomy)
+    a.roots = guard_roots(a.roots)
     db = connect(a.db)
     now = datetime.now().isoformat(timespec="seconds")
     n = skipped = ph = 0
@@ -147,9 +164,15 @@ def cmd_scan(a):
         if not rp.exists():
             print(f"  ! root not found, skipping: {rp}", file=sys.stderr)
             continue
+        if any(rp == sd or sd in rp.parents or rp in sd.parents for sd in SELF_DIRS):
+            print(f"  ! refusing to scan docorg's own directory: {rp}", file=sys.stderr)
+            continue
         for dirpath, dirnames, filenames in os.walk(rp, followlinks=False):
             dirnames[:] = [d for d in dirnames
-                           if d not in SKIP_DIRS and not d.startswith(".Trash")]
+                           if d not in SKIP_DIRS and not d.startswith(".Trash")
+                           and not any((Path(dirpath) / d).resolve() == sd
+                                       or sd in (Path(dirpath) / d).resolve().parents
+                                       for sd in SELF_DIRS)]
             for fn in filenames:
                 if fn in SKIP_NAMES:
                     skipped += 1

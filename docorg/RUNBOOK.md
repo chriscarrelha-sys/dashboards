@@ -8,6 +8,25 @@ Total hands-on time: ~20 minutes. The OCR pass runs unattended afterward.
 
 ---
 
+## Fast path — one command does all of it
+
+```bash
+cd ~ && git clone https://github.com/chriscarrelha-sys/dashboards.git docorg-repo && \
+cd docorg-repo && git checkout claude/document-org-storage-jjc4nk && \
+bash docorg/bin/run-all.sh
+```
+
+It installs the tools, finds your cloud folders, checks the iCloud sync state,
+inventories, de-duplicates, renames, indexes, and offers to start OCR — pausing
+for a y/N before anything moves, and opening each report for you to look at
+first. `--yes` runs it with no prompts; `--dry-run` reports without moving
+anything.
+
+The numbered steps below are the same pipeline done by hand, if you'd rather
+drive it yourself or something goes wrong.
+
+---
+
 ## Step 0 — Get the toolkit onto your Mac
 
 ```bash

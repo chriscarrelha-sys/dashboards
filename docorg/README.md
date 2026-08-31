@@ -6,6 +6,15 @@ Single-source-of-truth document organization for a macOS iCloud + Google Drive
 - **[RUNBOOK.md](RUNBOOK.md)** — copy/paste commands, in order. Start here.
 - **[STORAGE-ARCHITECTURE.md](STORAGE-ARCHITECTURE.md)** — which cloud wins and why.
 
+## Quick start
+
+```bash
+bash docorg/bin/run-all.sh
+```
+
+Runs the whole pipeline, pausing before anything moves. See
+[RUNBOOK.md](RUNBOOK.md).
+
 ## Safety contract
 
 - Nothing is ever deleted. Duplicates are **moved** to a quarantine folder.
