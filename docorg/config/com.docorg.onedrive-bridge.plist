@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.docorg.onedrive-bridge</string>
+  <key>ProgramArguments</key>
+  <array><string>REPLACE_WITH_PATH/docorg/bin/onedrive-bridge.sh</string></array>
+  <key>StartInterval</key><integer>900</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardErrorPath</key><string>/tmp/docorg-bridge.err</string>
+</dict></plist>
