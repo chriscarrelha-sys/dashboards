@@ -3,7 +3,7 @@
 # already have a text layer. Safe to interrupt and re-run.
 set -uo pipefail
 VAULT="${1:?usage: ocr-pass.sh /path/to/vault}"
-LOG=~/Documents/docorg/reports/ocr.log
+LOG=~/docorg-data/reports/ocr.log
 mkdir -p "$(dirname "$LOG")"
 echo "OCR pass started $(date)" | tee -a "$LOG"
 find "$VAULT" -type f -iname '*.pdf' -print0 |

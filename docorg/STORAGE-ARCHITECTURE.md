@@ -53,7 +53,7 @@ Google Drive  ← SOURCE OF TRUTH (streamed, ~0 disk)
 
 OneDrive      ← narrow one-way projection of 10_ACTIVE/ (rclone, every 15 min)
 iCloud Drive  ← Apple apps only. Desktop & Documents sync OFF.
-Local disk    ~/Documents/docorg/   index, reports, quarantine
+Local disk    ~/docorg-data/   index, reports, quarantine
 ```
 
 ## Why Google Drive is the source of truth
@@ -73,8 +73,18 @@ Not preference — capability:
 **Desktop & Documents Folders sync is the single biggest duplication
 source.** It silently makes `~/Desktop` and `~/Documents` a fourth root, so
 anything you save locally becomes a competing copy. Turn it off (Runbook
-Step 1). Keep iCloud for Photos, Notes, Messages, and app data — things Drive
-can't hold.
+Step 1a). Keep iCloud for Photos, Notes, Messages, and app data — things
+Drive can't hold.
+
+Demoting iCloud does **not** cost you mobile access. The Google Drive iOS app
+registers as a File Provider, so the vault appears in the iPhone Files app
+under Locations, next to iCloud Drive — same app, same browsing. Phone access
+moves to the pipe that a remote session can also read, rather than
+disappearing.
+
+Note that "Desktop & Documents Folders" is one option *inside* iCloud Drive,
+not iCloud Drive itself. Unticking it leaves iCloud Drive, Photos, Notes,
+Messages, contacts, and calendars fully intact on every device.
 
 ## What this frees
 

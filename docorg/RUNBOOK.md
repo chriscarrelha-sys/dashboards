@@ -11,7 +11,7 @@ Total hands-on time: ~20 minutes. The OCR pass runs unattended afterward.
 ## Step 0 — Get the toolkit onto your Mac
 
 ```bash
-mkdir -p ~/Documents && cd ~/Documents && \
+cd ~ && \
 git clone https://github.com/chriscarrelha-sys/dashboards.git docorg-repo && \
 cd docorg-repo && git checkout claude/document-org-storage-jjc4nk && \
 bash docorg/bin/setup.sh
@@ -20,23 +20,51 @@ bash docorg/bin/setup.sh
 Then set a shortcut you'll reuse below:
 
 ```bash
-echo 'alias docorg="python3 ~/Documents/docorg-repo/docorg/bin/docorg.py"' >> ~/.zshrc && source ~/.zshrc
+echo 'alias docorg="python3 ~/docorg-repo/docorg/bin/docorg.py"' >> ~/.zshrc && source ~/.zshrc
 ```
 
 ---
 
 ## Step 1 — Stop the bleeding (do this FIRST)
 
-Turn off iCloud Desktop & Documents sync. This is what keeps re-creating the
-mess; every later step is undone if you skip it.
+### 1a. iCloud "Desktop & Documents Folders" — read this before deciding
+
+**This checkbox is not iCloud Drive.** It is one option *inside* iCloud Drive
+that redirects your Mac's `~/Desktop` and `~/Documents` into the cloud.
+Turning it off does **not** turn off iCloud Drive, Photos, Notes, Messages,
+contacts, or calendars. All of that keeps working on every device.
+
+**You do not lose your files on iPhone.** The Google Drive iOS app registers
+as a File Provider, so the vault appears in the iPhone **Files app** under
+Locations, directly below iCloud Drive. Same app, same browsing, different
+pipe — and it's the pipe a remote session can also read.
+
+Why turning it off matters here:
+
+- With it on, `~/Desktop` and `~/Documents` are a **second cloud root**. Every
+  file you save there becomes a copy competing with the vault. This is the
+  mechanism that produced the current mess.
+- macOS gives no way to exclude a subfolder, so anything you put under
+  `~/Documents` — including scratch and working files — is uploaded.
+
+**Recommended:** turn it off.
 
 > System Settings → Apple Account → iCloud → **iCloud Drive** → Options…
 > → untick **Desktop & Documents Folders** → Done.
 
 macOS moves your existing Desktop/Documents into `~/Library/Mobile
-Documents/…/Desktop`. That's fine — Step 3 catalogs it.
+Documents/…/Desktop`. Nothing is lost — Step 3 catalogs it and Step 4
+de-duplicates it.
 
-Set Google Drive to stream instead of download:
+**If you want to keep it on:** that's a legitimate call, and this toolkit
+still works. It keeps all of its state in `~/docorg-data/` and clones to
+`~/docorg-repo/` — both outside `~/Documents`, so the quarantine folder and
+the SQLite index are never uploaded to iCloud. The cost of keeping it on is
+discipline: Desktop and Documents remain a competing root, so you have to
+actually follow the rule that **everything lands in `00_VAULT/`**, and re-run
+the monthly upkeep to catch what drifts.
+
+### 1b. Make both clouds stream instead of download
 
 > Drive for Desktop menu bar icon → gear → Preferences → Google Drive →
 > **Stream files** → Save.
@@ -46,6 +74,8 @@ Same for OneDrive:
 ```bash
 defaults write com.microsoft.OneDrive FilesOnDemandEnabled -bool true
 ```
+
+This is what makes a mirrored file cost ~0 local disk.
 
 ---
 
@@ -89,7 +119,7 @@ reclaimable and writes two files.
 **Read the report before running anything:**
 
 ```bash
-open ~/Documents/docorg/reports/duplicates.csv
+open ~/docorg-data/reports/duplicates.csv
 ```
 
 Each `KEEP` row is the copy that survives; each `QUARANTINE` row is a
@@ -100,15 +130,15 @@ then shortest path.
 When the CSV looks right:
 
 ```bash
-bash ~/Documents/docorg/reports/quarantine-duplicates.sh
+bash ~/docorg-data/reports/quarantine-duplicates.sh
 ```
 
-Duplicates move to `~/Documents/docorg/.docorg-quarantine/`. Because they
+Duplicates move to `~/docorg-data/.docorg-quarantine/`. Because they
 leave the Drive folder, Drive releases the cloud quota. **Nothing is deleted.**
 After 30 days of everything working:
 
 ```bash
-rm -rf ~/Documents/docorg/.docorg-quarantine
+rm -rf ~/docorg-data/.docorg-quarantine
 ```
 
 ---
@@ -116,7 +146,7 @@ rm -rf ~/Documents/docorg/.docorg-quarantine
 ## Step 5 — Rename to one convention
 
 ```bash
-docorg rename && open ~/Documents/docorg/reports/renames.csv
+docorg rename && open ~/docorg-data/reports/renames.csv
 ```
 
 Proposed format — sorts chronologically, greps cleanly, reads in a filing:
@@ -127,13 +157,13 @@ Proposed format — sorts chronologically, greps cleanly, reads in a filing:
 ```
 
 Wrong matter or doctype on some rows? Edit
-`~/Documents/docorg-repo/docorg/config/taxonomy.json`, then re-run
+`~/docorg-repo/docorg/config/taxonomy.json`, then re-run
 `docorg scan …` (Step 3) and `docorg rename`. Repeat until the CSV is right.
 
 Then apply — renames in place, creates no copies:
 
 ```bash
-bash ~/Documents/docorg/reports/apply-renames.sh
+bash ~/docorg-data/reports/apply-renames.sh
 ```
 
 ---
@@ -144,7 +174,7 @@ Run it and walk away. Safe to interrupt with Ctrl-C and re-run — it skips
 PDFs that already have a text layer.
 
 ```bash
-nohup bash ~/Documents/docorg-repo/docorg/bin/ocr-pass.sh \
+nohup bash ~/docorg-repo/docorg/bin/ocr-pass.sh \
   ~/Library/CloudStorage/GoogleDrive-chriscarrelha@gmail.com/My\ Drive \
   > /tmp/ocr.out 2>&1 &
 ```
@@ -152,7 +182,7 @@ nohup bash ~/Documents/docorg-repo/docorg/bin/ocr-pass.sh \
 Check on it any time:
 
 ```bash
-tail -f ~/Documents/docorg/reports/ocr.log
+tail -f ~/docorg-data/reports/ocr.log
 ```
 
 ---
@@ -174,7 +204,7 @@ docorg search "replevin OR repossession"
 And your catalog:
 
 ```bash
-open ~/Documents/docorg/reports/CATALOG.md
+open ~/docorg-data/reports/CATALOG.md
 ```
 
 ---
@@ -186,14 +216,14 @@ Only for apps that can't read Google Drive. Put just those files in
 
 ```bash
 mkdir -p ~/Library/CloudStorage/GoogleDrive-chriscarrelha@gmail.com/My\ Drive/10_ACTIVE
-bash ~/Documents/docorg-repo/docorg/bin/onedrive-bridge.sh --dry-run
+bash ~/docorg-repo/docorg/bin/onedrive-bridge.sh --dry-run
 ```
 
 Review the dry run, then make it automatic every 15 minutes:
 
 ```bash
-sed "s|REPLACE_WITH_PATH|$HOME/Documents/docorg-repo|" \
-  ~/Documents/docorg-repo/docorg/config/com.docorg.onedrive-bridge.plist \
+sed "s|REPLACE_WITH_PATH|$HOME/docorg-repo|" \
+  ~/docorg-repo/docorg/config/com.docorg.onedrive-bridge.plist \
   > ~/Library/LaunchAgents/com.docorg.onedrive-bridge.plist && \
 launchctl load ~/Library/LaunchAgents/com.docorg.onedrive-bridge.plist && \
 echo "bridge active"
@@ -230,5 +260,5 @@ docorg dupes && docorg index && docorg catalog
 | Scan finds 0 files | Wrong path — re-run Step 2 and copy the exact string |
 | Huge "placeholders" count | Normal and good: cloud files not downloaded |
 | `pdftotext: command not found` | `brew install poppler` |
-| A quarantined file was needed | It's in `~/Documents/docorg/.docorg-quarantine/`, `mv` it back |
+| A quarantined file was needed | It's in `~/docorg-data/.docorg-quarantine/`, `mv` it back |
 | Rename put a file in the wrong matter | Edit `taxonomy.json`, re-run Step 3 + 5 |

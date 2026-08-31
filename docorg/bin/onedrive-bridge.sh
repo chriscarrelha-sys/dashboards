@@ -5,7 +5,7 @@
 set -euo pipefail
 SRC="$HOME/Library/CloudStorage/GoogleDrive-chriscarrelha@gmail.com/My Drive/10_ACTIVE"
 DST="$HOME/Library/CloudStorage/OneDrive-Personal/10_ACTIVE"
-LOG=~/Documents/docorg/reports/bridge.log
+LOG=~/docorg-data/reports/bridge.log
 mkdir -p "$DST" "$(dirname "$LOG")"
 rclone sync "$SRC" "$DST" \
   --create-empty-src-dirs --track-renames --checksum \

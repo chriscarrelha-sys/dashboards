@@ -10,5 +10,5 @@ for t in python3 pdftotext ocrmypdf rclone; do
   printf '  %-12s ' "$t"
   command -v "$t" >/dev/null && echo "ok" || echo "MISSING"
 done
-mkdir -p ~/Documents/docorg/reports
-echo "==> Ready. Reports will land in ~/Documents/docorg/reports"
+mkdir -p ~/docorg-data/reports
+echo "==> Ready. Reports will land in ~/docorg-data/reports"

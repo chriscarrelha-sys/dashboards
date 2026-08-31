@@ -12,8 +12,8 @@ import argparse, csv, hashlib, json, os, re, shlex, sqlite3, sys, unicodedata
 from datetime import datetime, date
 from pathlib import Path
 
-DB_DEFAULT = "~/Documents/docorg/docorg.db"
-OUT_DEFAULT = "~/Documents/docorg/reports"
+DB_DEFAULT = "~/docorg-data/docorg.db"
+OUT_DEFAULT = "~/docorg-data/reports"
 TEXT_EXT = {".txt", ".md", ".csv", ".json", ".eml", ".rtf"}
 DOC_EXT = {".pdf", ".docx", ".doc", ".pptx", ".xlsx", ".pages", ".numbers", ".key"}
 SKIP_DIRS = {".git", "node_modules", ".Trash", "Library/Caches", ".venv", "__pycache__",
@@ -140,6 +140,7 @@ def cmd_scan(a):
     db = connect(a.db)
     now = datetime.now().isoformat(timespec="seconds")
     n = skipped = ph = 0
+    seen = set()
     cur = db.cursor()
     for root in a.roots:
         rp = expand(root)
@@ -173,6 +174,7 @@ def cmd_scan(a):
                     (str(p), str(rp), cloud_of(p), real, Path(real).suffix.lower(),
                      st.st_size, st.st_mtime, int(stub), matter, doctype,
                      infer_date(real), now))
+                seen.add(str(p))
                 n += 1
                 if n % 2000 == 0:
                     db.commit()
@@ -180,8 +182,9 @@ def cmd_scan(a):
     db.commit()
     # Purge rows for files that no longer exist under the roots we just walked,
     # so renames and deletions don't leave ghosts behind on a re-scan.
-    stale = [r[0] for r in db.execute("SELECT path FROM files WHERE scanned_at<>?", (now,))
-             if any(r[0].startswith(str(expand(x))) for x in a.roots)
+    prefixes = tuple(str(expand(x)) + os.sep for x in a.roots)
+    stale = [r[0] for r in db.execute("SELECT path FROM files")
+             if r[0] not in seen and r[0].startswith(prefixes)
              and not os.path.exists(r[0])]
     for sp in stale:
         cur.execute("DELETE FROM files WHERE path=?", (sp,))
@@ -421,7 +424,7 @@ def main():
 
     s = sub.add_parser("dupes", help="find byte-identical duplicates")
     s.add_argument("--prefer-cloud", default="gdrive")
-    s.add_argument("--quarantine", default="$HOME/Documents/docorg/.docorg-quarantine")
+    s.add_argument("--quarantine", default="$HOME/docorg-data/.docorg-quarantine")
     s.set_defaults(fn=cmd_dupes)
 
     s = sub.add_parser("rename", help="propose canonical filenames")
