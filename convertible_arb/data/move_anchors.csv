@@ -1,0 +1,8 @@
+date,move_bp,label,confidence
+2023-03-31,199.00,"March 2023 peak (SVB / Credit Suisse)",anchor-approx
+2023-10-31,140.00,"Oct 2023: above 140 for weeks (30Y > 5%)",anchor-approx
+2024-12-31,96.67,"2024 close (implied from -22.22% yr change)",anchor-implied
+2025-12-31,63.96,"2025 close (-33.84% on the year)",confirmed
+2026-04-30,67.00,"late April 2026",anchor-approx
+2026-06-23,70.01,"Jun 23 2026 spot",confirmed
+2026-08-31,75.32,"Aug 31 2026 month-end (Aug daily avg ~73.5)",confirmed
