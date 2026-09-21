@@ -1,0 +1,147 @@
+VERBATIM EXTRACT — NOT THE COMPLETE DOCUMENT
+Source: "Loan History Statement", Shellpoint Mortgage Servicing, P.O. Box 10826,
+        Greenville, SC 29603. Printed 03/10/2026 12:57:58PM. 5 pages.
+        Borrower: CHRISTOPHER CARRELHA, 4515 ALISTER PARK DR, CUMMING GA 30040.
+        Loan ID: 1030418553.
+        Supplied as an enclosure to the March 2, 2026 Shellpoint CFPB response
+        (that letter lists "payment history" among its enclosures) — note the
+        print date on this statement (03/10/2026) is AFTER the letter's date
+        (03/02/2026), which is itself an open question.
+Extract prepared: 2026-09-21. Rows reproduced in the order printed (newest first).
+Column order as printed: Trans Date | Eff Date | Due Date | Trans Desc | Rev Code |
+Flag | Trans Amount | Principal Amount | Principal Balance | Interest Amount |
+Escrow Amount | Escrow Balance | Late Charge Amount | Late Charge Balance |
+Unapplied Balance | Money Type.
+NOTE ON TRANSCRIPTION: the printed statement's columns are space-aligned and
+several rows omit columns entirely. Where a value's column assignment is not
+unambiguous on the face of the print-out, it is marked [COL?]. Do not treat any
+[COL?] figure as verified.
+
+--- PAGE 1 ---
+02/27/26 01/18/26 01/01/24 FC Costs Disb            0 0  -$222.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:309820 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1979107
+02/27/26 01/18/26 01/01/24 Certified Mail Cost Disb 0 0    -$8.86   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:309820 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1979107
+02/18/26 02/05/26 01/01/24 FC Costs Disb            0 0  -$222.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:307895 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1968877
+02/12/26 12/31/25 01/01/24 FC Costs Disb            0 0  -$440.00   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:307025 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1964617
+01/29/26 01/13/26 01/01/24 Attorney Cost Disb       0 0  -$667.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:304223 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1948986
+01/21/26 12/15/25 01/01/24 FC Costs Disb            0 0  -$222.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:302509 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1940004
+01/13/26 12/08/25 01/01/24 FC Costs Disb            0 0  -$222.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:301036 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1932278
+01/13/26 12/08/25 01/01/24 Certified Mail Cost Disb 0 0    -$8.86   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:301036 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1932278
+01/07/26 01/02/26 01/01/24 BPO/Aprsl Cost Disb      0 0  -$134.00   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:299839 Payee: eStreet Appraisal Management LLC BatchID: 1925940
+01/02/26 11/29/25 01/01/24 FC Costs Disb            0 0  -$778.75   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:299016 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1921957
+12/11/25 11/26/25 01/01/24 Attorney Cost Disb       0 0  -$667.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:294615 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1901358
+10/07/25 08/27/25 01/01/24 FC Costs Disb            0 0  -$440.00   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:282338 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1829938
+
+--- PAGE 2 ---
+09/08/25 08/12/25 01/01/24 FC Costs Disb            0 0  -$222.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:277115 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1797717
+08/19/25 08/13/25 01/01/24 BPO/Aprsl Cost Disb      0 0  -$105.00   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:273860 Payee: ClearCapital.com, Inc BatchID: 1778058
+08/06/25 07/27/25 01/01/24 FC Costs Disb            0 0  -$778.75   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+08/06/25 07/27/25 01/01/24 FC Costs Disb            0 0  -$222.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+08/06/25 07/27/25 01/01/24 Certified Mail Cost Disb 0 0    -$8.86   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:271439 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1764677
+07/25/25 07/21/25 01/01/24 Attorney Cost Disb       0 0  -$667.50   PB $140,288.02  LCB $624.00  UB $1,899.56  ACH
+         ACH Ref.#:269410 Payee: MCCALLA RAYMER LIEBERT PIERCE, LLP BatchID: 1751328
+06/25/25 06/25/25 01/01/24 NSF Fee Assessment       0 0    $0.00    PB $140,288.02  LCB $624.00  UB $1,899.56  None
+06/25/25 06/25/25 01/01/24 Unapplied Payment        2 0 -$1,899.56  PB $140,288.02  LCB $624.00  UB $1,899.56  Web Payment
+06/18/25 06/18/25 01/01/24 Unapplied Payment        0 2  $1,899.56  PB $140,288.02  LCB $624.00  UB $3,799.12  Web Payment
+05/17/25 05/17/25 01/01/24 Unapplied Payment        0 0  $1,899.56  PB $140,288.02  LCB $624.00  UB $1,899.56  Web Payment
+05/15/25 05/15/25 01/01/24 NSF Fee Assessment       0 0    $0.00    PB $140,288.02  LCB $624.00  UB $0.00      None
+05/15/25 05/15/25 01/01/24 Unapplied Payment        2 0 -$1,899.56  PB $140,288.02  LCB $624.00  UB $0.00      Web Payment
+05/10/25 05/10/25 01/01/24 Unapplied Payment        0 2  $1,899.56  PB $140,288.02  LCB $624.00  UB $1,899.56  Web Payment
+05/08/25 05/08/25 01/01/24 NSF Fee Assessment       0 0    $0.00    PB $140,288.02  LCB $624.00  UB $0.00      None
+05/08/25 05/08/25 01/01/24 Unapplied Payment        2 0 -$1,899.56  PB $140,288.02  LCB $624.00  UB $0.00      Web Payment
+05/02/25 05/02/25 01/01/24 Unapplied Payment        0 2  $1,899.56  PB $140,288.02  LCB $624.00  UB $1,899.56  Web Payment
+09/11/24 08/24/24 01/01/24 FC Costs Disb            0 0  -$440.00   PB $140,288.02  LCB $624.00  UB $0.00      ACH
+         ACH Ref.#:215490 Payee: McCalla Raymer Pierce, LLC BatchID: 1447319
+08/28/24 08/10/24 01/01/24 FC Costs Disb            0 0  -$190.00   PB $140,288.02  LCB $624.00  UB $0.00      ACH
+         ACH Ref.#:213480 Payee: McCalla Raymer Pierce, LLC BatchID: 1435892
+
+--- PAGE 3 ---
+08/13/24 07/19/24 01/01/24 BPO/Aprsl Cost Disb      0 0  -$100.00   PB $140,288.02  LCB $624.00  UB $0.00  ACH
+         ACH Ref.#:210939 Payee: LRES CORP BatchID: 1423079
+08/12/24 07/19/24 01/01/24 Certified Mail Cost Disb 0 0    -$8.16   PB $140,288.02  LCB $624.00  UB $0.00  ACH
+08/12/24 07/19/24 01/01/24 FC Costs Disb            0 0  -$190.00   PB $140,288.02  LCB $624.00  UB $0.00  ACH
+         ACH Ref.#:210763 Payee: McCalla Raymer Pierce, LLC BatchID: 1421865
+07/07/24 07/07/24 01/01/24 New Loan                 0 0    $0.00    PB $140,288.02  LCB $624.00  UB $0.00  None
+06/11/24 06/11/24 11/01/23 Attorney Cost Assess     0 0  -$665.00   PB $140,288.02  LCB $624.00  UB $0.00  PriorServicer  Check #:46313067
+06/05/24 06/05/24 11/01/23 Attorney Cost Assess     0 0  -$570.00   PB $140,288.02  LCB $624.00  UB $0.00  PriorServicer  Check #:46313066
+06/04/24 06/04/24 11/01/23 Title Cost Assess        0 0  -$175.00   PB $140,288.02  LCB $624.00  UB $0.00  PriorServicer  Check #:46313065
+05/06/24 05/06/24 11/01/23 Property Inspection Assess 0 0 -$30.00   PB $140,288.02  LCB $624.00  UB $0.00  PriorServicer  Check #:46784856
+12/21/23 12/21/23 11/01/23 Regular Payment          0 0  $2,081.81  Prin $764.19  PB $140,288.02  Int $1,317.62  LCB $624.00  UB $0.00  PriorServicer
+12/21/23 12/21/23 12/01/23 Late Charge Assess       0 0   -$104.12  PB $141,052.21  LC -$104.12  LCB $624.00  UB $0.00  PriorServicer
+12/21/23 12/21/23 12/01/23 Regular Payment          0 0  $2,082.46  Prin $851.95  PB $141,052.21  Int $1,230.51  LCB $519.88  UB $0.00  PriorServicer
+12/21/23 12/21/23 12/01/23 Late Charge Waive        0 0    $729.13  PB $141,904.16  LC $729.13  LCB $519.88  UB $0.00  PriorServicer   [COL? — "$729.13" appears in the late-charge column on a $519.88 balance row]
+12/21/23 12/21/23 12/01/23 Principal Only Payment   0 0    $191.60  Prin $191.60  PB $141,904.16  LCB $1,249.01  UB $0.00  PriorServicer
+10/11/23 10/11/23 10/01/23 Unapplied Payment        0 0   -$855.00  PB $142,095.76  LCB $1,249.01  UB $0.00  PriorServicer
+09/26/23 09/26/23 10/01/23 Unapplied Payment        0 0    $855.00  PB $142,095.76  LCB $1,249.01  UB $855.00  PriorServicer
+09/26/23 09/26/23 10/01/23 Principal Only Payment   0 0 -$10,000.00 Prin -$10,000.00 PB $142,095.76  LCB $1,249.01  UB $0.00  PriorServicer
+09/15/23 09/15/23 10/01/23 Principal Only Payment   0 0  $10,000.00 Prin $10,000.00  PB $132,095.76  LCB $1,249.01  UB $0.00  PriorServicer
+09/14/23 09/14/23 03/01/23 Unapplied Payment        0 0  -$2,089.74 PB $142,095.76  LCB $1,249.01  UB $0.00  PriorServicer
+09/14/23 09/14/23 03/01/23 Regular Payment          0 0   $2,089.74 Prin $892.69  PB $142,095.76  Int $1,197.05  LCB $1,249.01  UB $2,089.74  PriorServicer
+
+--- PAGE 4 ---
+09/14/23 09/14/23 04/01/23 Regular Payment          0 0   $2,087.81 Prin $613.50  PB $142,988.45  Int $1,474.31  LCB $1,249.01  UB $2,089.74  PriorServicer
+09/14/23 09/14/23 04/01/23 Unapplied Payment        0 0  -$2,087.81 PB $143,601.95  LCB $1,249.01  UB $2,089.74  PriorServicer
+09/14/23 09/14/23 05/01/23 Regular Payment          0 0   $2,089.92 Prin $794.31  PB $143,601.95  Int $1,295.61  LCB $1,249.01  UB $4,177.55  PriorServicer
+09/14/23 09/14/23 05/01/23 Unapplied Payment        0 0  -$2,089.92 PB $144,396.26  LCB $1,249.01  UB $4,177.55  PriorServicer
+09/14/23 09/14/23 06/01/23 Unapplied Payment        0 0  -$2,089.57 PB $144,396.26  LCB $1,249.01  UB $6,267.47  PriorServicer
+09/14/23 09/14/23 06/01/23 Regular Payment          0 0   $2,089.57 Prin $704.61  PB $144,396.26  Int $1,384.96  LCB $1,249.01  UB $8,357.04  PriorServicer
+09/14/23 09/14/23 07/01/23 Regular Payment          0 0   $2,090.60 Prin $794.99  PB $145,100.87  Int $1,295.61  LCB $1,249.01  UB $8,357.04  PriorServicer
+09/14/23 09/14/23 07/01/23 Unapplied Payment        0 0  -$2,110.60 PB $145,895.86  LCB $1,249.01  UB $8,357.04  PriorServicer
+09/14/23 09/14/23 08/01/23 Regular Payment          0 0   $2,090.44 Prin $705.48  PB $145,895.86  Int $1,384.96  LCB $1,249.01  UB $10,467.64  PriorServicer
+09/14/23 09/14/23 08/01/23 Unapplied Payment        0 0  -$2,110.44 PB $146,601.34  LCB $1,249.01  UB $10,467.64  PriorServicer
+09/14/23 09/14/23 09/01/23 Regular Payment          0 0   $2,091.67 Prin $751.38  PB $146,601.34  Int $1,340.29  LCB $1,249.01  UB $12,578.08  PriorServicer
+09/14/23 09/14/23 09/01/23 Unapplied Payment        0 0  -$2,091.67 PB $147,352.72  LCB $1,249.01  UB $12,578.08  PriorServicer
+09/14/23 09/14/23 10/01/23 Unapplied Payment        0 0  -$2,122.36 PB $147,352.72  LCB $1,249.01  UB $14,669.75  PriorServicer
+09/14/23 09/14/23 10/01/23 Regular Payment          0 0   $2,092.36 Prin $796.75  PB $147,352.72  Int $1,295.61  LCB $1,249.01  UB $16,792.11  PriorServicer
+09/14/23 09/14/23 10/01/23 Unapplied Payment        0 0    -$729.13 PB $148,149.47  LCB $1,249.01  UB $16,792.11  PriorServicer
+09/14/23 09/14/23 10/01/23 Principal Only Payment   0 0     $729.13 Prin $729.13  PB $148,149.47  LCB $1,249.01  UB $17,521.24  PriorServicer
+09/14/23 09/14/23 02/01/23 Regular Payment          0 0   $2,067.64 Prin $734.77  PB $148,878.60  Int $1,332.87  LCB $1,249.01  UB $17,521.24  PriorServicer
+09/14/23 09/14/23 02/01/23 Unapplied Payment        0 0  -$2,067.64 PB $149,613.37  LCB $1,249.01  UB $17,521.24  PriorServicer
+09/13/23 09/13/23 01/01/23 Unapplied Payment        0 0  $19,588.88 PB $149,613.37  LCB $1,249.01  UB $19,588.88  PriorServicer
+03/23/23 03/23/23 03/01/23 Principal Only Payment   0 0    -$103.38 Prin -$103.38  PB $149,613.37  LCB $1,249.01  UB $0.00  PriorServicer
+03/23/23 03/23/23 02/01/23 Late Charge Assess       0 0    -$103.39 PB $149,509.99  LC -$103.39  LCB $1,249.01  UB $0.00  PriorServicer
+03/23/23 03/23/23 03/01/23 Regular Payment          7 0  -$2,089.74 Prin -$892.69  PB $149,509.99  Int -$1,197.05  LCB $1,145.62  UB $0.00  PriorServicer
+03/23/23 03/23/23 02/01/23 Regular Payment          7 0  -$2,067.64 Prin -$734.77  PB $148,617.30  Int -$1,332.87  LCB $1,145.62  UB $0.00  PriorServicer
+03/14/23 03/14/23 02/01/23 Regular Payment          0 7   $2,067.64 Prin $734.77  PB $147,882.53  Int $1,332.87  LCB $1,145.62  UB $0.00  PriorServicer
+03/14/23 03/14/23 03/01/23 Regular Payment          0 7   $2,089.74 Prin $892.69  PB $148,617.30  Int $1,197.05  LCB $1,145.62  UB $0.00  PriorServicer
+03/14/23 03/14/23 03/01/23 Late Charge Waive        0 0     $103.39 PB $149,509.99  LC $103.39  LCB $1,145.62  UB $0.00  PriorServicer
+
+--- PAGE 5 ---
+03/14/23 03/14/23 03/01/23 Principal Only Payment   0 0     $103.38 Prin $103.38  PB $149,509.99  LCB $1,249.01  UB $0.00  PriorServicer
+02/09/23 02/09/23 01/01/23 Principal Only Payment   0 0  -$1,700.00 Prin -$1,700.00 PB $149,613.37  LCB $1,249.01  UB $0.00  PriorServicer
+01/30/23 01/30/23 01/01/23 Late Charge Assess       0 0    -$103.39 PB $147,913.37  LC -$103.39  LCB $1,249.01  UB $0.00  PriorServicer
+01/30/23 01/30/23 01/01/23 Regular Payment          0 0   $2,067.97 Prin $686.98  PB $147,913.37  Int $1,380.99  LCB $1,145.62  UB $0.00  PriorServicer
+01/30/23 01/30/23 01/01/23 Principal Only Payment   0 0     $132.03 Prin $132.03  PB $148,600.35  LCB $1,145.62  UB $0.00  PriorServicer
+12/15/22 12/15/22 12/01/22 Regular Payment          0 0   $2,028.22 Prin $754.22  PB $148,732.38  Int $1,274.00  LCB $1,145.62  UB $0.00  PriorServicer
+12/15/22 12/15/22 12/01/22 Principal Only Payment   0 0      $71.78 Prin $71.78  PB $149,486.60  LCB $1,145.62  UB $0.00  PriorServicer
+12/06/22 12/06/22 12/01/22 Regular Payment          7 0  -$2,028.22 Prin -$754.22  PB $149,558.38  Int -$1,274.00  LCB $1,145.62  UB $0.00  PriorServicer
+12/01/22 12/01/22 12/01/22 Regular Payment          0 7   $2,028.22 Prin $754.22  PB $148,804.16  Int $1,274.00  LCB $1,145.62  UB $0.00  PriorServicer
+11/16/22 11/16/22 11/01/22 Principal Only Payment   0 0  -$2,900.00 Prin -$2,900.00 PB $149,558.38  LCB $1,145.62  UB $0.00  PriorServicer
+11/01/22 11/01/22 11/01/22 Regular Payment          0 0   $2,028.79 Prin $660.06  PB $146,658.38  Int $1,368.73  LCB $1,145.62  UB $0.00  PriorServicer
+10/27/22 10/27/22 10/01/22 Principal Only Payment   0 0      $89.37 Prin $89.37  PB $147,318.44  LCB $1,145.62  UB $0.00  PriorServicer
+10/03/22 10/03/22 10/01/22 Regular Payment          0 0   $2,029.29 Prin $738.14  PB $147,407.81  Int $1,291.15  LCB $1,145.62  UB $0.00  PriorServicer
+09/01/22 09/01/22 09/01/22 Regular Payment          0 0   $2,040.30 Prin $1,504.05 PB $148,145.95  Int $536.25  LCB $1,145.62  UB $0.00  PriorServicer
+08/05/22 08/05/22 08/01/22 Principal Only Payment   0 0 -$149,650.00 Prin -$149,650.00 PB $149,650.00  LCB $1,145.62  UB $0.00  PriorServicer
+
+--- TOTALS BLOCK, as printed [p.5] ---
+                       -$125,875.06   -$140,288.02   $20,400.52   $0.00
+
+Ending Principal Balance   $140,288.02    Gross Interest Paid  $20,400.52   Escrow Int/Div Paid     $0.00
+Ending Escrow Balance           $0.00    Assistance Paid           $0.00    Escrow Int/Div Withheld $0.00
+Ending Unapplied Balance    $1,899.56    Net Interest Paid    $20,400.52    Taxes Paid              $0.00
+Ending Late Charge Balance    $624.00    Late Charges Paid         $0.00    Insurance Paid          $0.00
+Ending Reserve Acct Balance     $0.00

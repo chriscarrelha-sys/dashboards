@@ -1,0 +1,5 @@
+counsel_id,name,firm,represents_entity_ids,role,bar_state,email,phone,service_method,appearance_docket_no,source_ids
+CNS-001,Christopher J. Carrelha,n/a,ENT-001;ENT-002,pro-se-self,n/a,c.carrelha@outlook.com,(770) 212-1121,UNVERIFIED,n/a,SRC-001
+CNS-002,Kelsey D. Carrelha,n/a,ENT-002,pro-se-self,n/a,c.carrelha@outlook.com,(770) 212-1121,UNVERIFIED,n/a,SRC-001
+CNS-003,UNVERIFIED,UNVERIFIED,ENT-003;ENT-004;ENT-005;ENT-006,lead,UNVERIFIED,UNVERIFIED,UNVERIFIED,UNVERIFIED,UNVERIFIED,SRC-010
+CNS-004,UNVERIFIED,"McCalla Raymer Leibert Pierce, LLP (self-represented) or retained counsel",ENT-007,lead,UNVERIFIED,UNVERIFIED,UNVERIFIED,UNVERIFIED,UNVERIFIED,SRC-010

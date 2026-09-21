@@ -1,0 +1,59 @@
+VERBATIM EXTRACT — NOT THE COMPLETE DOCUMENT
+Source: Letter, NewRez LLC d/b/a Shellpoint Mortgage Servicing (Bryan Dewhurst,
+        Compliance Department) to Christopher Carrelha, dated March 2, 2026,
+        responding to CFPB Complaint No. 260302-29444848.
+        Header data: Reference #: 1030418553; Account #: xxxxxx9200;
+        Property: 4515 Alister Park Dr., Cumming, GA 30040.
+        Letter code on each page: 03022026SB. Cc: Consumer Financial Protection Bureau.
+        Enclosures listed: Fraud Package, January 16, 2026 response, payment history.
+Extract prepared: 2026-09-21.
+
+--- [letter, p.1, operative paragraphs] ---
+"The loan account is due for the January 1, 2024 contractual monthly payment and
+each consecutive payment due thereafter. Due to the severity of the delinquency,
+the account was referred for foreclosure on January 5, 2026. There is a foreclosure
+sale scheduled for March 3, 2026."
+
+"As indicated in your complaint, we previously responded to your complaint on
+January 16, 2026 under CFPB complaint number 260101-27340826. The enclosed response
+stated in part: Our fraud department sent a fraud package to you on January 5, 2026
+due to your fraud allegations received. Please complete this as soon as possible. As
+the fraud package states, do not wait for a filed police report to complete the
+information in the package. As of the date of this letter, we have not received the
+completed fraud package in order to review the matter further. As of the date of
+this letter, the foreclosure sale is still scheduled for March 3, 2026 and we are
+unable to accommodate your request to cancel or postpone the foreclosure sale date."
+
+"With regard to credit reporting, please note that, in accordance with the Fair
+Credit Reporting Act ('FCRA'), Shellpoint is required to report payments accurately
+as they were received. We are unable to accommodate any request to change that
+reporting as a courtesy. Accordingly, payments received more than 30 days past the
+due date are reported as delinquent to the Consumer Reporting Agencies ('CRAs').
+Further, you express concern regarding negative credit reporting during the pendency
+of this dispute. Also in accordance with the requirements of the FCRA, Shellpoint
+places a hold on credit reporting on any mortgage account for which a dispute is
+received, in order for Shellpoint to research and respond to the dispute. When the
+response is issued, the hold/suspension timeline expires and normal credit reporting
+activities resume. Enclosed is a payment history for your review"
+
+"In your correspondence, you indicated that you were in the process of obtaining
+legal representation. Our records do not indicate that a third party has been
+authorized to the account, nor are we aware of legal representation at this time."
+
+"We follow all state and federal laws in the servicing of the above-referenced
+account, and in the foreclosure process."
+
+"Although Shellpoint apologizes for any inconvenience regarding this matter, we have
+been unable to determine that any error has occurred. You have the right to request
+documentation supporting our determination, but it is included for ease of
+reference."
+
+--- [letter, notices page — designated address] ---
+"Error Resolution, including concerns of inaccurate information sent to credit
+reporting agencies, or requests for information should be sent to the following
+address: SLS Default - SMS P.O. Box 10826 Greenville, SC 29603-0826."
+
+--- [letter, notices page — FDCPA status] ---
+"Newrez LLC dba Shellpoint Mortgage Servicing is a debt collector. This is an
+attempt to collect a debt and any information obtained will be used for that
+purpose. Newrez LLC dba Shellpoint Mortgage Servicing's NMLS ID is 3013."

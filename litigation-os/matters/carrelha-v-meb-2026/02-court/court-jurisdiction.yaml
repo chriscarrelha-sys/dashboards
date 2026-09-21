@@ -1,0 +1,36 @@
+schema_version: "1.1"
+court_name: "United States District Court for the Northern District of Georgia"
+division: "Gainesville Division"
+case_number: "2:26-cv-00110-RWS-AWH"
+judge: "Hon. Richard W. Story, United States District Judge"
+magistrate: "Hon. Anna W. Howard, United States Magistrate Judge"
+removed_from:
+  court: "Superior Court of Forsyth County, Georgia (Chief Judge Jeffrey S. Bagley)"
+  case_number: "26CV-0387-1"
+  removal_date: "2026-04-15"
+  removal_basis: "28 U.S.C. 1441(a), 1446; federal question under 28 U.S.C. 1331"
+subject_matter_jurisdiction_basis: >
+  28 U.S.C. 1331 (RESPA 12 U.S.C. 2605; FCRA 15 U.S.C. 1681 et seq.;
+  FDCPA 15 U.S.C. 1692 et seq.). Upheld at SRC-010 at 24-25.
+supplemental_jurisdiction: "Yes - 28 U.S.C. 1367(a) over the Georgia claims (SRC-010 at 9)"
+venue_basis: "28 U.S.C. 1391(b)(2) and N.D. Ga. L.R. 3.1 - property in Forsyth County"
+governing_rule_sets:
+  - "Federal Rules of Civil Procedure"
+  - "Federal Rules of Evidence"
+  - "N.D. Ga. Local Rules"
+  - "N.D. Ga. Standing Order No. 18-01 (SRC-010 at 26)"
+  - "Individual practices of Judge Story and Magistrate Judge Howard - NOT OBTAINED (OFQ-4)"
+controlling_appellate_court: "U.S. Court of Appeals for the Eleventh Circuit"
+state_law_source: >
+  Georgia. The Supreme Court of Georgia and the Georgia Court of Appeals control
+  on Georgia-law questions; Eleventh Circuit decisions applying Georgia law are
+  predictions of state law, not controlling authority on it.
+jurisdictional_challenges:
+  - challenge: "Motion to Remand (prior exclusive jurisdiction; unanimity rule)"
+    docket_no: 13
+    resolved: yes
+    outcome: >
+      DENIED. The court held the prior-exclusive-jurisdiction doctrine
+      inapplicable, that Lendage LLC is not a named defendant, and that any
+      unanimity violation is a procedural not a jurisdictional defect.
+    source_ids: SRC-010

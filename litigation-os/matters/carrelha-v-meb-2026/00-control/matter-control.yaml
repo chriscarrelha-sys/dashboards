@@ -1,0 +1,235 @@
+# MATTER CONTROL FILE — Carrelha v. MEB Loan Trust VIII
+# Prepared 2026-09-21 by the Litigation OS orchestrator from SRC-001 through SRC-014.
+# Every field below is traceable to a source in 03-sources/source-manifest.csv.
+# UNDETERMINED means no source in the manifest establishes it. Do not fill by guess.
+
+schema_version: "1.1"
+
+matter_id: CARRELHA-2026
+matter_name: "Carrelha v. MEB Loan Trust VIII, et al."
+
+court:
+  name: "United States District Court for the Northern District of Georgia"
+  division: "Gainesville Division"
+  case_number: "2:26-cv-00110-RWS-AWH"
+  presiding_judge: "Hon. Richard W. Story, United States District Judge"
+  referred_magistrate: "Hon. Anna W. Howard, United States Magistrate Judge"
+  related_cases:
+    - case_number: "26CV-0387-1"
+      court: "Superior Court of Forsyth County, Georgia (Chief Judge Jeffrey S. Bagley)"
+      relationship: removed-from
+      status: "closed by removal on 2026-04-15 (SRC-010 at 8)"
+
+jurisdiction:
+  basis: >
+    Federal question, 28 U.S.C. 1331, on RESPA (12 U.S.C. 2605), FCRA
+    (15 U.S.C. 1681 et seq.) and FDCPA (15 U.S.C. 1692 et seq.) claims;
+    supplemental jurisdiction over the Georgia state-law claims. Removal
+    jurisdiction upheld and remand denied, SRC-010 at 24-26.
+  governing_procedure: >
+    Federal Rules of Civil Procedure; N.D. Ga. Local Rules; N.D. Ga. Standing
+    Order No. 18-01 (referral of dispositive motions to the magistrate judge for
+    report and recommendation, SRC-010 at 26). Individual practices of Judge
+    Story and Magistrate Judge Howard NOT yet obtained - see OFQ-4.
+  governing_substantive_law: >
+    Federal law on the RESPA, FCRA and FDCPA counts. Georgia substantive law on
+    wrongful foreclosure, slander of title (O.C.G.A. 51-9-11), breach of
+    contract, the implied covenant (O.C.G.A. 11-1-304), and the Georgia Fair
+    Business Practices Act (O.C.G.A. 10-1-390 et seq.).
+  controlling_appellate_authority: >
+    U.S. Court of Appeals for the Eleventh Circuit (and the Supreme Court) on
+    federal questions. Supreme Court of Georgia and Georgia Court of Appeals on
+    Georgia-law questions; Eleventh Circuit decisions on Georgia law are
+    predictions, not controlling.
+
+parties:
+  - name: "Christopher J. Carrelha"
+    role: plaintiff
+    represented_by: PRO SE
+    status: active
+    notes: "SRC-010 at 3. Address 4515 Alister Park Drive, Cumming, GA 30040."
+  - name: "Kelsey D. Carrelha"
+    role: plaintiff
+    represented_by: PRO SE
+    status: active
+    notes: "SRC-010 at 3."
+  - name: "MEB Loan Trust VIII"
+    role: defendant
+    represented_by: UNDETERMINED
+    status: active
+    notes: "Purported holder of the Security Deed by 2024 assignment, SRC-010 at 3 n.4."
+  - name: "NewRez LLC d/b/a Shellpoint Mortgage Servicing"
+    role: defendant
+    represented_by: UNDETERMINED
+    status: active
+    notes: >
+      Current servicer since on or about 2024-06-20 (SRC-010 at 3 n.4); the loan
+      was boarded on its system 2024-07-07 (SRC-013, 'New Loan' row).
+      Defendants represent that SLS merged into this entity in May 2024
+      (SRC-010 at 1 n.1).
+  - name: "Specialized Loan Servicing, LLC"
+    role: defendant
+    represented_by: UNDETERMINED
+    status: disputed
+    notes: >
+      Prior servicer. Defendants represent SLS merged with NewRez LLC d/b/a
+      Shellpoint in May 2024 and that the 'd/b/a Achieve Home Loans' designation
+      in the caption is erroneous because Achieve Home Loans is a separate
+      entity (SRC-010 at 1 n.1). Whether SLS remains a separately suable
+      defendant post-merger is an open legal question (OLQ-3).
+  - name: "Mortgage Electronic Registration Systems, Inc."
+    role: defendant
+    represented_by: UNDETERMINED
+    status: active
+    notes: "Nominee grantee under the Security Deed; assignor of the 2024 assignment."
+  - name: "McCalla Raymer Leibert Pierce, LLP"
+    role: defendant
+    represented_by: "appeared through counsel"
+    status: active
+    notes: "Foreclosure counsel retained by Shellpoint in July 2025 (SRC-010 at 3 n.4)."
+  - name: "Lendage, LLC"
+    role: disputed
+    represented_by: UNDETERMINED
+    status: disputed
+    notes: >
+      Originating lender. The court held Lendage 'was not, and is not, a named
+      defendant' in the operative Verified Complaint and was never recognized as
+      a defendant before removal (SRC-010 at 21, 24-25). SRC-001 (the draft First
+      Amended Complaint) nevertheless lists Lendage in the caption while
+      asserting no count against it. See OLQ-2.
+
+procedural_posture:
+  as_of: "2026-09-21"
+  summary: >
+    Removed to federal court 2026-04-15. On 2026-07-20 Judge Story denied remand,
+    denied the preliminary-injunction and oral-hearing motions as moot, and
+    ordered Defendants to give Plaintiffs and the Court at least 60 days advance
+    notice before proceeding with foreclosure. On 2026-07-31 Magistrate Judge
+    Howard held the original complaint to be a shotgun pleading, denied the two
+    motions to dismiss as moot with leave to renew, and directed Plaintiffs to
+    file an amended complaint no later than 2026-08-21, with Defendants to
+    respond within 14 days of filing. WHETHER THE AMENDED COMPLAINT WAS FILED BY
+    THAT DEADLINE IS NOT ESTABLISHED BY ANY SOURCE AVAILABLE HERE. The docket
+    record obtained (SRC-014) carries no entries. This is the single most urgent
+    unknown in the matter.
+  pending_motions:
+    - docket_no: 4
+      title: "Motion to Dismiss (MEB Loan Trust VIII and NewRez LLC d/b/a Shellpoint)"
+      filed: "2026-03-30"
+      status: "denied as moot"
+    - docket_no: 5
+      title: "Motion to Dismiss (McCalla Raymer Leibert Pierce, LLP)"
+      filed: "2026-03-30"
+      status: "denied as moot"
+
+immediate_objectives:
+  - priority: 1
+    objective: >
+      Establish whether an amended complaint was filed by 2026-08-21 and what the
+      case's current procedural status is, because every other question depends
+      on the answer.
+    needed_by: "2026-09-22"
+  - priority: 2
+    objective: >
+      Determine whether the draft First Amended Complaint (SRC-001) as written
+      would cure the defects identified in Doc. 35, and what new defects it
+      introduces.
+    needed_by: "UNDETERMINED"
+  - priority: 3
+    objective: >
+      Determine what the record actually establishes about initial loan funding
+      and about ownership/transfer of the note and security deed, given Judge
+      Bagley's finding that many claims turn on whether HELOC proceeds were
+      actually delivered.
+    needed_by: "UNDETERMINED"
+  - priority: 4
+    objective: >
+      Determine what the servicer's own ledger establishes and does not establish
+      about the payment-application and uncredited-payment allegations.
+    needed_by: "UNDETERMINED"
+
+controlling_deadlines:
+  - description: "Plaintiffs to file an amended complaint"
+    date: "2026-08-21"
+    status: express
+    source: "SRC-011, Doc. 35 at 8 and at 9 ('NO LATER THAN AUGUST 21, 2026')"
+    consequence_of_missing: >
+      The Clerk was directed to submit the case to the magistrate judge at the
+      expiration of the deadline; the order cautions that non-compliance may lead
+      to a recommendation of dismissal, and Defendants have leave to move to
+      dismiss if no amended complaint is filed.
+  - description: "Defendants to answer or otherwise respond to the amended complaint"
+    date: "UNDETERMINED"
+    status: UNVERIFIED
+    source: "SRC-011, Doc. 35 at 9 ('NO LATER THAN 14 DAYS after it is filed')"
+    consequence_of_missing: "Potential default; the period cannot run until the filing date is known."
+
+authorized_source_locations:
+  - "03-sources/raw/ (verbatim extracts; read-only)"
+  - "The client's Google Drive originals identified in source-manifest.csv notes (read-only)"
+  - "Published primary law via the session's legal research tools"
+  - "CourtListener / RECAP public docket data"
+
+prohibited_actions:
+  - "No filing, e-filing, serving, mailing, emailing, or otherwise transmitting anything to any court, agency, party, or third party."
+  - "No modification, renaming, relocation, or deletion of any original case document, in Google Drive or in 03-sources/raw/."
+  - "No communication with the court, opposing counsel, the CFPB, or any third party."
+  - "No assertion of any fact, date, citation, amount, or holding not supported by a source in the manifest."
+  - "No computation of a legal deadline without the governing rule, triggering event, jurisdiction, service method, and calendar basis all identified."
+
+open_factual_questions:
+  - id: OFQ-1
+    question: "Was an amended complaint filed in 2:26-cv-00110 on or before 2026-08-21, and if so, is SRC-001 that document?"
+    why_it_matters: "Determines whether the case is alive, what the operative pleading is, and when Defendants' 14-day response period ran."
+    how_to_resolve: "PACER/CM-ECF docket for 2:26-cv-00110-RWS-AWH, or the court's notice of electronic filing."
+  - id: OFQ-2
+    question: "Is there any record of a $5,200.00 wire payment to the loan account?"
+    why_it_matters: "SRC-001 makes an uncredited $5,200.00 wire central to the RESPA, FDCPA, and breach-of-contract counts. No such entry appears anywhere in SRC-013."
+    how_to_resolve: "Bank wire confirmation / MT-103 from the sending institution; Shellpoint and SLS suspense and unapplied-funds records; the full servicing file."
+  - id: OFQ-3
+    question: "Were HELOC loan proceeds actually delivered, on what dates and in what amounts, to Plaintiffs or their creditors?"
+    why_it_matters: "Judge Bagley found many claims contingent on this (SRC-010 at 7). No source in this manifest answers it."
+    how_to_resolve: "Closing file, settlement statement, closing-attorney trust-account records, wire confirmations, creditor payoff confirmations."
+  - id: OFQ-4
+    question: "What individual practices or standing orders of Judge Story and Magistrate Judge Howard apply?"
+    why_it_matters: "Local practice routinely changes page limits, conferral requirements, and filing mechanics."
+    how_to_resolve: "The court's website and the judges' published standing orders."
+  - id: OFQ-5
+    question: "Was the loan history statement printed 2026-03-10 (SRC-006) the same 'payment history' enclosed with the 2026-03-02 letter (SRC-005)?"
+    why_it_matters: "The print date postdates the letter; if they differ, the enclosure to the letter has not been produced."
+    how_to_resolve: "The as-mailed enclosure, or Shellpoint's records of what was enclosed."
+
+open_legal_questions:
+  - id: OLQ-1
+    question: >
+      Does the First Amended Complaint's practice of having each Count reallege
+      'Paragraphs 1 through 46' satisfy Doc. 35's directive, where the pleading's
+      paragraph numbering restarts within each Roman-numeral section so that
+      multiple paragraphs bear each number?
+    why_it_matters: "Determines whether the amended pleading cures or repeats the shotgun defect, with dismissal cautioned for non-compliance."
+    jurisdiction: "Eleventh Circuit; Fed. R. Civ. P. 8(a), 10(b)"
+  - id: OLQ-2
+    question: >
+      May Plaintiffs add Lendage, LLC as a defendant by including it in the
+      caption of an amended complaint filed under an order directing repleading,
+      without moving under Rule 15 or 21, and where no count is asserted against it?
+    why_it_matters: "Bears on whether Lendage is properly before the court and on any Rule 8 notice objection."
+    jurisdiction: "Eleventh Circuit; Fed. R. Civ. P. 10(a), 15, 21"
+  - id: OLQ-3
+    question: "Does a post-merger predecessor servicer remain separately suable, and does suing it by a d/b/a that belongs to another entity create a defect?"
+    why_it_matters: "Two of the named defendants' status is disputed on this basis (SRC-010 at 1 n.1)."
+    jurisdiction: "Delaware entity law; Georgia procedure; Eleventh Circuit"
+  - id: OLQ-4
+    question: "Do Rule 34 requests served before any Rule 26(f) conference violate Rule 26(d)(1), and what is the consequence?"
+    why_it_matters: "SRC-004 is dated 2026-08-19 and refers to the Rule 26(f) conference as still to come."
+    jurisdiction: "Fed. R. Civ. P. 26(d)(1), 26(f); N.D. Ga. Local Rules"
+
+last_verified:
+  date: "2026-09-21"
+  by: "PENDING HUMAN VERIFICATION - prepared by Litigation OS orchestrator, not yet reviewed by a licensed attorney"
+  method: >
+    Read in full: SRC-002 (Doc. 34, 26 pp.), SRC-003 (Doc. 35, 9 pp.), SRC-001
+    (First Amended Verified Complaint), SRC-005 (3/2/26 Shellpoint letter),
+    SRC-006 (5-page loan history statement). Read in part: SRC-004, SRC-007.
+    Queried CourtListener for the docket; it returned metadata only (SRC-008).
+    No PACER access in this session.

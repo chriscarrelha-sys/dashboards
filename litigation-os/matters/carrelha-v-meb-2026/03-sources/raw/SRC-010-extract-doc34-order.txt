@@ -1,0 +1,167 @@
+VERBATIM EXTRACT — NOT THE COMPLETE DOCUMENT
+Source: Carrelha v. MEB Loan Trust VIII, N.D. Ga. No. 2:26-cv-00110-RWS-AWH,
+        Doc. 34, ORDER filed 07/20/2026 (Story, J.), 26 pages.
+Extract prepared: 2026-09-21. Page cites are to the order's own pagination.
+
+--- [Doc. 34 at 1] caption / opening ---
+"This case comes before the Court on an array of motions, including, Plaintiffs'
+Motion for Remand [Dkt. 13] and Motions to Dismiss filed by Defendants MEB Loan
+Trust VIII, NewRez LLC [Dkt. 4] and McCalla Raymer Leibert Pierce, LLP [Dkt. 5].
+Plaintiffs also seek injunctive relief [Dkts. 15] and ask for oral argument in
+the event this Court retains jurisdiction and declines to remand [Dkt. 32]."
+
+--- [Doc. 34 at 1 n.1] ---
+"Defendants, through counsel, represent that Plaintiffs' Verified Complaint
+erroneously names 'Specialized Loan Servicing, LLC d/b/a Achieve Home Loans' as a
+defendant and that Achieve Home Loans is a separate entity and that Specialized
+Loan Servicing, LLC merged with NewRez, LLC d/b/a Shellpoint Mortgage Servicing
+in May 2024. [Dkt. 26-3, Amended Notice of Removal, Exhibit C]."
+
+--- [Doc. 34 at 3 n.4] (court's background recitation) ---
+"The subject HELOC Loan was originated in July 2022 by Lendage, LLC, in the
+amount of $149,650.00. To secure repayment, Plaintiffs executed a Security Deed
+conveying the Property to Mortgage Electronic Registration Systems, Inc. ('MERS')
+as nominee for Lendage, LLC. In 2024, MERS transferred interest in the Security
+Deed to MEB Loan Trust VIII ('MEB'). Specialized Loan Servicing, LLC ('SLS') was
+the loan servicer for MEB. In February 2024, once Plaintiffs fell behind on
+monthly payments, SLS wrote to Plaintiffs concerning the default. SLS initiated
+non-judicial foreclosure proceedings against the Property pursuant to the terms
+of the Security Deed, on behalf of MEB, as the holder of the Security Deed, and
+SLS, as the servicer of the Loan. On or about June 20, 2024, the loan servicer of
+the HELOC was transferred from SLS to Shellpoint Mortgage Servicing
+('Shellpoint'), the current servicer. [See Amended Notice of Removal, Exhibit C
+(SLS merged with NewRez, LLC d/b/a Shellpoint Mortgage Servicing)]. Loss
+mitigation efforts explored between Shellpoint and Plaintiffs dating back to
+August 2024 have been unsuccessful. Since that time, several foreclosure sales
+have been scheduled and postponed. In July 2025, Shellpoint retained McCalla
+Raymer Leibert Pierce, LLP to conduct the non-judicial foreclosure."
+
+--- [Doc. 34 at 4] ---
+"The gist of Plaintiffs' suit is that Defendants improperly applied funds to the
+HELOC Loan, giving rise to violations of state and federal law. According to the
+removing Defendants, the HELOC Loan has been in default since January 2024.
+Foreclosure was scheduled to occur on March 3, 2026, but was voluntarily
+postponed by Shellpoint. [Dkt. 27 - Resp. to Pls. Mot. PI, at 6; Alsaadi Decl.,
+para. 14]. Defendants plan to notice the Property for a foreclosure sale in the
+future in the event the parties are unable to resolve the matter. [Resp. to Pls.
+Mot. PI, at 6]."
+
+--- [Doc. 34 at 5] (claims in the original Verified Complaint) ---
+"Plaintiffs' Verified Complaint asserts claims alleging violations of the Real
+Estate Settlement Procedures Act ('RESPA'), 12 U.S.C. Sec. 2605, 12 C.F.R. Secs.
+1024.35, 1024.36, 1024.41, against Shellpoint and SLS (Count I); violations of the
+Fair Credit Reporting Act ('FCRA'), 15 U.S.C. Secs. 1681, et seq. (Count II);
+violations of the Fair Debt Collection Practices Act ('FDCPA'), 15 U.S.C. Secs.
+1692, et seq. (Count III); Wrongful Foreclosure, O.C.G.A. Secs. 44-14-162, et
+seq., 23-2-114, against all Defendants (Count IV); Breach of Contract against
+Shellpoint and MEB Trust (Count V); and Declaratory Judgment against all
+Defendants, O.C.G.A. Sec. 9-4-2 (Count VI)."
+
+--- [Doc. 34 at 6-7] (state-court history) ---
+"On March 3, 2026, Chief Judge Bagley issued a Rule Nisi Order denying Plaintiffs'
+Motion for a Temporary Restraining Order ('TRO') and setting an interlocutory
+injunction hearing for his two-day calendar beginning March 5, 2026. [Dkt. 26-1,
+at 102-105 - 3/3/26 Order and Rule Nisi]. In denying Plaintiffs' Motion for TRO,
+Judge Bagley found that Plaintiffs were unable to show irreparable harm in that,
+even if the foreclosure proceeded, Plaintiffs had adequate remedies at law,
+namely, seeking to set aside foreclosure or seeking damages for wrongful
+foreclosure. [Id., at 104]."
+
+--- [Doc. 34 at 7] (the funding-evidence finding) ---
+"On March 6, 2026, Judge Bagley issued an Order finding that 'an immediate or
+eminent threat of nonjudicial foreclosure does not exist' as the March 3
+foreclosure was withdrawn and would not be rescheduled prior to May 2026. [Id.].
+Judge Bagley explained that the court would require additional evidence to
+determine whether Plaintiffs were likely to succeed on the merits of their
+underlying claims. [Id.]. Specifically, Judge Bagley stated that 'many of the
+Plaintiffs' claims are contingent upon whether HELOC loan proceeds were actually
+delivered by the lender.' [Id.]. Judge Bagley further explained that, if HELOC
+loan proceeds were delivered, the court would need to know the dates of delivery
+and the value of loan proceeds delivered to Plaintiffs and/or Plaintiffs'
+creditors. [Id.]."
+
+--- [Doc. 34 at 8] (federal procedural history) ---
+"On April 15, 2026, Defendants removed the case to this federal district court
+based upon federal causes of action alleged in Plaintiffs' Verified Complaint.
+[Dkt. 1 -- Notice of Removal]."
+"On April 17, 2026, Plaintiffs' request for a Temporary Restraining Order was
+denied by the Honorable Steve C. Jones, U.S. District Judge. [Dkt. 10]."
+"On April 22, 2026, Defendants filed an Answer to Plaintiffs' Verified Complaint
+reincorporating the prior filed Motion to Dismiss [Dkts. 4, 11]."
+"This civil action was reassigned to the undersigned on May 7, 2026 [Dkt. 24]."
+
+--- [Doc. 34 at 9] ---
+"On May 7, 2026, the Honorable Anna W. Howard, U.S. Magistrate Judge, ordered
+Defendants to file an Amended Notice of Removal and to supply this Court with a
+complete record of the underlying state court proceedings. [Dkt. 25]."
+"On May 12, 2026, Defendants filed the Amended Notice of Removal [Dkt. 26]."
+
+--- [Doc. 34 at 14] (remand grounds raised) ---
+"(1) Whether this federal district court is precluded from exercising concurrent
+jurisdiction over the Property under the 'prior-exclusive jurisdiction' doctrine;
+(2) Whether the Notice of Removal violates the unanimity rule of 28 U.S.C. Sec.
+1446(b)(2)(A) since Lendage, LLC was served March 17, 2026 and did not join or
+consent to removal; and (3) Whether the unanimity defect is uncurable given that
+Lendage, LLC's thirty-day consent window under 28 U.S.C. Sec. 1446(b)(2)(B) has
+expired."
+
+--- [Doc. 34 at 20] (prior exclusive jurisdiction holding) ---
+"For these reasons, the Court finds that Plaintiffs' prior exclusive jurisdiction
+argument lacks merit and does not require remand."
+
+--- [Doc. 34 at 21] (Lendage party status) ---
+"As an initial matter, Lendage, LLC was not, and is not, a named defendant in
+Plaintiffs' Verified Complaint. [Resp. in Opp'n to Remand, at 10 (citing V.
+Compl., at 1 - Case Caption)]. And Defendants correctly state that Lendage was
+never recognized as a defendant by the Superior Court of Forsyth County prior to
+removal."
+"In post-removal filings, Plaintiffs add 'Lendage, LLC' or 'Lendage, LLC d/b/a' to
+the case caption or certificates of service with their filings but Plaintiffs
+never moved to amend their Verified Complaint to add Lendage, LLC as a party-
+defendant."
+
+--- [Doc. 34 at 22 n.11] ---
+"The failure to name Lendage, LLC is more than a scrivener's error. Lendage, LLC
+is only mentioned within Plaintiffs' Verified Complaint as the originator of the
+HELOC Loan but not otherwise identified within the causes of action as an entity
+purportedly in violation of the statutes relied upon. [V. Compl., paras. 15-22].
+Therefore, liberally construing the allegations advanced by the Carrelhas, their
+grievances are not directed at Lendage, LLC, but rather the actions of SLS and
+Shellpoint, the entities that serviced the HELOC Loan after origination."
+
+--- [Doc. 34 at 23] (unanimity holding) ---
+"Moreover, even if the unanimity rule was not complied with, this would not defeat
+jurisdiction. See Goss v. Aetna, Inc., 360 F. Supp. 3d 1364, 1370 (N.D. Ga. 2019)
+(quoting Hernandez v. Seminole Cty., 334 F.3d 1233, 1236 (11th Cir. 2003)). The
+Eleventh Circuit has expressly held that 'failure to comply with the unanimity
+requirement is only a procedural defect, not a jurisdictional defect.' Id. (citing
+Stone v. Bank of N.Y. Mellon, N.A., 609 F. App'x 979, 981-82 (11th Cir. 2015))."
+
+--- [Doc. 34 at 24-25] (findings) ---
+"The Court finds that the Court has federal subject matter jurisdiction, that the
+prior exclusive jurisdiction doctrine has no application to these facts, that
+Lendage, LLC is not named as a defendant, and that any purported violation of the
+unanimity rule does not require or warrant remand."
+"Lastly, Plaintiffs' request for a preliminary injunction is denied as moot given
+Defendants' representation that the foreclosure sale that precipitated Plaintiffs'
+motion has been postponed indefinitely."
+"With no foreclosure sale currently scheduled, there is no threat of imminent,
+irreparable harm."
+
+--- [Doc. 34 at 26] (CONCLUSION — operative decretal language) ---
+"For the foregoing reasons, it is ORDERED that Plaintiffs' Motion for Remand
+[Dkt. 13] is DENIED. It is further ORDERED that Plaintiffs' remaining Motions,
+namely, Plaintiffs' Motions for Preliminary Injunction [Dkt. 15] and for
+'Conditional Oral Hearing ...' [Dkt. 32] are DENIED as MOOT.
+
+It is further ORDERED that, should Defendants elect to proceed with foreclosure,
+Defendants shall provide Plaintiffs (and the Court) with a minimum of 60 days
+advance notice.
+
+It is further ORDERED that, pursuant to the Northern District's Standing Order
+No. 18-01, Defendants' Motions to Dismiss remain with the Magistrate Judge for
+report and recommendation along with any other pretrial proceedings.
+
+SO ORDERED this 20th day of July, 2026.
+                                        RICHARD W. STORY
+                                        United States District Judge"

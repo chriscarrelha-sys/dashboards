@@ -1,0 +1,114 @@
+VERBATIM EXTRACT — NOT THE COMPLETE DOCUMENT
+Source: Carrelha v. MEB Loan Trust VIII, N.D. Ga. No. 2:26-CV-0110-RWS-AWH,
+        Doc. 35, ORDER filed 07/31/2026 (Howard, U.S.M.J.), 9 pages.
+Extract prepared: 2026-09-21. Page cites are to the order's own pagination.
+
+--- [Doc. 35 at 1] ---
+"This case is before the Court for consideration of the Motions To Dismiss
+Plaintiffs' Complaint filed by MEB Loan Trust VIII ('MEB') and NewRez LLC d/b/a
+Shellpoint Servicing ('Shellpoint'), Doc. 4, and McCalla Raymer Leibert Pierce,
+LLP ('McCalla Raymer'), Doc. 5. Because the Court is requiring Plaintiffs to file
+an amended complaint as discussed below, Defendants' motions to dismiss are
+DENIED AS MOOT with leave to seek dismissal of Plaintiffs' anticipated amended
+complaint or to seek dismissal if Plaintiffs fail to file an amended complaint as
+directed."
+
+--- [Doc. 35 at 2] (procedural background) ---
+"On March 2, 2026, Plaintiffs, proceeding pro se, filed a Complaint in the
+Superior Court of Forsyth County, Georgia, and an emergency motion for a temporary
+restraining order to stop a scheduled foreclosure of their residential property
+... See Doc. 1-1 at 6-21."
+"On March 30, 2026, Defendants MEB and Shellpoint and McCalla Raymer filed motions
+to dismiss Plaintiffs' Complaint in state court. Docs. 4, 5. Plaintiffs filed a
+'Supplemental Brief In Opposition To Defendants' Motions To Dismiss' on April
+15th. Doc. 7. On the same day, April 15, 2026, Defendants removed the action, with
+McCalla's consent, see Doc. 1-2, to this Court on the basis of federal question
+jurisdiction ... Doc. 1."
+
+--- [Doc. 35 at 3] ---
+"Defendants MEB, Shellpoint, Specialized Loan Servicing LLC n/k/a NewRez, LLC
+d/b/a Shellpoint Mortgage Servicing, Achieve Home Loans, and Mortgage Electronic
+Registration Systems, Inc. ('MERS') filed their answer to Plaintiffs' Complaint on
+April 22, 2026, Doc. 11. Plaintiffs filed a motion to remand the case to state
+court, Doc. 13, a motion for preliminary injunction, Doc. 15, and a motion for oral
+hearing on their motion for preliminary injunction, Doc. 32."
+"On July 20, 2026, the District Judge denied Plaintiff's motion to remand and
+motions for preliminary injunction and for an oral hearing on that motion. Doc. 34.
+The undersigned now considers Defendants' motions to dismiss, Docs. 4, 5."
+
+--- [Doc. 35 at 5] (shotgun pleading — standard) ---
+"'[T]he court must instruct a party - whether a plaintiff or defendant - to replead
+when it files any one of four "shotgun pleadings."' Dickerson v. Biden, No.
+1:24-CV-04457-SCJ, 2025 U.S. Dist. LEXIS 229938, at *3 (N.D. Ga. Jan. 14, 2025)
+(citing Est. of Bass v. Regions Bank, Inc., 947 F.3d 1352, 1358 (11th Cir. 2020)
+and Jackson v. Bank of Am., N.A., 898 F.3d 1348, 1357 (11th Cir. 2018))."
+
+--- [Doc. 35 at 5-6] (the four types, quoting Weiland) ---
+"'The first, and most common, is "a complaint containing multiple counts where each
+count adopts the allegations of all preceding counts, causing each successive count
+to carry all that came before and the last count to be a combination of the entire
+complaint."' Id. at *3-4 (quoting Weiland v. Palm Beach Cnty. Sheriff's Off., 792
+F.3d 1313, 1321 (11th Cir. 2015)). 'The second, "a complaint . . . replete with
+conclusory, vague, and immaterial facts not obviously connected to any particular
+cause of action."' Id. at *4 (quoting Weiland, 792 F.3d at 1322). 'The third, a
+complaint "not separating into a different count each cause of action or claim for
+relief."' Id. (quoting Weiland, 792 F.3d at 1323). 'And the fourth, a complaint with
+"multiple claims against multiple defendants without specifying which of the
+defendants are responsible for which acts or omissions, or which of the defendants
+the claim is brought against."' Id. (quoting Weiland, 792 F.3d at 1323)."
+
+--- [Doc. 35 at 7] (holding as to this complaint) ---
+"Here, Plaintiffs assert 92 paragraphs of factual allegations and then each of their
+seven courts 'reallege[s] and incorporate[s] by reference each and every allegation
+contained in the preceding paragraphs as though fully set forth herein,' thus
+incorporating all paragraphs of each preceding Count into each subsequent Count. See
+Doc. 26-1 at 18-29, paras. 93, 103, 111, 122, 127, 133, 138. This is the first type
+of shotgun pleading described above, and it is improper. Weiland, 792 F.3d at 1321.
+By incorporating each preceding Count into each following Count, Plaintiffs'
+Complaint fails 'to give the defendants adequate notice of the claims against them
+and the grounds upon which each claim rests.' Weiland, 792 F.3d at 1323. The Court
+is therefore required to direct Plaintiffs to replead their complaint."
+
+--- [Doc. 35 at 7] (pro se leave to amend) ---
+"The Court also acknowledges that because Plaintiffs are proceeding pro se, the
+Court must give Plaintiffs an opportunity to amend their complaint in order before
+dismissing the complaint with prejudice. See Lee v. Alachua Cnty., 461 F. App'x 859,
+860 (11th Cir. Feb. 21, 2012) (explaining that where a 'more carefully drafted
+complaint might state a claim,' the court must allow a pro se plaintiff 'at least
+one chance to amend the complaint before the district court dismisses the action
+with prejudice,' unless amendment would be futile)."
+
+--- [Doc. 35 at 8] (OPERATIVE DIRECTIVE — repleading requirements) ---
+"Plaintiffs are therefore DIRECTED to file an amended complaint, NO LATER THAN
+AUGUST 21, 2026, in which they correct the deficiencies described above in their
+shotgun Complaint by filing an amended complaint that complies with the requirements
+of Rule 8(a) and 10(b) and the pleading standards of Twombly and Iqbal by setting
+out each of their factual allegations in separate numbered paragraphs; setting out
+each of her claims against each Defendant, each of which they must properly
+identify, in numbered Counts, making clear which claims are asserted against which
+Defendant; identifying within each claim the statute, contractual right, or tort
+that forms the basis for each claim; and for each claim, providing the facts
+relevant to each Defendant that support that claim, without incorporating by
+reference all preceding paragraphs and/or Counts.
+
+Plaintiffs should consider Defendants' assertions in their motions to dismiss
+concerning the deficiencies in the Complaint and correct those deficiencies in their
+Amended Complaint as they might not be given another opportunity to amend their
+pleadings. Plaintiffs' amended complaint will supersede their original Complaint, so
+they must include all of their allegations and claims in the amended complaint.
+
+Plaintiffs are cautioned that if they do not comply with this Order, the undersigned
+may recommend to the District Judge that this case be dismissed."
+
+--- [Doc. 35 at 9] (SUMMARY — operative decretal language) ---
+"Plaintiffs are DIRECTED to file an amended complaint as discussed above NO LATER
+THAN AUGUST 21, 2026. The Clerk is DIRECTED to submit this case to the undersigned
+at the expiration of that deadline.
+
+Defendants' motions to dismiss, Docs. 4, 5, are DENIED AS MOOT with leave to seek
+dismissal of Plaintiffs' anticipated amended complaint or to seek dismissal if
+Plaintiffs fail to file an amended complaint as directed. Defendants shall answer or
+otherwise respond to Plaintiffs' amended complaint NO LATER THAN 14 DAYS after it is
+filed.
+
+IT IS SO ORDERED this 31st day of July, 2026."

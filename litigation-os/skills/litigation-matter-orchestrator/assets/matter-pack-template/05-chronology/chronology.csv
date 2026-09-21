@@ -1,0 +1,1 @@
+event_id,event_date,date_precision,time,actor,recipient,event_type,event_description,amount,instrument_or_doc,epistemic_label,source_id,pinpoint,corroborating_source_ids,conflicting_source_ids,issue_ids,confidence,notes

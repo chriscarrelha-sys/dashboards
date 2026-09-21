@@ -1,0 +1,28 @@
+VERBATIM EXTRACT — retrieved record, not a court-issued document
+Source: CourtListener RECAP docket record for Carrelha v. MEB Loan Trust VIII,
+        docket id 73194013, retrieved 2026-09-21.
+        URL path: /docket/73194013/carrelha-v-meb-loan-trust-viii/
+
+Fields as returned:
+  caseName:      Carrelha v. MEB Loan Trust VIII
+  court:         District Court, N.D. Georgia  (court_id: gand)
+  docketNumber:  2:26-cv-00110
+  dateFiled:     2026-04-15
+  dateTerminated: null
+  assignedTo:    Richard W. Story        (assigned_to_id 3119)
+  referredTo:    Anna W. Howard
+  pacer_case_id: 358297
+  party:         ["Carrelha", "MEB Loan Trust VIII"]
+  recap_documents: []      <-- NO documents in RECAP
+  suitNature:    ""  (empty)
+  cause:         ""  (empty)
+
+A follow-up query to the docket-entries endpoint for docket 73194013 returned
+count: 0.
+
+MATERIAL LIMITATION: this record carries NO docket entries and NO documents.
+It establishes the case's existence, court, number, judge, magistrate, and the
+federal filing (removal) date of 2026-04-15, and nothing more. It cannot be used
+to determine what has been filed, whether any deadline was met, or the current
+procedural posture. Any such determination requires PACER/CM-ECF, to which this
+session has no access.
