@@ -64,6 +64,31 @@ baseline for Doc 40 and is worth retrieving for that reason alone.
 2026-04-17 TRO denial), `Dkt. 11` (answer), `Dkt. 25`, `Dkt. 26`, `Dkt. 28`, `Dkt. 32` —
 all referenced in Doc 34, none held as files. `HISTORICAL`, low priority.
 
+## Chain-of-custody verification — 2026-09-21
+
+A second upload batch was received and checked before indexing. **Five files, four
+byte-identical duplicates, one document already held.** Nothing new entered the record.
+
+| Upload | MD5 matches | Result |
+|---|---|---|
+| `7788ebe0…` | Doc 35 already held | Exact duplicate — discarded |
+| `e1170da5…` | Doc 36 already held | Exact duplicate — discarded |
+| `281289d4…` | Doc 39 already held | Exact duplicate — discarded |
+| `bb4cc85d…` | Doc 40 already held | Exact duplicate — discarded |
+| `40ba71ad…` | — | **Doc 34**, PACER-native copy of a document previously read from Dropbox |
+
+**Doc 34 cross-source verification: PASSED.** The PACER-native copy was compared against
+the Dropbox copy on which the 60-day computation and the Standing Order 18-01 referral
+analysis were built. The operative conclusion is identical word for word in both — remand
+denied, preliminary injunction denied as moot, the 60-day advance-notice condition, and
+the referral of the motions to dismiss to the Magistrate Judge for report and
+recommendation.
+
+This matters because Doc 34 carries more analytical weight than any other document in the
+case. Its Dropbox copy is now confirmed faithful to the court's own file, which
+retroactively validates the record source for the documents that were only ever available
+there.
+
 ## Chain-of-custody notes
 - The "Doc 36" label on the 2026-08-21 screenshot file is the user's own filename, not a
   court stamp. Treat the docket number as unverified until confirmed against the docket.
