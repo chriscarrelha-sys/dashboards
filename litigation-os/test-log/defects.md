@@ -374,3 +374,35 @@ Every defect below was found by running the thing, not by reading it.
 | Document QC | 8 (no signature on a served document, no certificate of service, `[REDACTED]` over live text, TODO, `[BASIS-REQUIRED]`, `<PLACEHOLDER>`, unattached exhibits, dangling internal reference) | 8 |
 | Access map | 1 (gap pointer to a `GAP-` id that does not exist) | 1 |
 | Citation cross-check | 2 (unregistered case; unpinned pincite of a registered case) | 2 |
+
+---
+
+## Phase 4 and the Final Quality Gate
+
+| ID | Where | What was wrong | Fix | How it was found |
+|---|---|---|---|---|
+| P4-D01 | `validate_registers.py` | `pairs_with` was required on a reversal but never resolved and never checked for mutuality. Three pairings in live data were readable from one end only — including TXN-023, the $855 that entered suspense and pointed at nothing on the way out. | Data repaired; added `_check_txn_pairs()` enforcing mutuality; extended the requirement to suspense movements. | Audit A, which recomputed the pairing graph rather than re-reading it. |
+| P4-D02 | the new rule itself | The first version of the mutuality rule failed TXN-050 — the 17 May 2025 tender that was never reversed. Its missing counterpart is the single most significant finding in the ledger, and the rule called it an omission. | Rule corrected: name the other row **or** write `NONE` with a stated basis. A blank remains an error because it is indistinguishable from an unfinished row. TXN-050 now records its own absence affirmatively. | Running the new rule against live data immediately. |
+| P4-D03 | `audit_accuracy.py` | The audit recomputed the fee total as $9,003.42 against the register's $8,408.74. It was wrong twice: it used its own regex instead of DISP-006's explicitly stated set definition, and it summed **absolute** values, so $832.52 of fee waivers were added to the charges rather than subtracted. | Rewritten to sum signed amounts by the ledger's own classification codes, and to check each disputed amount's own arithmetic rather than a competing definition. It now confirms both halves of $8,408.74 exactly. | Tracing a same-row-count, $594.68 discrepancy rather than assuming either figure. |
+| P4-D04 | WP-001, WP-002 | Two `[COURT-FOUND]` assertions named neither Doc. 34 nor Doc. 35, asking the reader to take a court's finding on the writer's word. | Both now cite the order inline; the audit checks every court-found assertion. | Audit A6. |
+| P4-D05 | `verify_citations.py` | A pincite registered in its own row was still reported unregistered, because the cross-check compared only against `cited_as` and "792 F.3d 1313, 1324" does not contain "792 F.3d 1324". A warning that stays lit after it is answered trains people to ignore the report. | Page-aware resolution, including ranges; the summary now counts only what actually warned. | Registering the pincite and watching the warning survive. |
+| P4-D06 | `validate_crossrefs.py` | `HD-` ids were reconciled by `check_decision_log` but never entered the defined set, so any other register pointing at one resolved to nothing; `used_in` rejected `ATK-` and `DL-` targets that are entirely legitimate. | Decision log added to `DEFINITIONS`; families widened. | Full sweep after the task board and citation register were populated. |
+| P4-D07 | `validate_matter_pack.py` | `authenticity_status` had no value for a record retrieved directly from a court's own electronic system, collapsing it into "party-created". | Added `verified-public-record` and `derived`. | Registering the CourtListener retrieval set. |
+| P4-D08 | the matter's own prose | Cross-references were written into free-prose `notes`, where a resolver cannot check them without guessing where prose ends. | Added a dedicated `related_ids` column to both new registers and pointed the resolver at it. | The resolver reporting whole sentences as malformed identifiers. |
+
+### Findings in the case material, not in the system
+
+These are recorded here because they were produced by the same discipline: verify against the primary source rather than the document that cites it.
+
+| ID | What was asserted | What the source says |
+|---|---|---|
+| CON-012 | *Ames*, 298 Ga. 732, "at 741 (reservation)" reserves borrower standing to attack a void assignment | Every occurrence of "void" is in footnote 8, a survey of **other** jurisdictions, expressly aligning Georgia with those holding debtors *always* lack standing absent injury |
+| CON-013 | *Racette*, 318 Ga. App. 171, is "direct authority for borrower attack on void assignments" | The opinion contains **zero** occurrences of "assignment". It is a defective-advertisement case — and is live authority for that, which nobody was using |
+| CON-009 | The chain "terminates before reaching Fannie Mae REMIC Trust 2024-91" | Fannie Mae is a co-defendant in *Caudell*, the template case. No source in this matter names it |
+| CON-010 | Case 2:26-cv-00110-**SCJ**-AWH | The docket records Story and Howard: RWS-AWH |
+| CON-011 | Bradley Arant is "fka McCalla Raymer Leibert Pierce" | Two unrelated firms; the client's own later document retracts the claim |
+| OC-005 | *Caudell* Doc. 17 let RESPA and breach of contract survive | Verified that the motion was granted **in part** and the discovery stay lifted. **Which** counts survived is not in the docket text and remains unverified |
+
+### Phase 4 negative tests
+
+Audit A is itself a negative test of the registers: it recomputes rather than re-reads, and it found four defects the validators had passed. Two of its own findings turned out to be defects in the audit, which is the reason both are recorded above rather than silently corrected.

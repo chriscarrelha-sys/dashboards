@@ -47,12 +47,12 @@ good law above **citator-limited medium** confidence.
 
 ## Where the case stands
 
-`[COURT-FOUND]` On 20 July 2026, Judge Story denied remand and denied the
+`[COURT-FOUND]` Doc. 34 (SRC-010). On 20 July 2026, Judge Story denied remand and denied the
 preliminary-injunction motion as moot, and directed that Defendants give
 Plaintiffs and the Court at least sixty days' advance notice before any
 foreclosure. The motions to dismiss were referred to the magistrate judge.
 
-`[COURT-FOUND]` On 31 July 2026, Magistrate Judge Howard held the complaint to
+`[COURT-FOUND]` Doc. 35 (SRC-011). On 31 July 2026, Magistrate Judge Howard held the complaint to
 be a type-one shotgun pleading, directed an amended complaint, and cautioned
 that dismissal could follow. Docs. 4 and 5 were denied as moot with leave to
 renew, and Defendants were given fourteen days from the filing of the amended

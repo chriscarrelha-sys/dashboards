@@ -83,6 +83,11 @@ REQUIRED_FILES = [
     "09-research/citation-verification.csv",
     "11-decisions/approval-requests.csv",
     "12-workproduct/production-log.csv",
+    # Phase 4: who is on the other side, and who is on the bench. Both are
+    # matter facts, both are routinely assumed rather than verified, and both
+    # are where an unverified assumption does the most damage.
+    "07-evidence/opposing-counsel-record.csv",
+    "07-evidence/judicial-record.csv",
 ]
 
 # Top-level keys every matter-control file must carry. A missing key is an
@@ -231,6 +236,11 @@ def check_manifest(rep: Report, root: Path) -> set[str]:
                {"full", "partial", "paywalled", "missing-pages", "unavailable"})
     check_enum(rep, path, rows, "authenticity_status",
                {"self-authenticating", "produced-by-opponent", "party-created",
+                # A record retrieved directly from a court's own electronic
+                # system is not the same thing as a document a party handed
+                # over, and collapsing the two loses the distinction that
+                # matters most when a docket fact is challenged.
+                "verified-public-record", "derived",
                 "unauthenticated", "disputed"})
 
     # Second pass: derived_from must point at a source that exists.

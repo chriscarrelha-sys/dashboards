@@ -408,12 +408,21 @@ def check_accounting(rep: Report, root: Path) -> None:
             tid = (row.get("txn_id") or f"line {i}").strip()
             cls = (row.get("classification") or "").strip()
             pairs = (row.get("pairs_with") or "").strip()
-            if cls in {"reversed", "reversal-of", "reapplied"} and not pairs:
+            if cls in {"reversed", "reversal-of", "reapplied",
+                       "suspense-in", "suspense-out"} and not pairs:
                 rep.error(f"transaction-reconciliation.csv {tid}: classification="
-                          f"{cls} with no pairs_with. A reversal is two rows and one "
-                          "economic event; name the other row.")
+                          f"{cls} with no pairs_with. A reversal, a reapplication "
+                          "and a suspense movement are each two rows and one "
+                          "economic event. Name the other row — or write NONE and "
+                          "say why there is no other row, because a movement with "
+                          "no counterpart is a finding and a blank is not.")
+            if pairs.upper() == "NONE" and not (row.get("basis") or "").strip():
+                rep.error(f"transaction-reconciliation.csv {tid}: pairs_with=NONE "
+                          f"with no basis. Money that went in and never came out is "
+                          f"the most significant thing this register can record; it "
+                          f"does not get recorded as a blank.")
             for pid in split_ids(pairs):
-                if pid not in ("n/a", "none", "") and pid not in ids:
+                if pid not in ("n/a", "none", "NONE", "") and pid not in ids:
                     rep.error(f"transaction-reconciliation.csv {tid}: pairs_with "
                               f"'{pid}' is not a txn_id in this table")
             if not (row.get("description_verbatim") or "").strip():
@@ -452,6 +461,32 @@ def check_accounting(rep: Report, root: Path) -> None:
                     not (row.get("claimed_pinpoint") or "").strip():
                 rep.error(f"disputed-amounts.csv {did}: a claimed figure is given with "
                           "a source but no pinpoint")
+        _check_txn_pairs(rep, path, rows)
+
+
+def _check_txn_pairs(rep: Report, path: Path, rows: list[dict]) -> None:
+    """Every pairing must resolve, and must be readable from both ends.
+
+    `pairs_with` was required on a reversal but never resolved and never
+    checked for mutuality, so a pairing written from one side only passed —
+    and the $855 that entered suspense could be traced out of it but not into
+    it. A relationship recorded once is a relationship half the readers miss.
+    """
+    by = {(r.get("txn_id") or "").strip(): r for r in rows}
+    for i, r in enumerate(rows, start=2):
+        tid = (r.get("txn_id") or "").strip()
+        for other in split_ids(r.get("pairs_with") or ""):
+            if other.upper() == "NONE" or other not in by:
+                continue            # resolution is reported by the main loop
+            if other == tid:
+                rep.error(f"{path.name} line {i} [{tid}]: pairs with itself")
+                continue
+            back = split_ids(by[other].get("pairs_with") or "")
+            if tid not in back:
+                rep.error(f"{path.name} line {i} [{tid}]: pairs with {other}, but "
+                          f"{other} does not pair back. A pairing readable from one "
+                          f"end only is one a reader will trace in the wrong "
+                          f"direction and give up on.")
 
 
 def check_discovery(rep: Report, root: Path) -> None:

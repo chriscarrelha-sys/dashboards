@@ -63,6 +63,9 @@ ID_PATTERNS = {
     "APR": re.compile(r"^APR-\d{3}$"),     # human approval request
     "WP": re.compile(r"^WP-\d{3}$"),       # produced work product
     "TSK": re.compile(r"^TSK-\d{3}$"),     # task board
+    # Phase 4: who is opposite, and who is on the bench.
+    "OC": re.compile(r"^OC-\d{3}$"),       # opposing-counsel record
+    "JR": re.compile(r"^JR-\d{3}$"),       # judicial record
 }
 
 # Anything shaped like an identifier — UPPERCASE, a hyphen, digits — is treated as
@@ -117,8 +120,13 @@ REFERENCES = [
     ("00-control/task-board.csv", "unresolved_questions", {"OFQ", "OLQ", "ISS", "HD"}),
     ("03-sources/source-index.csv", "duplicate_of", {"IDX"}),
     ("09-research/citation-verification.csv", "used_in",
-     {"CLM", "DEF", "ISS", "AUTH", "WP", "ATK", "DL", "PROP", "GAP", "PD", "OLQ", "OFQ"}),
+     {"CLM", "DEF", "ISS", "AUTH", "WP", "ATK", "DL", "PROP", "GAP", "PD", "OLQ",
+      "OFQ", "OC", "JR", "CON"}),
     ("12-workproduct/production-log.csv", "approval_id", {"APR"}),
+    ("07-evidence/opposing-counsel-record.csv", "related_ids",
+     {"CON", "GAP", "OC", "CV", "ENT", "CLM", "ATK", "ISS"}),
+    ("07-evidence/judicial-record.csv", "related_ids",
+     {"CON", "GAP", "JR", "CV", "DL", "ISS", "PD"}),
 ]
 
 # (file, column) pairs that DEFINE ids
@@ -149,6 +157,8 @@ DEFINITIONS = [
     ("11-decisions/approval-requests.csv", "approval_id"),
     ("11-decisions/attorney-decision-log.csv", "decision_id"),
     ("12-workproduct/production-log.csv", "doc_id"),
+    ("07-evidence/opposing-counsel-record.csv", "oc_id"),
+    ("07-evidence/judicial-record.csv", "jr_id"),
 ]
 
 

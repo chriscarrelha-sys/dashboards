@@ -57,7 +57,7 @@
 
 | APR | Action | Target | What the human must review |
 |---|---|---|---|
-| APR-001 | file | Amended complaint responding to Doc. 35 (Order to Replead) | which of SRC-001 and SRC-020 is the operative pleading; the caption and case num |
+| APR-001 | file | Motion for leave to file a corrected amended complaint, with | the docket first - whether an amended complaint was filed by 2026-08-21 and what |
 
 ## 3 · Unfinished work
 
@@ -90,7 +90,7 @@
 | 5 | defense | The wrongful-foreclosure count fails on two independent elements: no publi | weak | CA-05 |
 | 6 | defense | Paragraph 31 alleges Shellpoint rejected an $855 payment. The ledger Plain | strong | CA-06 |
 
-**5 material contradiction(s) on the record:**
+**9 material contradiction(s) on the record:**
 
 | ID | Subject | Nature of the conflict | Sources |
 |---|---|---|---|
@@ -99,6 +99,7 @@
 | CON-006 | Whether the payment history enclosed with th | A document printed eight days after a letter cannot have been en | SRC-012 v SRC-013 |
 | CON-007 | The First Amended Complaint's cross-referenc | An internal inconsistency: the document cross-references a conti | SRC-001 v SRC-001 |
 | CON-008 | Who owns this loan | Two records maintained or populated by the same defendants name  | SRC-021 v SRC-021 |
+| CON-009 | Which trust the ownership chain runs to | A fact imported from a different case. Fannie Mae is a co-defend | SRC-031 v SRC-021 |
 
 **9 priority-1 evidentiary gap(s)** (of 21 total):
 
@@ -120,11 +121,12 @@
 - 1 action(s) are held at the approval gate (APR-001).
 - 22 attorney decision(s) are unanswered; dependent work cannot close until they are.
 - 2 task(s) are waiting on a dependency.
-- 1 document(s) sit in drafts/ awaiting attorney review. None has been filed, served or sent.
+- 4 document(s) sit in drafts/ awaiting attorney review. None has been filed, served or sent.
+- 6 of 26 source(s) carry authenticity_status UNVERIFIED — every finding resting on them inherits that ceiling.
 
 ## Provenance
 
 - Registers last verified 2026-09-21 by PENDING HUMAN VERIFICATION - prepared by Litigation OS orchestrator, not yet reviewed by a licensed attorney.
-- 19 source(s) in the manifest; 6 deadline(s); 19 issue(s); 21 evidentiary gap(s); 1 produced document(s).
+- 26 source(s) in the manifest; 6 deadline(s); 19 issue(s); 21 evidentiary gap(s); 4 produced document(s).
 - This page is generated from the registers. It computes no deadline and confirms no docket entry; both require a human against the live record.
 
