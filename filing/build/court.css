@@ -45,7 +45,8 @@ table.data tr { page-break-inside: avoid; }
 div.sig, div.svc { page-break-inside: avoid; margin-top: 0.55em; }
 div.svc { margin-left: .5in; }
 p.nl { text-indent: 0; line-height: 1.22; margin: 0; }
-h2.cert { text-align: center; margin-top: 1.5em; }
+h2.cert { text-align: center; margin-top: 0.8em; }
 table.svc2 { width: calc(100% - 0.25in); border-collapse: collapse; margin: .5em 0 .3em .25in;
   page-break-inside: avoid; }
 table.svc2 td { vertical-align: top; padding: 0 6pt 0 0; width: 50%; }
+p.nl.gap { margin-top: 10pt; }
