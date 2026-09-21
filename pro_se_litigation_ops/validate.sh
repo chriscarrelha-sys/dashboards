@@ -110,7 +110,7 @@ chk "days 9/15 -> Dec 1 first Tuesday"  "77" "$D2"
   || no "60-day compliance conclusion does not hold"
 
 sec "9. Blocker integrity"
-for d in 39 40 41; do
+for d in 35 36 37 38 39 40 41; do
   grep -q "Doc $d" cases/carrelha/01_record/RECORD_INDEX.md || no "Doc $d not tracked in RECORD_INDEX"
 done
 grep -q "BLOCKED" cases/carrelha/02_procedure/DEADLINES.md || no "DEADLINES.md does not mark blocked items"

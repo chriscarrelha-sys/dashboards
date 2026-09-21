@@ -32,17 +32,28 @@ Source root: Dropbox → `new evidence/SHELLPOINT MASTER CASE FILE/`
 | 38 | 2026-09-08 | Motion to stay discovery and pretrial deadlines | `MOOT` — granted | 12 Docket Ref |
 | 38-1 | 2026-09-08 | Memorandum supporting the stay | `MOOT` | 12 Docket Ref |
 | 38-2 | 2026-09-08 | Exhibit to the stay motion | `EXHIBIT` | Docs 38 |
+| **Doc 35** | **2026-07-31** | **Order (Howard): original complaint is a shotgun pleading; Docs 4 & 5 DENIED AS MOOT; Plaintiffs DIRECTED to amend by 8/21; Defendants to respond within 14 days** | **`OPERATIVE`** | uploaded 9/21 |
+| **Doc 36** | **2026-08-21** | **PLAINTIFFS' FIRST AMENDED VERIFIED COMPLAINT — the operative pleading.** 4 counts, 2 defendants. | **`OPERATIVE`** | uploaded 9/21 |
+| **Doc 39** | **2026-09-09** | **Order (Howard) granting the discovery stay** | **`OPERATIVE`** | uploaded 9/21 |
+| **Doc 40** | **2026-09-11** | **McCalla (MRLP) motion to dismiss Doc 36 + brief** | **`OPERATIVE`** | uploaded 9/21 |
+| **Doc 41** | **2026-09-15** | **Notice of Foreclosure Sale Scheduling — sale set for DECEMBER 1, 2026** | **`OPERATIVE`** | uploaded 9/21 |
 
 ## Missing — and what each one blocks
 
-| Doc | Date | What | Blocks |
-|---|---|---|---|
-| **?** | Aug 2026 | **The operative amended complaint.** Doc 37 is captioned against a "First Amended Complaint" that is not in the record and whose docket number is unestablished. | **Every element matrix. Both MTD oppositions. This is the deepest blocker in the case.** |
-| **37-2** | 2026-09-04 | **Doc 37-2** — Defense Exhibit A, gap in an otherwise complete 37-1→37-6 run | Extrinsic-material analysis of Doc 37 |
-| **39** | 2026-09-09 | **Doc 39** — order granting the discovery stay | Rule 72(a) timing and merits; the stay vehicle decision |
-| **40** | 2026-09-11 | **Doc 40** — McCalla Raymer motion to dismiss | The McCalla opposition; the Dkt. 5 → Doc 40 delta |
-| **41** | 2026-09-15 | **Doc 41** — Notice of Foreclosure Sale Scheduling | The 60-day compliance check; any Rule 65 or enforcement motion |
-| — | current | **The docket sheet itself** | Whether a Doc 37 response was filed; counsel of record; CM/ECF status |
+*Four of the five former blockers were supplied 2026-09-21 and are now `OPERATIVE` above.
+The operative-pleading question is resolved: **Doc 36 is the First Amended Verified
+Complaint.** What remains:*
+
+| Item | Blocks |
+|---|---|
+| **The current docket sheet** | Whether a response to Doc 37 was filed or extended (the deadline is today); Plaintiffs' CM/ECF status; whether McCalla obtained an extension for Doc 40 |
+| **37-2** — Defense Exhibit A | Extrinsic-material analysis of Doc 37; gap in an otherwise complete 37-1→37-6 run |
+| **Dkt. 5** — McCalla's first MTD (2026-03-30) | The delta baseline. Doc 40 abandons every substantive argument; Dkt. 5 shows exactly what was dropped |
+
+**Storage note.** Docs 35, 36, 39, 40, 41 were supplied as session uploads, which are
+ephemeral. They are not committed to this repository (see `INTAKE_MANIFEST.md`). Place
+them in `12 Federal Docket Reference/` named
+`YYYY-MM-DD - Doc NN - Description.pdf` so the custodian picks them up on the next run.
 
 ## Known of but not held
 `Dkt. 4` and `Dkt. 5` — the first-round motions to dismiss filed 2026-03-30 in state

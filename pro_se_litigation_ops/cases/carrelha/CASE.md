@@ -48,17 +48,35 @@ A sale set for 2026-03-03 was voluntarily postponed.
 | V | Breach of contract | Shellpoint, MEB Trust |
 | VI | Declaratory judgment, O.C.G.A. § 9-4-2 | All |
 
-## The operative pleading — `UNRESOLVED`, and this is the top open question
-Doc 34 (2026-07-20) treats the **Verified Complaint** as operative. But Doc 37
-(2026-09-04) is captioned **"Motion to Dismiss First Amended Complaint."** An amended
-complaint therefore entered the record between those dates, and its docket number is not
-established. The record store holds a file labeled "Doc 36" dated 2026-08-21 that is
-described as 17 pages of phone screenshots — that is not a pleading, and the label is
-unverified.
+## The operative pleading — **RESOLVED**
 
-**Consequence:** no element matrix and no opposition may be built until the operative
-pleading is identified by docket number and read. A Rule 12 opposition briefed against
-the wrong pleading is worthless.
+**Doc 36 — Plaintiffs' First Amended Verified Complaint, filed 2026-08-21.** Read in full.
+
+Filed under compulsion of Doc 35, which held the original complaint an impermissible
+shotgun pleading of the first Weiland type (each count incorporating all preceding
+paragraphs) and directed a repleader by 2026-08-21.
+
+Doc 36 complies, deliberately and narrowly. Caption names **two** defendants: MEB Loan
+Trust VIII and NewRez LLC d/b/a Shellpoint. Each count states on its face that it "does
+not incorporate any preceding Count."
+
+| Count | Claim | By | Against |
+|---|---|---|---|
+| I | RESPA / Reg. X, 12 U.S.C. § 2605; 12 C.F.R. §§ 1024.35, .36, .41 | Both | Shellpoint |
+| II | FCRA furnisher liability, 15 U.S.C. § 1681s-2(b) | **Christopher only** | Shellpoint |
+| III | Breach of written loan documents (Georgia law) | Both | MEB |
+| IV | FDCPA, 15 U.S.C. §§ 1692e(2)(A), 1692f(1) | Both | Shellpoint |
+
+**Dropped from the case by the amendment:** McCalla Raymer, SLS/Achieve, and MERS as
+defendants; and wrongful foreclosure, quiet title, and declaratory judgment as claims.
+
+**Express disclaimer [Doc 36, Prayer]:** "Plaintiffs do not seek in this pleading an
+independent quiet-title, wrongful-foreclosure, assignment-invalidity,
+securitization-invalidity, or loan-modification-contract cause of action."
+
+The only foreclosure-related relief sought is "the continued benefit of the Court's
+existing sixty-day advance-notice requirement." **Consequence: no pleaded claim supports
+enjoining the December 1, 2026 sale.** See `EXECUTION_SHEET.md`, workstream 4.
 
 ## Orders in force
 | Doc | Date | Holding | Continuing effect |
