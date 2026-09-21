@@ -9,4 +9,5 @@ build/index.html
 build/*.pdf
 *.png
 build/0*.html
+build/idx.html
 build/caption.html
