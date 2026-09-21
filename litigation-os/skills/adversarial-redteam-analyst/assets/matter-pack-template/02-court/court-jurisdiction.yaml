@@ -1,0 +1,26 @@
+schema_version: "1.1"
+court_name: <full name>
+division: <division>
+case_number: <exact>
+judge: <name>
+magistrate: <name or NONE>
+removed_from:
+  court: <state court, or NONE>
+  case_number: <number>
+  removal_date: <YYYY-MM-DD>
+  removal_basis: <statute>
+subject_matter_jurisdiction_basis: <statutes>
+supplemental_jurisdiction: <yes/no + statute>
+venue_basis: <statute>
+governing_rule_sets:
+  - <e.g. "Fed. R. Civ. P.">
+  - <e.g. "N.D. Ga. Local Rules">
+  - <e.g. "Standing Order 18-01">
+controlling_appellate_court: <e.g. "U.S. Court of Appeals for the Eleventh Circuit">
+state_law_source: <e.g. "Georgia; Ga. Supreme Court and Ga. Court of Appeals control">
+jurisdictional_challenges:
+  - challenge: <e.g. motion to remand>
+    docket_no: <n>
+    resolved: <yes/no>
+    outcome: <how>
+    source_ids: <SRC-###>

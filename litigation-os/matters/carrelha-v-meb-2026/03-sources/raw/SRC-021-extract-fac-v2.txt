@@ -1,0 +1,224 @@
+VERBATIM EXTRACT — NOT THE COMPLETE DOCUMENT
+Source: "PLAINTIFFS' FIRST AMENDED COMPLAINT AND DEMAND FOR JURY TRIAL",
+        Carrelha v. MEB Loan Trust VIII, N.D. Ga. 2:26-cv-00110-RWS-AWH.
+        Markdown file dated 2026-08-19 (last modified 2026-09-16), 93,675 chars.
+        Drive file id 1DPxNmTRYWMKTVgkK1toN6lC3t9k7XLne.
+Extract prepared: 2026-09-21. Paragraph numbers are the pleading's own.
+
+*** THIS IS A DIFFERENT AND LATER DOCUMENT FROM SRC-001. ***
+SRC-001 (the Google Doc "First Amended Verified Complaint") has 9 counts,
+section-restarting paragraph numbers, a "$5,200.00 wire" allegation, Lendage in
+the caption, and unfilled signature placeholders. THIS document has 16 counts,
+continuous paragraph numbering, NO $5,200.00 wire allegation, and does NOT name
+Lendage in the caption. Which (if either) was filed is NOT established.
+
+--- CAPTION ---
+"CHRISTOPHER J. CARRELHA and KELSEY D. CARRELHA, Plaintiffs, v. MEB LOAN TRUST
+VIII; NEWREZ LLC d/b/a SHELLPOINT MORTGAGE SERVICING; SPECIALIZED LOAN
+SERVICING, LLC d/b/a ACHIEVE HOME LOANS; MORTGAGE ELECTRONIC REGISTRATION
+SYSTEMS, INC.; and McCALLA RAYMER LEIBERT PIERCE, LLP, Defendants."
+[NOTE: Lendage, LLC does NOT appear in this caption.]
+
+--- ¶ 2 (repleading compliance, verbatim) ---
+"This First Amended Complaint is filed pursuant to leave granted by the Court's
+Order of July 31, 2026 (Doc. 35), which found the original state-court Complaint
+(Doc. 1-1) an impermissible shotgun pleading under Weiland v. Palm Beach County
+Sheriff's Office, 792 F.3d 1313, 1321-23 (11th Cir. 2015). This First Amended
+Complaint fully supersedes Doc. 1-1 pursuant to Fed. R. Civ. P. 15 and Malowney
+v. Federal Collection Deposit Group, 193 F.3d 1342, 1345 n.1 (11th Cir. 1999).
+It is pleaded to Rule 8(a)(2) and Rule 10(b) standards, to the plausibility
+standard of Bell Atlantic Corp. v. Twombly, 550 U.S. 544, 570 (2007) and Ashcroft
+v. Iqbal, 556 U.S. 662 (2009), and, as to the fraud Count, to the particularity
+standard of Rule 9(b). No Count in this pleading incorporates by reference 'each
+and every preceding paragraph'; each Count incorporates only specifically
+identified numbered paragraphs."
+
+--- ¶ 3 (Ames avoidance, verbatim) ---
+"This action does not challenge any Defendant's assignment of the Security Deed
+on any theory foreclosed by Ames v. JP Morgan Chase Bank, N.A., 298 Ga. 732,
+738-41 & nn.7-8, 783 S.E.2d 614 (2016). To the limited extent Plaintiffs raise
+assignment-related facts, the pleaded theories fall within the carveouts
+recognized in Ames or attack the enforceability of the underlying obligation
+independent of any assignment. Plaintiffs plead certain Counts in the alternative
+under Fed. R. Civ. P. 8(d)(3), including failure of consideration in the
+underlying obligation (Count X) and Security Deed unenforceability derivative of
+the underlying obligation (Count XI)."
+[NOTE: ¶3 cross-references "Count X" and "Count XI" for failure of consideration
+and Security Deed unenforceability. The COUNT HEADINGS in the document place
+Failure of Consideration at COUNT IX and Security Deed Unenforceability at
+COUNT X. This is an internal numbering inconsistency on the face of the pleading.]
+
+--- THE SIXTEEN COUNTS (headings as they appear) ---
+  COUNT I    RESPA - Fee-Error, Payment-Application, and Servicing-Duty Violations
+  COUNT II   RESPA - Qualified Written Request Response Duty
+  COUNT III  RESPA/Regulation X - Loss-Mitigation and Dual-Tracking Violations
+  COUNT IV   TILA - Assignee Liability for Origination-Face Defects
+  COUNT V    Breach of Contract
+  COUNT VI   FCRA - Furnisher Liability
+  COUNT VII  FDCPA - Fair Debt Collection Practices Act Violations
+  COUNT VIII Wrongful and Attempted Wrongful Foreclosure
+  COUNT IX   Failure of Consideration - Nudum Pactum (O.C.G.A. 13-3-40, 13-3-41)
+  COUNT X    Security Deed Unenforceability
+  COUNT XI   Georgia Fair Business Practices Act
+  COUNT XII  Common-Law Fraud
+  COUNT XIII Slander of Title
+  COUNT XIV  Loss of Consortium - Kelsey D. Carrelha
+  COUNT XV   Declaratory Judgment
+  COUNT XVI  Permanent Injunctive Relief
+
+--- INCORPORATION STYLE (samples, verbatim fragments) ---
+"incorporate PP 11, 12, 13, 17-23, 28"
+"incorporate PP 11, 12, 14, 19-23, 52"
+"incorporate PP 11, 12, 15, 19-23, 27-32, 37-41, 46, 52-53"
+"incorporate PP 12, 13, 17, 24, 27-32"
+"incorporate PP 12, 13, 27, 42-47, 48-51, 53"
+"incorporate PP 10, 48-53, and the substantive facts of Counts VI, VIII, XII, and XIII"
+[NOTE: the last sample incorporates the SUBSTANTIVE FACTS OF OTHER COUNTS.]
+
+--- F.1 ORIGINATION AND OWNERSHIP ---
+[¶17] "On or about July 21, 2022, Plaintiffs executed the Note and the Security
+Deed in connection with the HELOC. The originating lender on the face of the Loan
+Documents is Lendage, LLC ('Lendage'). MERS is designated on the face of the
+Security Deed as 'nominee for Lender and Lender's successors and assigns' and as
+grantee of record. The face credit limit is $149,650.00. The disclosed contract
+rate is 10.750% per annum, amortized over 120 months."
+
+[¶18] "On or about August 5, 2022, based on Plaintiffs' personal knowledge and
+their contemporaneously captured Bank of America mobile-app screenshot dated
+August 5, 2022 at 8:20 AM (Ex. 7), funds first appeared in Plaintiff Christopher
+J. Carrelha's Bank of America account in the amount of $51,409.50 - a figure
+consistent with a $50,000 cash-out cap Plaintiff recalls being disclosed in the
+closing package."
+
+[¶19] "By Assignment of Security Deed recorded February 19, 2024 in Forsyth
+County Deed Book 11187, Page 717 (Ex. 5), MERS as nominee for Lendage purported
+to assign the Security Deed to MEB Loan Trust VIII. The Recorded Assignment
+recites, verbatim, that MEB is 'a[n] CORPORATION organized under the laws of NEW
+YORK.' On information and belief, MEB is a trust (New York common-law or Delaware
+statutory) and not a corporation. The recital of MEB's entity type is inaccurate
+on the face of the Recorded Assignment."
+
+[¶20] "The MERS ServicerID public lookup for MIN 1015066-5000019200-2, retrieved
+on March 24, 2026 (Ex. 6), identifies the Investor of Plaintiffs' Loan as 'FREED
+Mortgage Trust 2022-HE1.' The MERS ServicerID does not identify MEB Loan Trust
+VIII as the investor."
+
+[¶21] "The DBRS Morningstar Presale Report for FREED Mortgage Trust 2022-HE1
+(Ex. 9) states that the notes are backed by a pool of HELOCs originated by
+Lendage with a Cut-Off Date of September 30, 2022. On information and belief,
+Plaintiffs' HELOC - originated by Lendage in July 2022 - falls within the FREED
+origination-and-date profile disclosed on the face of that publicly available
+presale report."
+
+[¶22] "The Witt Letter (Ex. 1) states, verbatim, that 'The current owner of this
+loan is MEB Loan Trust VIII Trust and their address is: Mailing Address: C/O US
+Bank Trust National Assoc 1101 Centre Road, Suite 203 Wilmington, DE 19805.' That
+Delaware trust-servicing address is inconsistent with the 'CORPORATION organized
+under the laws of NEW YORK' recital on the face of the Recorded Assignment
+(Ex. 5)."
+
+[¶23] "The record thus contains multiple unreconciled statements of ownership
+requiring reconciliation: (a) MERS ServicerID - 'FREED Mortgage Trust 2022-HE1'
+(Ex. 6); (b) Recorded Assignment - 'MEB Loan Trust VIII, a[n] CORPORATION
+organized under the laws of NEW YORK' (Ex. 5); and (c) Witt Letter - 'MEB Loan
+Trust VIII Trust,' Delaware trust-servicing address (Ex. 1). No Defendant has
+reconciled these statements notwithstanding Plaintiffs' repeated written requests
+for information."
+
+--- F.2 SERVICING TRANSFERS ---
+[¶24] "Based on Plaintiffs' personal knowledge and the servicing communications
+received by them, SLS serviced the HELOC from on or about August 4, 2022 through
+on or about July 7, 2024. Shellpoint has serviced the HELOC continuously from
+July 7, 2024 to the date of this First Amended Complaint. This is confirmed on
+the face of the Witt Letter (Ex. 1), which identifies Shellpoint as servicer for
+MEB Loan Trust VIII."
+
+--- F.3 DEBT-COLLECTOR STATUS ---
+[¶25] "Based on Plaintiffs' personal knowledge and the Witt Letter (Ex. 1),
+Shellpoint acquired servicing of the Loan on or about July 7, 2024 at a time when
+the Loan was being treated as in default. The Witt Letter recites that the account
+is 'due for January 1, 2024, and all subsequent payments.' Shellpoint therefore
+acquired servicing after Shellpoint's own reckoning of default. Shellpoint's
+status as a 'debt collector' under 15 U.S.C. 1692a(6) - separate and independent
+from its servicing status under RESPA - is established by these facts under
+Davidson v. Capital One Bank (USA), N.A., 797 F.3d 1309, 1315-16 (...)"
+[quotation truncated in the source extract at the pin cite]
+
+--- F.4 THE LEDGER ---
+[¶26] "On or about January 16, 2026, Shellpoint produced to Plaintiffs the Ledger
+as an enclosure to the Witt Letter (Ex. 1). Prior to that date, Plaintiffs did not
+have access to a transaction-level servicing history for the Loan."
+
+[¶27] "Based on Plaintiffs' review of the Ledger, the Ledger contains a
+single-line entry dated July 7, 2024 designated 'New Loan.' From and after that
+entry, every subsequent line on the Ledger bears a fixed Due Date of 01/01/24 - a
+frozen date that does not advance with the passage of time or with subsequent
+transactions. The principal balance recorded on and after the 'New Loan' entry is
+$140,288.02 and does not move notwithstanding multiple subsequent tendered
+payments."
+
+[¶28] "Based on Plaintiffs' review of the Ledger, the earliest visible ledger row
+reflects a Late Charge Balance of $1,145.62 associated with an August 5, 2022
+entry. That balance is carried forward through subsequent monthly entries without
+any separate 'Late Charge Assess' transaction line explaining its origin. Because
+the first payment on the Loan was not due before the Loan was funded, a Late
+Charge Balance associated with the funding entry lacks a documented basis on the
+face of the Ledger and requires transaction-level reconciliation."
+
+--- F.5 THE TRIAL PAYMENT PERIOD ---
+[¶29] "Based on Plaintiffs' personal knowledge, between April 29, 2025 and June
+25, 2025 Plaintiffs tendered four payments of $1,899.56 each in accordance with a
+Trial Payment Period ('TPP') offered by Shellpoint through Shellpoint's
+borrower-facing loss-mitigation portal. Based on Plaintiffs' review of the Ledger,
+each of those payments was recorded as 'Unapplied Payment' and then reversed with
+an entry designated 'Unapplied Payment reversed; NSF Fee Assessed.' Based on
+Plaintiffs' review of Plaintiffs' own depositary-institution records, none of the
+four TPP payments was returned by the depositary institution..."
+
+[¶30] "Based on Plaintiffs' personal knowledge, on or about September 15, 2023,
+during SLS's servicing tenure, Plaintiff Christopher J. Carrelha tendered a
+$10,000 principal-reduction payment. Based on Plaintiffs' review of the Ledger,
+that payment was posted and then reversed on the Ledger by a same-date or
+near-date 'Principal Adjustment' entry in the amount of negative $10,000.00. The
+reversal is the earliest documented instance in Plaintiffs' possession of a
+payment-application-and-reversal pattern that recurred throughout the servicing
+history."
+
+[¶31] "Based on Plaintiffs' personal knowledge and their review of the Ledger,
+Plaintiffs tendered an $855 payment in 2023 that Shellpoint rejected
+notwithstanding sufficient funds on deposit in Plaintiffs' account at the time of
+tender."
+
+[¶32] "Based on Plaintiffs' review of the Ledger, between July 19, 2024 and
+January 13, 2026 the Ledger reflects at least fifteen separate foreclosure-related
+fee disbursements against Plaintiffs' Loan account, including without limitation
+Attorney Cost Disbursements payable to Mc[Calla]..."
+
+--- F.? THE SEPTEMBER 2023 REINSTATEMENT (SLS CFPB RESPONSE) ---
+[¶~42] "...that (i) servicing had transferred to SLS on August 4, 2022; (ii) SLS
+had received a completed Request for Mortgage Assistance on September 6, 2023;
+(iii) reinstatement funds were received on September 13, 2023, bringing the
+account current; and (iv) SLS nonetheless had reported the March 1, 2023 through
+August 1, 2023 payments to the consumer reporting agencies as more than thirty
+days past due - reporting as delinquent the very months SLS's own response
+confirmed had been 'satisfied' as of September 13, 2023."
+
+--- F.6 THE DECEMBER 26, 2025 - JANUARY 6, 2026 FOUR-LETTER SEQUENCE ---
+[¶37] "Based on Plaintiffs' personal knowledge, between December 26, 2025 and
+January 6, 2026, Shellpoint transmitted the following written communications to
+Plaintiffs concerning loss mitigation, alleged fraud, borrower contact, and
+foreclosure: (a) December 26, 2025 - Shellpoint transmitted a letter representing
+that Plaintiffs' loss-mitigation documentation was 'under review,' that the
+application was 'incomplete,' and that Shellpoint 'will contact you about any
+documents that may still be required' at some unspecified future time - while
+simultaneously representing that the Loan had been referred to forec[losure]..."
+
+--- COUNT IX (Failure of Consideration) LEGAL BASIS, verbatim ---
+[¶116] "Legal Basis. Under O.C.G.A. 13-3-40, '[a] consideration is essential to a
+contract which the law will enforce. An executory contract without such
+consideration is called nudum pactum and from it no obligation arises.' Failure of
+consideration renders the contract voidable at the option of the party from whom
+consideration has failed. O.C.G.A. 13-3-41. This Count challenges the underlying
+HELOC obligation only; it does not challenge any Defendant's assignment of the
+Security Deed and is not foreclosed by Ames, 298 Ga. 732."
+[¶117] "Elements. (a) A contract from which the party seeks to be excused; ..."

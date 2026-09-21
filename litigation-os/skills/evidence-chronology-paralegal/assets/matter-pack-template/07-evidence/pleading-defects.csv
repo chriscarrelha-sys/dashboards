@@ -1,0 +1,1 @@
+defect_id,defect_number,defect_name,present,pleading_analysed,where,what_the_test_showed,kind,severity,curability,cure,cost_if_not_cured,related_claim_ids,source_ids,confidence,notes

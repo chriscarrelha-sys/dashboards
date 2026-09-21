@@ -33,7 +33,7 @@ except ImportError:  # pragma: no cover
 REQUIRED_DIRS = [
     "00-control", "01-parties", "02-court", "03-sources", "03-sources/raw",
     "04-docket", "05-chronology", "06-issues", "07-evidence", "08-deadlines",
-    "09-research", "10-specialist-results", "11-decisions",
+    "09-research", "09-research/discovery", "10-specialist-results", "11-decisions",
 ]
 
 REQUIRED_FILES = [
@@ -53,6 +53,20 @@ REQUIRED_FILES = [
     "07-evidence/entity-index.csv",
     "08-deadlines/deadline-register.csv",
     "11-decisions/attorney-decision-log.csv",
+    # Phase 2 registers. Present as headers in a new pack; populated by the
+    # specialist that owns each one.
+    "07-evidence/claim-survival-matrix.csv",
+    "07-evidence/pleading-support-table.csv",
+    "07-evidence/pleading-defects.csv",
+    "07-evidence/corrective-actions.csv",
+    "07-evidence/transaction-reconciliation.csv",
+    "07-evidence/disputed-amounts.csv",
+    "07-evidence/entity-role-map.csv",
+    "07-evidence/transfer-chronology.csv",
+    "07-evidence/authority-matrix.csv",
+    "07-evidence/attack-surface.csv",
+    "07-evidence/custodian-map.csv",
+    "09-research/discovery/request-to-issue.csv",
 ]
 
 # Top-level keys every matter-control file must carry. A missing key is an
@@ -221,6 +235,14 @@ CROSSREF = {
     "08-deadlines/deadline-register.csv": ["source_id"],
     "01-parties/parties.csv": ["source_ids"],
     "02-court/claims-defenses.csv": ["source_ids"],
+    "07-evidence/pleading-support-table.csv": ["source_ids"],
+    "07-evidence/transaction-reconciliation.csv": ["source_id"],
+    "07-evidence/disputed-amounts.csv": ["claimed_source_id", "supporting_source_ids"],
+    "07-evidence/entity-role-map.csv": ["asserted_by_source_id",
+                                        "conflicting_assertion_source_ids"],
+    "07-evidence/transfer-chronology.csv": ["source_id"],
+    "07-evidence/authority-matrix.csv": ["document_relied_on"],
+    "07-evidence/attack-surface.csv": ["source_ids"],
 }
 
 

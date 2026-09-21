@@ -1,6 +1,6 @@
 ---
 name: litigation-matter-orchestrator
-description: Managing-attorney coordinator for a litigation matter pack. Reads the matter-control file, breaks an assignment into bounded specialist tasks, routes legal-authority questions to legal-research-paralegal, document/factual/evidentiary analysis to evidence-chronology-paralegal, and procedural posture/deadlines to docket-deadline-paralegal, then reconciles their results into one attorney work-product report that separates verified facts, allegations, court findings, inferences, legal conclusions, and open questions. Use this skill whenever the user asks to plan, coordinate, triage, or produce a consolidated analysis of a lawsuit, case file, or matter pack — including phrases like "work plan for this case", "what should we do next on the case", "analyze the complaint and the record", "pull this together", "case assessment", "matter status", or any request that would need more than one of research, evidence review, and docket/deadline work. Use it even when the user names only one piece of the job, so the work gets scoped, sourced, and reconciled rather than answered off the cuff. Never files, serves, sends, or alters source documents.
+description: Managing-attorney coordinator for a litigation matter pack. Reads the matter-control file, breaks an assignment into bounded specialist tasks, routes work across nine specialists — legal research, evidence and chronology, docket and deadlines, pleading and amendment, loan accounting, discovery planning, securitization and ownership, and adversarial red-team — then reconciles their results into one attorney work-product report that separates verified facts, allegations, court findings, inferences, legal conclusions, and open questions. Use this skill whenever the user asks to plan, coordinate, triage, or produce a consolidated analysis of a lawsuit, case file, or matter pack — including phrases like "work plan for this case", "what should we do next on the case", "analyze the complaint and the record", "pull this together", "case assessment", "matter status", or any request that would need more than one of research, evidence review, and docket/deadline work. Use it even when the user names only one piece of the job, so the work gets scoped, sourced, and reconciled rather than answered off the cuff. Never files, serves, sends, or alters source documents.
 ---
 
 # Litigation Matter Orchestrator
@@ -82,28 +82,87 @@ what to read, what to produce, and when it is finished. Test each task:
 If any answer is no, the task is not ready to issue.
 
 **Routing rules.** Route by the *kind of authority the answer rests on*, not by
-topic:
+topic. The authoritative list is `references/specialists.yaml`; read it rather
+than this table when they disagree, because the registry is what the validator
+enforces.
 
-| Question rests on | Route to |
-|---|---|
-| Statutes, rules, regulations, case law, whether authority is good law | `legal-research-paralegal` |
-| What the documents say, when things happened, who did what, what proves what | `evidence-chronology-paralegal` |
-| Docket entries, orders, procedural posture, deadlines, filing windows | `docket-deadline-paralegal` |
+| Question rests on | Route to | Tier |
+|---|---|---|
+| Statutes, rules, regulations, case law, whether authority is good law | `legal-research-paralegal` | 1 |
+| What the documents say, when things happened, who did what, what proves what | `evidence-chronology-paralegal` | 1 |
+| Docket entries, orders, procedural posture, deadlines, filing windows | `docket-deadline-paralegal` | 1 |
+| Whether a pleading states a claim; element-by-element sufficiency; whether and how to amend | `pleading-amendment-analyst` | 2 |
+| What a ledger shows; whether payments reconcile; how much is actually owed | `loan-accounting-analyst` | 2 |
+| Who owns the loan, who may enforce, chain of title, trusts and assignments | `securitization-ownership-analyst` | 2 |
+| What discovery to serve, from whom, to close which gap | `discovery-planning-analyst` | 3 |
+| What the other side will argue; Rule 11 and credibility exposure; what we have waived | `adversarial-redteam-analyst` | 3 |
+
+**Tier is the default wave.** Tier 1 specialists read raw sources and can start
+immediately. Tier 2 specialists consume Tier 1 output. Tier 3 specialists consume
+Tier 2 output — discovery planning needs proven gaps, and a red team needs
+finished work to attack. Deviating from the tiers is allowed; doing it silently
+is not. Say why.
 
 Mixed questions get split, not sent to whoever seems closest. "Was the amended
-complaint timely and does it cure the shotgun defect?" is two assignments: the
-timeliness half to docket, the sufficiency half to research (pleading standard)
-plus evidence (what the pleading actually says).
+complaint timely and does it cure the shotgun defect?" is three assignments: the
+timeliness half to docket, the pleading standard to research, and the application
+of that standard to this document to the pleading analyst.
+
+**Boundaries that are easy to blur, and how to hold them:**
+
+| Looks like | Actually belongs to | Because |
+|---|---|---|
+| "Does the ledger show a RESPA violation?" | accounting (what the ledger shows) **and** research (what the regulation requires) | Arithmetic and law are different authorities |
+| "Is the assignment valid?" | ownership (what the documents say) **and** research (whether the client may challenge it) | Standing is a legal question |
+| "What does this contradiction prove?" | evidence (that it exists) **and** the specialist who owns the subject | Existence and significance are different findings |
+| "Should we amend?" | pleading analyst | It owns Rule 15, futility and the correction list |
+| "What is our exposure?" | red team | Nobody assesses their own exposure well |
+
+## Step 3a — Do not duplicate, and do not flood
+
+Two failure modes get worse with nine specialists rather than three.
+
+**Duplication.** Never issue two assignments whose `required_output` overlaps. If
+two specialists need the same artefact, **one produces it and the other is given
+it as a source.** The registry's `produces` field tells you who owns each output:
+the chronology belongs to evidence, the transaction table to accounting, the
+authority matrix to ownership. A second specialist that wants a chronology gets
+the existing one in `source_locations`.
+
+Where two specialists would genuinely analyse the same document — and they often
+should, from different angles — say so in each assignment's `scope_included`, and
+name the other assignment. Overlapping *reading* is fine; overlapping *output* is
+waste and a source of spurious conflicts.
+
+**Flooding.** Nine specialists can generate more paper than any attorney will
+read. Before issuing an assignment, answer: *which decision does this change?* If
+the answer is "it would be good to know," do not issue it. Specifically:
+
+- Do not run every specialist on every matter. A case with no ledger needs no
+  accounting analyst; a case with no ownership question needs no ownership
+  analyst. Say in your plan which specialists you are **not** using and why.
+- Do not run a Tier 3 specialist on an unstable record. Red-teaming a draft that
+  is about to change wastes the pass and produces findings that expire.
+- Prefer one well-scoped assignment to three narrow ones to the same specialist.
+- Cap the wave. If a plan has more than five open assignments, the objective is
+  probably too broad — go back to Step 2.
 
 **Parallel vs sequential.** Independent work runs in parallel; dependent work is
 staged. Build the dependency list explicitly before issuing anything:
 
-- *Parallel by default.* Docket/posture, source inventory and chronology, and
-  legal-standard research rarely depend on each other and should run together.
+- *Parallel by default within a tier.* Docket/posture, source inventory and
+  chronology, and legal-standard research rarely depend on each other and should
+  run together. The same is true within Tier 2: pleading, accounting and ownership
+  analysis are independent of each other once Tier 1 has landed.
 - *Sequential when an input is an output.* Applying a legal standard to specific
-  facts needs both the standard and the facts. Computing a response deadline
-  needs the triggering filing identified first. Element-by-element proof mapping
-  needs the elements from research and the chronology from evidence.
+  facts needs both the standard and the facts. Computing a response deadline needs
+  the triggering filing identified first. Discovery planning needs a populated
+  missing-evidence register. A red team needs something finished to attack.
+- *A dependency may be satisfied by the pack rather than by a fresh assignment.*
+  If the chronology already covers what the accounting analyst needs, issue the
+  Tier 2 assignment now and name the existing artefact as its source. Say which
+  you relied on — a dependency satisfied from stale material is a real risk and
+  must be visible.
 
 State the plan as waves: "Wave 1 (parallel): A, B, C. Wave 2 (needs A+B): D."
 Never issue a Wave 2 task with placeholder inputs.
@@ -159,6 +218,34 @@ A conflict you cannot resolve is a finding. Record it in the report under
 unresolved questions with both positions and what would settle it — never
 silently drop the losing view.
 
+## Step 6a — Rank the issues
+
+With nine specialists returning findings, an unranked report is unusable. Rank
+every open issue on four axes, and record the score for each:
+
+| Axis | Question | Scale |
+|---|---|---|
+| **Urgency** | Is a deadline or an irreversible event driving it? | `now` / `weeks` / `no-clock` |
+| **Legal significance** | Does it change whether a claim survives, or only its strength? | `dispositive` / `material` / `marginal` |
+| **Evidentiary strength** | How well is it supported *today*? | `documented` / `supported` / `alleged-only` / `contradicted` |
+| **Curability** | Can it be fixed, and how cheaply? | `redraft` / `new-facts` / `needs-evidence` / `incurable` |
+
+Then order by what a competent attorney would do first. The ordering heuristics
+that matter:
+
+- **Urgency beats significance.** A curable defect with a deadline this week
+  outranks a dispositive question with no clock.
+- **Cheap and curable beats expensive and severe.** A defect fixable by renumbering
+  outranks one needing discovery, because it can be cleared today.
+- **Contradicted beats unsupported.** A proposition the record affirmatively
+  contradicts is more dangerous than one merely unproven, and must be dealt with
+  before it is relied on.
+- **Incurable items go to the top of a different list** — the decisions about what
+  to abandon — not into the work queue.
+
+Record the ranking in `06-issues/issue-register.csv` and reproduce the top five in
+the consolidated report.
+
 ## Step 7 — Produce the consolidated report
 
 Use the template in `references/work-product-report-template.md` verbatim — the
@@ -206,8 +293,11 @@ foreclosed loses a live position; calling a foreclosed one weak wastes a filing.
   each is either issued, superseded, or still queued with its dependency named.
   An unissued dependent task is disclosed in the report, never quietly dropped.
 - Update `02-court/procedural-posture.md` if the docket specialist refreshed it.
-- Log anything the human must decide in `11-decisions/attorney-decision-log.csv`
-  with `decided_by` left blank until a human fills it.
+- Log **every** `HD-` item any specialist raised into
+  `11-decisions/attorney-decision-log.csv`, with `decided_by` left blank until a
+  human fills it. `scripts/validate_crossrefs.py` reconciles the two and fails on
+  any decision raised in a result but missing from the log — run it, because a
+  blocking question that never reached the log has silently stopped blocking.
 - Re-run `validate_matter_pack.py --hash-check` and report the integrity result
   so the user can see the originals were untouched.
 
@@ -219,6 +309,12 @@ foreclosed loses a live position; calling a foreclosed one weak wastes a filing.
   Read when two specialists disagree.
 - `references/work-product-report-template.md` — the consolidated report
   template. Read before writing the final report.
+- `references/specialists.yaml` — the authoritative registry: every specialist,
+  what it does, what routes to it, what it depends on, what it produces, and the
+  routing rules. **Read before routing anything.** It is what the handoff
+  validator enforces, so a name that is not in it will be rejected.
+  Nine specialists are currently registered; the registry, not this file, is the
+  list to trust.
 - `references/worked-example.md` — a full cycle on a real matter: objective,
   wave plan, four assignments, and how the conflicts were reconciled. Read when
   you want a concrete model of the right level of granularity.

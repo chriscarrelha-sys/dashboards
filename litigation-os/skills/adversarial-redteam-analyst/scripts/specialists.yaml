@@ -1,0 +1,156 @@
+# LITIGATION OS — SPECIALIST REGISTRY
+#
+# The single place the system learns what specialists exist. The handoff
+# validator reads it to decide whether an assignment names a real specialist;
+# the orchestrator reads it to route work and to order the waves. Adding a
+# specialist is a change to this file plus the skill directory — nothing else.
+#
+# `routes_on` is what the orchestrator matches against: the KIND OF AUTHORITY
+# the answer rests on, not the topic. Two specialists may both be interested in
+# a ledger; only one of them answers questions whose answer is arithmetic.
+#
+# `depends_on` names specialists whose completed output this one normally needs.
+# It is advisory, not a hard gate: a dependency can be satisfied by material
+# already in the matter pack. The orchestrator must say which it relied on.
+
+schema_version: "2.0"
+
+specialists:
+
+  - name: litigation-matter-orchestrator
+    role: orchestrator
+    phase: 1
+    function: >
+      Managing attorney. Scopes objectives, decomposes them into bounded
+      assignments, routes, stress-tests returned results, reconciles conflicts,
+      ranks issues, and signs one consolidated work-product report.
+    routes_on: []          # the orchestrator is not routed to; it routes
+    depends_on: []
+    produces: [consolidated report, assignments, reconciliation table, issue ranking]
+
+  - name: legal-research-paralegal
+    role: specialist
+    phase: 1
+    function: >
+      Legal authority. Determines controlling jurisdiction, works the authority
+      hierarchy, verifies eight citation fields separately, hunts adverse
+      authority, separates holding from dicta.
+    routes_on:
+      - "what the law is; whether a claim or defense holds up"
+      - "what standard a court applies; whether authority is good law"
+      - "verifying quotations, citations, and subsequent history"
+    depends_on: []
+    produces: [research table, result]
+
+  - name: evidence-chronology-paralegal
+    role: specialist
+    phase: 1
+    function: >
+      Factual record. Source manifest, source-linked chronology, entity map,
+      proposition/evidence matrix, contradiction register, missing-evidence
+      list, witness index.
+    routes_on:
+      - "what the documents say; when things happened; who did what"
+      - "what a document proves as against what someone claims it proves"
+      - "contradictions between records; evidentiary gaps"
+    depends_on: []
+    produces: [source manifest, chronology, proposition matrix, contradiction register, missing-evidence list, entity index, result]
+
+  - name: docket-deadline-paralegal
+    role: specialist
+    phase: 1
+    function: >
+      Procedural control. Docket and order register, deadline register,
+      procedural-posture summary, unresolved procedural questions, critical-date
+      warnings. Never computes a deadline without all required inputs.
+    routes_on:
+      - "docket entries, orders, filings, procedural posture"
+      - "deadlines, filing windows, response periods, timeliness"
+    depends_on: []
+    produces: [docket register, deadline register, procedural posture, critical-date list, result]
+
+  - name: pleading-amendment-analyst
+    role: specialist
+    phase: 2
+    function: >
+      Pleading sufficiency and amendment strategy. Maps each claim to its
+      elements and the facts pleaded for each defendant; detects shotgun
+      pleading, group pleading, conclusory allegations, exhibit conflicts,
+      jurisdiction and standing defects; classifies each defect by kind and
+      curability; analyses Rule 15 options.
+    routes_on:
+      - "whether a pleading states a claim; element-by-element sufficiency"
+      - "shotgun pleading, group pleading, repleading orders"
+      - "whether to amend, Rule 15 timing, futility, prejudice"
+    depends_on: [evidence-chronology-paralegal, legal-research-paralegal, docket-deadline-paralegal]
+    produces: [claim-survival matrix, amendment decision memo, correction list, pleading-support table, result]
+
+  - name: loan-accounting-analyst
+    role: specialist
+    phase: 2
+    function: >
+      Transaction-level reconciliation of servicing ledgers, payments, wires,
+      reversals, suspense and unapplied funds, fees, escrow, and claimed
+      defaults. Shows every formula. Computes a running balance only when the
+      inputs exist.
+    routes_on:
+      - "what the ledger shows; whether payments reconcile"
+      - "reversals, suspense, unapplied funds, fee assessments"
+      - "the amount actually owed; disputed balances"
+    depends_on: [evidence-chronology-paralegal]
+    produces: [transaction reconciliation, disputed-amount schedule, unexplained-variance report, payment chronology, accounting questions, evidence-needed list, result]
+
+  - name: discovery-planning-analyst
+    role: specialist
+    phase: 2
+    function: >
+      Converts proven gaps, disputed elements and contradictions into targeted,
+      defendant-specific discovery, each request traced to the claim or element
+      it serves. Assesses proportionality, privilege, burden, custody and
+      timing. Drafts only; never serves.
+    routes_on:
+      - "what discovery to serve; what to ask for and from whom"
+      - "deposition planning, Rule 30(b)(6) topics, subpoena targets"
+      - "how to close an evidentiary gap"
+    depends_on: [evidence-chronology-paralegal, docket-deadline-paralegal, pleading-amendment-analyst]
+    produces: [discovery roadmap, custodian/source map, request-to-issue matrix, deposition plan, anticipated-objection analysis, result]
+
+  - name: securitization-ownership-analyst
+    role: specialist
+    phase: 2
+    function: >
+      Traces the asserted chain from originator and funder through note,
+      allonge, security instrument, assignments, servicer, depositor, trustee,
+      custodian and trust. Separates debt ownership from enforcement rights from
+      servicing authority. Separates material defects from securitization
+      theories courts routinely reject.
+    routes_on:
+      - "who owns the note; who may enforce; chain of title"
+      - "assignments, endorsements, trusts, servicing transfers"
+      - "borrower standing to challenge an assignment"
+    depends_on: [evidence-chronology-paralegal, legal-research-paralegal]
+    produces: [entity/role map, transfer chronology, authority matrix, missing-document list, viable-issue assessment, rejected-theory warnings, result]
+
+  - name: adversarial-redteam-analyst
+    role: specialist
+    phase: 2
+    function: >
+      Attacks the matter from five independent seats: defense counsel, a
+      skeptical magistrate, the assigned district judge, an evidentiary and
+      Rule 11 reviewer, and an appellate-preservation reviewer. Ranks the
+      attacks and says which survive.
+    routes_on:
+      - "what is the other side's best argument; how will the judge react"
+      - "Rule 11 exposure; credibility risk; waiver and preservation"
+      - "stress-testing a finished work product before it is relied on"
+    depends_on: [pleading-amendment-analyst, evidence-chronology-paralegal, legal-research-paralegal]
+    produces: [attack-surface report, argument ranking, credibility-risk list, curability analysis, corrective-action plan, result]
+
+# Routing discipline the orchestrator must apply, recorded here so it is read
+# alongside the list rather than only in the orchestrator's own instructions.
+routing_rules:
+  - "Route by the kind of authority the answer rests on, not by topic."
+  - "A mixed question is split into separate assignments, never sent whole to whichever specialist seems closest."
+  - "Never issue two assignments whose required_output overlaps. If two specialists need the same artefact, one produces it and the other is given it as a source."
+  - "A dependent specialist is issued only when its dependency has returned, or when the matter pack already contains the equivalent material — and the assignment must say which."
+  - "An assignment that would produce output nobody will read is not issued. Every assignment names the decision it supports."

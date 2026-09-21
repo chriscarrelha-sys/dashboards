@@ -4,5 +4,8 @@
   "SRC-011-extract-doc35-order.txt": "8dc185fdef23ec7984c05afdf46499ebff81d57c57aae841e6f16b6c92e555c7",
   "SRC-012-extract-cfpb-response.txt": "43ef21df589452b4597570da30e59824709596cb6532f74eb352df5c418c64eb",
   "SRC-013-extract-loan-history.txt": "ede57d06c5208ec2d0daca1e8bcd705c8cd2f871db51ca5baf7e105fe6d714bf",
-  "SRC-014-extract-courtlistener-docket.txt": "8989a6fa613784245ef0e2b9095534416266648c6eaf6672a3c92dcbf6a99210"
+  "SRC-014-extract-courtlistener-docket.txt": "8989a6fa613784245ef0e2b9095534416266648c6eaf6672a3c92dcbf6a99210",
+  "SRC-021-extract-fac-v2.txt": "383a06b755168e43f8d5a9868f5676ab0cd4be5b2e8c01094448f0a1d91fd93e",
+  "SRC-023-extract-dbrs-freed-2022he1.txt": "f54993c7f03d40e2589ec0b56c1760d9ca4802969741bcbb71a781a9a1b1257e",
+  "SRC-025-extract-5200-named-file.txt": "1073a32fbe3536939f1b34b1564e21eafc96d424cacc16e467382817c58d66c0"
 }

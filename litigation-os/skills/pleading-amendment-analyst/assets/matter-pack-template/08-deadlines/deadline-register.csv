@@ -1,0 +1,1 @@
+deadline_id,description,deadline_type,date,date_status,triggering_event,triggering_event_date,governing_rule,computation_method,calendar_basis,service_method,extensions_applied,consequence_of_missing,owner,ambiguity_flag,ambiguity_description,conflicts_with,verification_required,source_id,pinpoint,confidence,notes

@@ -12,10 +12,35 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
+# Phase 1 + Phase 2. The authoritative list is standards/specialists.yaml; this
+# array must match it, and the build fails below if it does not.
 SKILLS=(litigation-matter-orchestrator legal-research-paralegal
-        evidence-chronology-paralegal docket-deadline-paralegal)
+        evidence-chronology-paralegal docket-deadline-paralegal
+        pleading-amendment-analyst loan-accounting-analyst
+        discovery-planning-analyst securitization-ownership-analyst
+        adversarial-redteam-analyst)
 VALIDATORS=(common.py validate_matter_pack.py validate_handoff.py
             validate_registers.py validate_crossrefs.py validate_skill.py)
+
+echo "== checking the skill list against the registry =="
+python3 - "$HERE" "${SKILLS[@]}" <<'PY'
+import sys, pathlib, yaml
+here, *skills = sys.argv[1:]
+reg = yaml.safe_load((pathlib.Path(here) / "standards" / "specialists.yaml").read_text())
+named = {s["name"] for s in reg["specialists"]}
+have = set(skills)
+missing, extra = named - have, have - named
+ok = True
+for n in sorted(missing):
+    print(f"  ERROR: {n} is in specialists.yaml but not in install.sh"); ok = False
+for n in sorted(extra):
+    print(f"  ERROR: {n} is in install.sh but not in specialists.yaml"); ok = False
+for n in sorted(named):
+    if not (pathlib.Path(here) / "skills" / n).is_dir():
+        print(f"  ERROR: {n} is registered but skills/{n}/ does not exist"); ok = False
+print(f"  {len(named)} specialist(s) registered and present" if ok else "")
+sys.exit(0 if ok else 1)
+PY
 
 echo "== syncing shared resources into each skill =="
 for s in "${SKILLS[@]}"; do
@@ -23,6 +48,12 @@ for s in "${SKILLS[@]}"; do
   for v in "${VALIDATORS[@]}"; do
     cp "$HERE/tools/$v" "$HERE/skills/$s/scripts/$v"
   done
+  cp "$HERE/standards/specialists.yaml" "$HERE/skills/$s/scripts/specialists.yaml"
+  if [[ "$s" == "litigation-matter-orchestrator" ]]; then
+    mkdir -p "$HERE/skills/$s/references"
+    cp "$HERE/standards/specialists.yaml" "$HERE/skills/$s/references/specialists.yaml"
+  fi
+  cp "$HERE/standards/handoff-standard.md" "$HERE/skills/$s/references/handoff-standard.md"
   rm -rf "$HERE/skills/$s/assets/matter-pack-template"
   cp -r "$HERE/matter-pack-template" "$HERE/skills/$s/assets/matter-pack-template"
   # a freshly copied template carries no integrity baseline
@@ -32,6 +63,14 @@ done
 
 echo "== validating skill structure =="
 python3 "$HERE/tools/validate_skill.py" "${SKILLS[@]/#/$HERE/skills/}"
+
+echo "== checking for stale repo paths in bundled resources =="
+if grep -rn "litigation-os/tools\|litigation-os/matter-pack" "$HERE/skills/" 2>/dev/null; then
+  echo "  ERROR: a bundled resource references a repo path that will not exist"
+  echo "  in an installed skill. Use scripts/ and assets/ paths instead."
+  exit 1
+fi
+echo "  none found"
 
 echo "== validating the bundled template =="
 python3 "$HERE/tools/validate_matter_pack.py" "$HERE/matter-pack-template" --template

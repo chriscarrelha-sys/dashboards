@@ -23,12 +23,46 @@ try:
 except ImportError:  # pragma: no cover
     die("PyYAML is required: pip install pyyaml")
 
-SPECIALISTS = {
-    "legal-research-paralegal",
-    "evidence-chronology-paralegal",
-    "docket-deadline-paralegal",
-}
 ORCHESTRATOR = "litigation-matter-orchestrator"
+REGISTRY_NAME = "specialists.yaml"
+
+
+def _load_registry() -> set[str]:
+    """Read the specialist names from standards/specialists.yaml.
+
+    The registry is the single place the system learns what specialists exist.
+    Hardcoding the list here was a real defect: it meant adding a specialist
+    required editing this file in six installed copies, which is exactly the
+    drift install.sh exists to prevent.
+
+    Looked for next to this script (installed skills carry their own copy) and
+    then up the tree at standards/ (running from the repo). If it cannot be
+    found, fall back to the Phase 1 three and warn, rather than failing every
+    validation — a missing registry should not make the tool useless.
+    """
+    here = Path(__file__).resolve().parent
+    candidates = [here / REGISTRY_NAME, here.parent / "references" / REGISTRY_NAME]
+    for up in [here, *here.parents]:
+        candidates.append(up / "standards" / REGISTRY_NAME)
+    for c in candidates:
+        if c.is_file():
+            try:
+                data = yaml.safe_load(c.read_text(encoding="utf-8")) or {}
+            except yaml.YAMLError:
+                continue
+            names = {str(s.get("name", "")).strip()
+                     for s in (data.get("specialists") or [])
+                     if str(s.get("role", "")).strip() == "specialist"}
+            if names:
+                return names
+    print(f"warning: {REGISTRY_NAME} not found; falling back to the Phase 1 "
+          "specialist list. Assignments to Phase 2 specialists will be "
+          "rejected until the registry is installed.", file=sys.stderr)
+    return {"legal-research-paralegal", "evidence-chronology-paralegal",
+            "docket-deadline-paralegal"}
+
+
+SPECIALISTS = _load_registry()
 
 ASSIGNMENT_REQUIRED = [
     "doc_type", "schema_version", "assignment_id", "matter_id", "issued_by",

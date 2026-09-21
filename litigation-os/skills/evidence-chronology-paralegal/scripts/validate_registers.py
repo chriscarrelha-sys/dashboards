@@ -290,11 +290,282 @@ def check_evidence(rep: Report, root: Path) -> None:
                           "without it the row is speculation, not a gap")
 
 
+
+
+# ---------------------------------------------------------------- Phase 2 ----
+
+def check_pleading(rep: Report, root: Path) -> None:
+    path = root / "07-evidence/claim-survival-matrix.csv"
+    header, rows = read_csv(path)
+    if rows:
+        check_enum(rep, path, rows, "element_status",
+                   {"proved", "supported", "pleaded-only", "conclusory", "gap", "foreclosed"})
+        check_enum(rep, path, rows, "survival_assessment",
+                   {"likely-survives", "contested", "likely-dismissed", "foreclosed"})
+        check_enum(rep, path, rows, "curability",
+                   {"curable-by-redraft", "curable-with-new-facts",
+                    "curable-only-with-evidence", "incurable", "n/a"})
+        for i, row in enumerate(rows, start=2):
+            cid = (row.get("claim_id") or f"line {i}").strip()
+            dfd = (row.get("defendant") or "").strip()
+            if not re.match(r"^ENT-\d{3}$", dfd):
+                rep.error(f"claim-survival-matrix.csv {cid} line {i}: defendant is "
+                          f"'{dfd}'. Every row names ONE defendant by ENT-### id; a "
+                          "collective noun is the finding, not an answer.")
+            if not (row.get("element_source") or "").strip():
+                rep.error(f"claim-survival-matrix.csv {cid} line {i}: element_source "
+                          "is empty. An element recited from memory silently corrupts "
+                          "every row that depends on it.")
+            st = (row.get("element_status") or "").strip()
+            sv = (row.get("survival_assessment") or "").strip()
+            if sv == "likely-survives" and st in {"gap", "foreclosed"}:
+                rep.error(f"claim-survival-matrix.csv {cid} line {i}: "
+                          f"survival_assessment=likely-survives with element_status="
+                          f"{st}. An element that is a gap or foreclosed cannot support "
+                          "a likely-survives assessment.")
+            if not (row.get("strongest_attack") or "").strip():
+                rep.error(f"claim-survival-matrix.csv {cid} line {i}: strongest_attack "
+                          "is empty. If you cannot state the best attack on this "
+                          "element, it has not been tested.")
+
+    path = root / "07-evidence/pleading-defects.csv"
+    header, rows = read_csv(path)
+    if rows:
+        check_enum(rep, path, rows, "present", {"yes", "no", "UNVERIFIED"})
+        check_enum(rep, path, rows, "kind",
+                   {"factual", "legal", "evidentiary", "procedural", "n/a", "UNVERIFIED"})
+        check_enum(rep, path, rows, "severity",
+                   {"fatal-to-claim", "fatal-to-defendant", "partial", "cosmetic",
+                    "n/a", "UNVERIFIED"})
+        check_enum(rep, path, rows, "curability",
+                   {"curable-by-redraft", "curable-with-new-facts",
+                    "curable-only-with-evidence", "incurable", "n/a", "UNVERIFIED"})
+        seen_numbers = set()
+        for i, row in enumerate(rows, start=2):
+            did = (row.get("defect_id") or f"line {i}").strip()
+            if not re.match(r"^PD-\d{2}$", did):
+                rep.error(f"pleading-defects.csv line {i}: defect_id '{did}' must match PD-##")
+            num = (row.get("defect_number") or "").strip()
+            if num:
+                seen_numbers.add(num)
+            if not (row.get("pleading_analysed") or "").strip():
+                rep.error(f"pleading-defects.csv {did}: pleading_analysed is empty. Every "
+                          "defect finding names the document it was found in — matters "
+                          "routinely hold several drafts of the same pleading.")
+            if not (row.get("what_the_test_showed") or "").strip():
+                rep.error(f"pleading-defects.csv {did}: what_the_test_showed is empty. A "
+                          "defect recorded without the test that found it cannot be "
+                          "re-checked.")
+            if (row.get("present") or "").strip() == "yes":
+                if not (row.get("cure") or "").strip():
+                    rep.error(f"pleading-defects.csv {did}: present=yes with no cure. A "
+                              "defect with no proposed cure is a complaint.")
+                if not (row.get("cost_if_not_cured") or "").strip():
+                    rep.error(f"pleading-defects.csv {did}: present=yes with no "
+                              "cost_if_not_cured — the attorney cannot triage it.")
+                if (row.get("curability") or "").strip() in ("", "n/a"):
+                    rep.error(f"pleading-defects.csv {did}: present=yes requires a "
+                              "curability rating")
+        # The scan is a fourteen-item checklist; a partial run is reported as such.
+        if seen_numbers and len(seen_numbers) < 14:
+            rep.warn(f"pleading-defects.csv records {len(seen_numbers)} of the 14 defect "
+                     "tests. A partial scan must say so in the result rather than "
+                     "reading as a complete one.")
+
+    path = root / "07-evidence/pleading-support-table.csv"
+    _, rows = read_csv(path)
+    if rows:
+        check_enum(rep, path, rows, "rule11_risk", {"none", "low", "material", "high"})
+        check_enum(rep, path, rows, "fact_type",
+                   {"documented", "personal-knowledge", "information-and-belief",
+                    "inference", "legal-conclusion"})
+        for i, row in enumerate(rows, start=2):
+            aid = (row.get("allegation_id") or f"line {i}").strip()
+            if not (row.get("gap_between_allegation_and_source") or "").strip():
+                rep.error(f"pleading-support-table.csv {aid}: "
+                          "gap_between_allegation_and_source is empty; write 'none' "
+                          "when there is no gap")
+            sup = split_ids(row.get("source_ids", ""))
+            basis = (row.get("basis_if_unsupported") or "").strip()
+            if not sup and not basis:
+                rep.error(f"pleading-support-table.csv {aid}: no source_ids and no "
+                          "basis_if_unsupported. Every allegation needs a source, a "
+                          "named witness, or an explicit [BASIS-REQUIRED] flag — this "
+                          "is the Rule 11 guard.")
+
+
+def check_accounting(rep: Report, root: Path) -> None:
+    path = root / "07-evidence/transaction-reconciliation.csv"
+    header, rows = read_csv(path)
+    if rows:
+        check_enum(rep, path, rows, "classification",
+                   {"posted", "reversed", "reversal-of", "reapplied", "suspense-in",
+                    "suspense-out", "fee-assessed", "fee-waived", "fee-disbursed",
+                    "adjustment", "draw", "booking", "duplicate", "misclassified",
+                    "unexplained"})
+        ids = {(r.get("txn_id") or "").strip() for r in rows}
+        for i, row in enumerate(rows, start=2):
+            tid = (row.get("txn_id") or f"line {i}").strip()
+            cls = (row.get("classification") or "").strip()
+            pairs = (row.get("pairs_with") or "").strip()
+            if cls in {"reversed", "reversal-of", "reapplied"} and not pairs:
+                rep.error(f"transaction-reconciliation.csv {tid}: classification="
+                          f"{cls} with no pairs_with. A reversal is two rows and one "
+                          "economic event; name the other row.")
+            for pid in split_ids(pairs):
+                if pid not in ("n/a", "none", "") and pid not in ids:
+                    rep.error(f"transaction-reconciliation.csv {tid}: pairs_with "
+                              f"'{pid}' is not a txn_id in this table")
+            if not (row.get("description_verbatim") or "").strip():
+                rep.error(f"transaction-reconciliation.csv {tid}: "
+                          "description_verbatim is empty. The servicer's own wording "
+                          "is the evidence and is never dropped.")
+            amb = (row.get("col_ambiguous") or "").strip().lower()
+            used = (row.get("used_in_computation") or "").strip().lower()
+            if amb == "yes" and used == "yes":
+                rep.error(f"transaction-reconciliation.csv {tid}: col_ambiguous=yes "
+                          "but used_in_computation=yes. A figure you are not sure you "
+                          "read correctly cannot appear in arithmetic.")
+            if cls in {"draw", "booking", "unexplained"} and \
+                    not (row.get("basis") or "").strip():
+                rep.error(f"transaction-reconciliation.csv {tid}: classification="
+                          f"{cls} requires a stated basis")
+
+    path = root / "07-evidence/disputed-amounts.csv"
+    _, rows = read_csv(path)
+    if rows:
+        check_enum(rep, path, rows, "category",
+                   {"arithmetic-error", "application-dispute", "unexplained-variance",
+                    "characterization-dispute"})
+        for i, row in enumerate(rows, start=2):
+            did = (row.get("dispute_id") or f"line {i}").strip()
+            if (row.get("difference") or "").strip() and \
+                    not (row.get("computation_shown") or "").strip():
+                rep.error(f"disputed-amounts.csv {did}: a difference is stated with no "
+                          "computation_shown. Every figure shows its arithmetic.")
+            if not (row.get("assumptions") or "").strip():
+                rep.error(f"disputed-amounts.csv {did}: assumptions is empty; write "
+                          "'none' if there are none")
+            if not (row.get("what_would_resolve") or "").strip():
+                rep.error(f"disputed-amounts.csv {did}: what_would_resolve is empty")
+            if (row.get("claimed_source_id") or "").strip() and \
+                    not (row.get("claimed_pinpoint") or "").strip():
+                rep.error(f"disputed-amounts.csv {did}: a claimed figure is given with "
+                          "a source but no pinpoint")
+
+
+def check_discovery(rep: Report, root: Path) -> None:
+    path = root / "09-research/discovery/request-to-issue.csv"
+    header, rows = read_csv(path)
+    if not rows:
+        return
+    check_enum(rep, path, rows, "instrument",
+               {"document-request", "interrogatory", "request-for-admission",
+                "30b6-topic", "deposition", "subpoena"})
+    check_enum(rep, path, rows, "gate_status",
+               {"gate-open", "gate-closed", "GATE-UNVERIFIED"})
+    for i, row in enumerate(rows, start=2):
+        rid = (row.get("request_id") or f"line {i}").strip()
+        to = (row.get("directed_to") or "").strip()
+        if not re.match(r"^ENT-\d{3}$", to):
+            rep.error(f"request-to-issue.csv {rid}: directed_to is '{to}'. Each "
+                      "request goes to ONE party by ENT-### id; a request to 'all "
+                      "Defendants' is objectionable wherever a party lacks the "
+                      "documents.")
+        gaps = split_ids(row.get("closes_gap_ids", ""))
+        elem = (row.get("serves_element") or "").strip()
+        if not gaps and not elem:
+            rep.error(f"request-to-issue.csv {rid}: traces to no gap and no element. "
+                      "A request that cannot be traced should not be served.")
+        if not (row.get("why_this_party") or "").strip():
+            rep.error(f"request-to-issue.csv {rid}: why_this_party is empty")
+        try:
+            pr = int((row.get("priority") or "9").strip())
+        except ValueError:
+            pr = 9
+        if pr == 1 and not (row.get("anticipated_objections") or "").strip():
+            rep.error(f"request-to-issue.csv {rid}: priority 1 with no "
+                      "anticipated_objections. The highest-value requests are the "
+                      "ones most worth narrowing before service.")
+
+
+def check_ownership(rep: Report, root: Path) -> None:
+    path = root / "07-evidence/authority-matrix.csv"
+    _, rows = read_csv(path)
+    if rows:
+        check_enum(rep, path, rows, "right_asserted",
+                   {"foreclose", "collect", "own-debt", "hold-note", "service", "report"})
+        check_enum(rep, path, rows, "materiality",
+                   {"dispositive", "material", "immaterial", "unknown-pending-research"})
+        for i, row in enumerate(rows, start=2):
+            rid = (row.get("row_id") or f"line {i}").strip()
+            if not (row.get("what_it_does_not_establish") or "").strip():
+                rep.error(f"authority-matrix.csv {rid}: what_it_does_not_establish is "
+                          "empty. That column is what keeps the matrix honest — a "
+                          "recorded assignment establishes recording, not the "
+                          "underlying transfer.")
+            if (row.get("materiality") or "").strip() == "dispositive" and \
+                    not (row.get("supporting_authority") or "").strip():
+                rep.error(f"authority-matrix.csv {rid}: materiality=dispositive with "
+                          "no supporting_authority. Route it to research before "
+                          "calling it dispositive.")
+
+    path = root / "07-evidence/transfer-chronology.csv"
+    _, rows = read_csv(path)
+    if rows:
+        for i, row in enumerate(rows, start=2):
+            tid = (row.get("transfer_id") or f"line {i}").strip()
+            if (row.get("sequence_anomaly") or "").strip().lower() == "yes":
+                if not (row.get("anomaly_description") or "").strip():
+                    rep.error(f"transfer-chronology.csv {tid}: sequence_anomaly=yes "
+                              "with no anomaly_description")
+                if not (row.get("innocent_explanation") or "").strip():
+                    rep.error(f"transfer-chronology.csv {tid}: sequence_anomaly=yes "
+                              "with no innocent_explanation. Recording lag and "
+                              "after-the-fact assignments are normal; an anomaly you "
+                              "cannot explain benignly has not been analysed.")
+
+
+def check_redteam(rep: Report, root: Path) -> None:
+    path = root / "07-evidence/attack-surface.csv"
+    _, rows = read_csv(path)
+    if not rows:
+        return
+    check_enum(rep, path, rows, "seat",
+               {"defense", "magistrate", "district-judge", "rule11", "appellate"})
+    check_enum(rep, path, rows, "likelihood", {"high", "medium", "low"})
+    check_enum(rep, path, rows, "answer_strength", {"strong", "adequate", "weak", "none"})
+    check_enum(rep, path, rows, "basis_type",
+               {"researched-authority", "record-based", "analyst-reading"})
+    for i, row in enumerate(rows, start=2):
+        aid = (row.get("attack_id") or f"line {i}").strip()
+        if not (row.get("best_support_for_them") or "").strip():
+            rep.error(f"attack-surface.csv {aid}: best_support_for_them is empty. An "
+                      "attack with no support is speculation and wastes as much time "
+                      "as an invented strength.")
+        if not (row.get("our_best_answer") or "").strip():
+            rep.error(f"attack-surface.csv {aid}: our_best_answer is empty; write "
+                      "'none' explicitly if we have no answer — that is a finding")
+        if (row.get("credibility_risk") or "").strip().lower() == "yes" and \
+                not (row.get("corrective_action_id") or "").strip():
+            rep.error(f"attack-surface.csv {aid}: credibility_risk=yes with no "
+                      "corrective_action_id. A credibility risk with no proposed "
+                      "action is a complaint.")
+        try:
+            rank = int((row.get("rank") or "99").strip())
+        except ValueError:
+            rank = 99
+        if rank <= 5 and not (row.get("corrective_action_id") or "").strip():
+            rep.error(f"attack-surface.csv {aid}: ranked {rank} with no "
+                      "corrective_action_id")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Validate matter-pack registers")
     ap.add_argument("pack", type=Path)
     ap.add_argument("--which", default="all",
-                    choices=["all", "deadlines", "research", "evidence"])
+                    choices=["all", "deadlines", "research", "evidence", "pleading",
+                             "accounting", "discovery", "ownership", "redteam"])
     args = ap.parse_args()
     root = args.pack.resolve()
     if not root.is_dir():
@@ -307,6 +578,16 @@ def main() -> int:
         check_research(rep, root)
     if args.which in ("all", "evidence"):
         check_evidence(rep, root)
+    if args.which in ("all", "pleading"):
+        check_pleading(rep, root)
+    if args.which in ("all", "accounting"):
+        check_accounting(rep, root)
+    if args.which in ("all", "discovery"):
+        check_discovery(rep, root)
+    if args.which in ("all", "ownership"):
+        check_ownership(rep, root)
+    if args.which in ("all", "redteam"):
+        check_redteam(rep, root)
     return rep.emit()
 
 

@@ -1,0 +1,1 @@
+txn_id,source_id,pinpoint,trans_date,effective_date,due_date,description_verbatim,code_verbatim,flag_verbatim,amount_verbatim,principal_verbatim,interest_verbatim,fees_verbatim,balance_after_verbatim,money_type_verbatim,classification,pairs_with,net_effect,reading,col_ambiguous,used_in_computation,confidence,basis,notes

@@ -101,7 +101,10 @@ parties:
 procedural_posture:
   as_of: "2026-09-21"
   summary: >
-    Removed to federal court 2026-04-15. On 2026-07-20 Judge Story denied remand,
+    PHASE 2 UPDATE: a second, later candidate First Amended Complaint has been found
+    (SRC-020, 16 counts, dated 2026-08-19). It is materially different from and better
+    than SRC-001 and supersedes the Phase 1 pleading analysis. Which - if either - was
+    filed remains unestablished. Removed to federal court 2026-04-15. On 2026-07-20 Judge Story denied remand,
     denied the preliminary-injunction and oral-hearing motions as moot, and
     ordered Defendants to give Plaintiffs and the Court at least 60 days advance
     notice before proceeding with foreclosure. On 2026-07-31 Magistrate Judge
@@ -194,6 +197,18 @@ open_factual_questions:
     question: "What individual practices or standing orders of Judge Story and Magistrate Judge Howard apply?"
     why_it_matters: "Local practice routinely changes page limits, conferral requirements, and filing mechanics."
     how_to_resolve: "The court's website and the judges' published standing orders."
+  - id: OFQ-6
+    question: "Which of the two candidate First Amended Complaints was filed: SRC-001 (9 counts) or SRC-020 (16 counts)?"
+    why_it_matters: "The Phase 2 pleading and red-team analyses both describe SRC-020. If SRC-001 was filed, both change materially."
+    how_to_resolve: "PACER/CM-ECF docket for 2:26-cv-00110-RWS-AWH."
+  - id: OFQ-7
+    question: "Did the four 2025 tenders of $1,899.56 clear Plaintiffs' bank without being returned?"
+    why_it_matters: "Three were reversed with NSF entries each recorded at $0.00. If the bank records show they cleared, the servicer's own ledger becomes evidence of misapplication."
+    how_to_resolve: "Plaintiffs' depositary records for April-July 2025."
+  - id: OFQ-8
+    question: "Where did the balance of the $149,650.00 HELOC face amount go, given that only $51,409.50 appeared in Plaintiffs' account?"
+    why_it_matters: "Count IX (failure of consideration) turns on it, and it is the question Judge Bagley identified as controlling many claims."
+    how_to_resolve: "Closing file, settlement statement, disbursement schedule, creditor payoff confirmations."
   - id: OFQ-5
     question: "Was the loan history statement printed 2026-03-10 (SRC-006) the same 'payment history' enclosed with the 2026-03-02 letter (SRC-005)?"
     why_it_matters: "The print date postdates the letter; if they differ, the enclosure to the letter has not been produced."
@@ -219,6 +234,18 @@ open_legal_questions:
     question: "Does a post-merger predecessor servicer remain separately suable, and does suing it by a d/b/a that belongs to another entity create a defect?"
     why_it_matters: "Two of the named defendants' status is disputed on this basis (SRC-010 at 1 n.1)."
     jurisdiction: "Delaware entity law; Georgia procedure; Eleventh Circuit"
+  - id: OLQ-5
+    question: "What does Ames v. JP Morgan Chase Bank, N.A., 298 Ga. 732 (2016) hold about borrower standing to challenge an assignment, and what are its carveouts?"
+    why_it_matters: "Governs whether any ownership finding supports a claim, or only discovery and impeachment. SRC-020 is drafted around it."
+    jurisdiction: "Georgia; Supreme Court of Georgia"
+  - id: OLQ-6
+    question: "Does 15 U.S.C. 1692k(d) carry a one-year limitations period, and does any continuing-violation or discovery theory apply?"
+    why_it_matters: "Determines whether the FDCPA count is facially time-barred as to 2023-2024 conduct on the pleading's own dates."
+    jurisdiction: "Eleventh Circuit"
+  - id: OLQ-7
+    question: "Are the element formulations used in the claim-survival matrix correct under controlling authority?"
+    why_it_matters: "Every row of the matrix depends on them. They are currently taken from the pleading's own recitals and marked UNRESEARCHED."
+    jurisdiction: "Federal and Georgia"
   - id: OLQ-4
     question: "Do Rule 34 requests served before any Rule 26(f) conference violate Rule 26(d)(1), and what is the consequence?"
     why_it_matters: "SRC-004 is dated 2026-08-19 and refers to the Rule 26(f) conference as still to come."
@@ -233,3 +260,8 @@ last_verified:
     SRC-006 (5-page loan history statement). Read in part: SRC-004, SRC-007.
     Queried CourtListener for the docket; it returned metadata only (SRC-008).
     No PACER access in this session.
+    PHASE 2: additionally read in full SRC-020 (16-count First Amended Complaint,
+    93,675 chars) and SRC-024 (the 01/16/2026 ledger print). Read in part SRC-022
+    (DBRS FREED 2022-HE1 press release). Counts X-XVI of SRC-020 were read at
+    heading level only. No primary ownership document - note, allonge, assignment
+    instrument, security deed, trust agreement or loan schedule - was read.

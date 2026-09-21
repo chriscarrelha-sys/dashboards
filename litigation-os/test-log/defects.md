@@ -175,3 +175,168 @@ was left this way deliberately: a matter legitimately has no contradictions unti
 someone looks for them, and an emptiness check would force placeholder rows,
 which are worse than no rows. The orchestrator's completion standard, not the
 validator, is what requires the registers to be populated for a given assignment.
+
+---
+
+# Phase 2 intake audit — Phase 1 defects found by inspection
+
+Found by auditing the Phase 1 deliverables directly rather than trusting the
+Phase 1 summary. All five are repaired before any Phase 2 work begins.
+
+## P1-R01 — Stale repo paths inside bundled resources (CORRECTED)
+
+`skills/litigation-matter-orchestrator/scripts/README.md` and the bundled
+`assets/matter-pack-template/README.md` in all four skills still gave commands as
+`python3 litigation-os/tools/...`. The SKILL.md files were repointed to
+`scripts/` during Phase 1; these two files were missed. A skill copied to a
+machine with no repo would hand the user four commands that cannot run.
+Repaired and added to the install-time check so it cannot recur.
+
+## P1-R02 — The handoff validator hardcoded three specialist names (CORRECTED)
+
+`validate_handoff.py` carried `SPECIALISTS = {three names}` as a literal. Every
+Phase 2 assignment would have been rejected as "not an installed specialist,"
+and the natural workaround — editing the set in six copies of the file — is
+exactly the drift Phase 1 built `install.sh` to prevent.
+
+Replaced with a single registry, `standards/specialists.yaml`, which names every
+specialist, its function, its routing trigger, and its dependencies. The
+validator reads it; the orchestrator reads it; `install.sh` syncs it. Adding a
+tenth specialist is now a one-file change.
+
+## P1-R03 — Eleven human decisions were raised and none was logged (CORRECTED)
+
+The three Phase 1 results raised eleven `HD-` items, five of them blocking. The
+attorney decision log held **zero rows**. The orchestrator's own Step 8 requires
+logging them, and the log is the gate on outward action: if it is empty, there is
+no record of what a human authorised and no way to tell an approved act from an
+unapproved one.
+
+This is the most substantive of the five. The failure was that Step 8 stated the
+requirement in prose and nothing checked it. Repaired three ways: the eleven
+decisions were logged with `decided_by` blank pending a human; a new check in
+`validate_crossrefs.py` reconciles every `HD-` raised in a result against the
+decision log and fails on any that is missing; and the orchestrator's Step 8 now
+points at that check by name.
+
+## P1-R04 — Byte-compiled Python committed (CORRECTED)
+
+`tools/__pycache__/*.pyc` was tracked. Removed and added a `.gitignore`.
+
+## P1-R05 — Template artefact copied into a live matter (ACCEPTED, NOT CHANGED)
+
+`research-table-TEMPLATE.csv` is copied into every new matter because the matter
+pack is created by copying the template wholesale. `validate_registers.py`
+already skips any filename containing `TEMPLATE`. Leaving it is deliberate: the
+header row is genuinely useful next to the live tables, and the alternative —
+special-casing the copy — adds a moving part to prevent a non-problem.
+
+---
+
+# Phase 2 — defects found by forward testing, and corrections
+
+## P2-D01 — A reversal was declared with no pairing row (CORRECTED)
+
+**Surfaced:** building the transaction reconciliation. `validate_registers.py`
+rejected TXN-022, classified `reversal-of`, because `pairs_with` was empty.
+
+**Cause:** the row it reverses — a 03/14/23 "Principal Only Payment" of $103.38 —
+had simply not been transcribed. The classification was right; the ledger was
+incompletely transcribed.
+
+**Correction:** TXN-072 added and the pair recorded in both directions. The
+validator caught an incomplete transcription that a reader would not have
+noticed, which is exactly what the pairing rule is for.
+
+## P2-D02 — An ID-shaped token with an unregistered family validated clean (CORRECTED — improvement pass 1)
+
+**Surfaced:** a deliberate probe. `CLMM-001` (a typo for `CLM-001`) was injected
+into the attack-surface register. `validate_crossrefs.py` returned PASS.
+
+**Cause:** the resolver skipped any token whose prefix was not a registered
+family, because columns like `actor` legitimately hold free text. The effect was
+that the one thing most likely to be wrong — a mistyped identifier — was the one
+thing guaranteed not to be caught.
+
+**Why it mattered more than it looks:** a dangling identifier that validates
+clean is worse than a blank cell, because it reads as provenance. The whole point
+of the cross-reference checker is to prevent exactly that, and it had a hole
+shaped like its own purpose.
+
+**Correction:** anything matching `^[A-Z]{2,6}-\d{1,4}$` is now treated as an
+identifier. An unregistered family is an error naming the token, the family, and
+the registered families, with instructions to fix the typo or register the
+family. Ten Phase 2 families were registered at the same time.
+
+**It immediately caught three real errors in live data** — attack-surface rows
+targeting `ALG-` allegation ids in a column whose allowed families did not
+include them. The right fix was to widen the column (an attack legitimately
+targets an allegation), and that would never have been noticed without the check.
+
+## P2-D03 — The pleading-defect register was completely unchecked (CORRECTED — improvement pass 2)
+
+**Surfaced:** a second probe. `present: maybe`, `severity: catastrophic`,
+`curability: someday`, and a defect marked present with no cure — all validated
+clean.
+
+**Cause:** `pleading-defects.csv` was created during Phase 2 to hold the 14-item
+scan. Its ids were cross-referenced, so a dangling `PD-` was caught, but nothing
+checked the file's own contents.
+
+**Correction:** `check_pleading` now validates `present`, `kind`, `severity` and
+`curability` against controlled values; requires `pleading_analysed` on every row
+(matters routinely hold several drafts of the same pleading, and a defect finding
+that does not say which one it examined is useless); requires
+`what_the_test_showed` so a finding can be re-checked; and requires a cure, a
+cost, and a curability rating on every defect marked present — because a defect
+with no proposed cure is a complaint. It also warns when fewer than fourteen
+tests are recorded, so a partial scan cannot read as a complete one.
+
+## P2-D04 — The corrective-action plan existed only in prose (CORRECTED)
+
+**Surfaced:** after improvement pass 1, ten `CA-` references in the attack-surface
+register resolved to nothing.
+
+**Cause:** the red-team skill requires a "prioritized corrective-action plan," and
+one was written — as a table inside the result. Prose is not addressable. Nothing
+else in the pack could point at CA-03, and no validator could check that a
+top-ranked attack actually had a corrective action behind it.
+
+**Correction:** `07-evidence/corrective-actions.csv` added to the template, the
+matter pack, the red-team skill's assets, and the cross-reference resolver, with
+ten rows tracing to the attacks and defects they address. The register is now the
+plan; the result's table is a view of it.
+
+**Lesson, and it generalises:** an output that only exists as prose cannot be
+validated, cross-referenced, or tracked to completion. Where a deliverable is a
+list of things someone must do, it belongs in a register.
+
+---
+
+# Phase 2 — limits documented, not corrected
+
+## P2-N01 — A `[COL?]` figure is excluded row-locally, not globally
+
+`used_in_computation` is enforced within the transaction register, so an
+ambiguous figure cannot be marked as used there. But nothing prevents that same
+figure appearing in a `computation_shown` string in the disputed-amount schedule.
+In this matter it does appear — reading (ii) of DISP-001 uses the `[COL?]`
+$729.13 — and it is labelled as shown for completeness and not relied on.
+
+Not corrected because the only mechanical fix is string-matching amounts across
+files, which would fire on every legitimate coincidence of figures. The guard is
+the discipline of stating it, plus the `assumptions` column, which is required.
+
+## P2-N02 — No primary ownership document was read in the test matter
+
+The note, allonge, endorsements, assignment instrument, security deed, trust
+agreement and loan schedule are all absent. The ownership result carries
+`confidence: low` for this reason and says so in its first line. This is a
+limitation of the available record, not of the skill — but it means the
+securitization specialist has been exercised against descriptions of documents
+rather than documents, and that is a weaker test than it appears.
+
+## P2-N03 — Six of sixteen counts were not analysed
+
+Counts X through XVI were read at heading level only. The pleading result and the
+red-team result both say so. The attack surface is incomplete by construction.

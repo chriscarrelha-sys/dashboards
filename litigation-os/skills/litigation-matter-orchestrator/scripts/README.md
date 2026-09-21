@@ -5,13 +5,13 @@ so there is one implementation to keep correct:
 
 ```bash
 # structure, control fields, source-manifest integrity, originals unchanged
-python3 litigation-os/tools/validate_matter_pack.py <pack> --hash-check
+python3 scripts/validate_matter_pack.py <pack> --hash-check
 
 # assignment and result schema conformance
-python3 litigation-os/tools/validate_handoff.py --dir <pack>/10-specialist-results
+python3 scripts/validate_handoff.py --dir <pack>/10-specialist-results
 
 # deadline, research, and evidence register discipline
-python3 litigation-os/tools/validate_registers.py <pack>
+python3 scripts/validate_registers.py <pack>
 ```
 
 Run the first before issuing any assignment, the second before issuing and again

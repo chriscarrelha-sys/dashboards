@@ -10,7 +10,7 @@ Create a new matter by copying this whole directory to
 first. Then run:
 
 ```
-python3 litigation-os/tools/validate_matter_pack.py litigation-os/matters/<matter-slug>
+python3 scripts/validate_matter_pack.py <path-to-this-pack>
 ```
 
 ## Layout

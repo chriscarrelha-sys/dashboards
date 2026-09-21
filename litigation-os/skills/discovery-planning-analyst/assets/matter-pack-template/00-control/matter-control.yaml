@@ -1,0 +1,83 @@
+# MATTER CONTROL FILE — the single source of truth for this matter.
+# Every specialist reads this before doing anything. If a field here conflicts
+# with a specialist's own notes, this file wins, and the conflict is reported.
+# Replace every <ANGLE BRACKET> placeholder. Leave a field as the literal string
+# UNDETERMINED if it is genuinely unknown — never guess, and never delete a key.
+
+schema_version: "1.1"
+
+matter_id: <SHORTNAME-YEAR>          # e.g. CARRELHA-2026. Uppercase, no spaces.
+matter_name: <Full case caption, short form>
+
+court:
+  name: <Full court name>
+  division: <Division or UNDETERMINED>
+  case_number: <Case number exactly as the court writes it>
+  presiding_judge: <Name and title>
+  referred_magistrate: <Name and title, or NONE>
+  related_cases:                      # prior/parallel proceedings over same facts
+    - case_number: <number>
+      court: <court>
+      relationship: <removed-from | consolidated | appeal | parallel | prior>
+      status: <open | closed | UNDETERMINED>
+
+jurisdiction:
+  basis: <e.g. federal question, 28 U.S.C. 1331; supplemental, 1367>
+  governing_procedure: <procedural rule sets that control, incl. local rules and standing orders>
+  governing_substantive_law: <whose substantive law governs which claims>
+  controlling_appellate_authority: <the circuit or state appellate court that binds this court>
+
+parties:
+  - name: <Party name exactly as captioned>
+    role: <plaintiff | defendant | intervenor | third-party | non-party>
+    represented_by: <counsel name, or PRO SE>
+    status: <active | dismissed | never-served | disputed>
+    notes: <e.g. "Defendants dispute this entity is a party">
+
+procedural_posture:
+  as_of: <YYYY-MM-DD>
+  summary: <2-4 sentences. What stage the case is at, what is pending, who acts next.>
+  pending_motions:
+    - docket_no: <n>
+      title: <title>
+      filed: <YYYY-MM-DD>
+      status: <pending | ripe | denied as moot | granted>
+
+immediate_objectives:                 # what the client/attorney needs now, ranked
+  - priority: 1
+    objective: <outcome-phrased, e.g. "Determine whether the FAC cures Doc. 35's defects">
+    needed_by: <YYYY-MM-DD or UNDETERMINED>
+
+controlling_deadlines:                # ONLY dates you can point to a source for.
+  - description: <what is due>
+    date: <YYYY-MM-DD>
+    status: <express | calculated | UNVERIFIED>
+    source: <SRC-### and pinpoint>
+    consequence_of_missing: <what happens if blown>
+
+authorized_source_locations:          # specialists may read ONLY these
+  - <relative path or external repository, e.g. "03-sources/raw/">
+  - <e.g. "Published law via legal research tools">
+
+prohibited_actions:                   # matter-specific, added to the standing list
+  - "No filing, serving, sending, or e-filing anything with any court or party."
+  - "No modification, renaming, relocation, or deletion of anything in 03-sources/raw/."
+  - "No communication with opposing counsel, the court, or any third party."
+  - "No representation of a fact, date, citation, or amount not supported by a source."
+
+open_factual_questions:
+  - id: OFQ-1
+    question: <question>
+    why_it_matters: <which claim/defense/motion turns on it>
+    how_to_resolve: <document, discovery request, or witness that would answer it>
+
+open_legal_questions:
+  - id: OLQ-1
+    question: <question, framed so it has a researchable answer>
+    why_it_matters: <what turns on it>
+    jurisdiction: <which law governs the answer>
+
+last_verified:
+  date: <YYYY-MM-DD>
+  by: <human name>
+  method: <how the above was checked, e.g. "read Doc. 34 and Doc. 35 in full">

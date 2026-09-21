@@ -1,0 +1,75 @@
+VERBATIM EXTRACT — NOT THE COMPLETE DOCUMENT
+Source: "DBRS Morningstar Assigns Provisional Ratings to FREED Mortgage Trust
+        2022-HE1", DBRS, Inc. press release, November 08, 2022.
+        Retrieved from dbrs.morningstar.com/research/405095/... on 2026-07-25.
+        Drive file id 1F0E3pPM7UfnshgujD_RbKIe9AlIXBufv (PDF, 112,402 bytes).
+Extract prepared: 2026-09-21.
+
+CHARACTER OF THIS SOURCE: a rating agency's PRESS RELEASE about a provisional
+rating. It is not a Pooling and Servicing Agreement, not a mortgage loan
+schedule, and not any transaction document. It describes a pool; it does not
+identify any individual loan. It cannot show that any particular HELOC is or is
+not in the FREED pool.
+
+--- verbatim ---
+"DBRS, Inc. (DBRS Morningstar) assigned provisional ratings to the Mortgage-
+Backed Notes, Series 2022-HE1 (the Notes) to be issued by FREED Mortgage Trust
+2022-HE1 (FREED 2022-HE1 or the Trust) as follows:
+ -- $126.0 million Class A at AAA (sf)
+ -- $14.2 million Class B at BBB (low) (sf)
+ -- $17.0 million Class C at B (low) (sf)"
+
+"This a securitization of first- and junior-lien revolving home equity lines of
+credit (HELOCs) recently originated mainly for debt consolidation and funded by
+the issuance of the Notes. The Notes are backed by 3,292 HELOCs with a total
+unpaid principal balance of $174,776,710 and a total current credit limit of
+$179,870,451 as of the Cut-Off Date (September 30, 2022). The portfolio, on
+average, is seven months seasoned, though seasoning ranges from two to 33 months.
+Approximately 98.8% of the HELOCs have been performing since origination."
+
+"Lendage, LLC (Lendage), a real estate finance company, is the Originator of all
+HELOCs in the pool. Launched in 2019, Lendage is a residential mortgage lender
+that specializes in originating HELOCs to consumer borrowers. As of June 30,
+2022, its HELOC portfolio consisted of 4,150 loans with an original loan balance
+of more than $230 million, of which approximately 90% consisted of the Debt
+Consolidation product."
+
+"Lendage is a subsidiary of Freedom Financial Network Funding, LLC (Freedom
+Financial) and Lendage Holding, LLC, both of which are subsidiaries of Pantheon
+Freedom, Inc., Lendage's ultimate parent company. Within Freedom Financial,
+Lendage is an affiliate of Freedom Financial Network, LLC (FFN)."
+
+"The transaction's Sponsor is Series B, a series of Freedom Consumer Credit Fund,
+LLC (the Sponsor or the Fund), an affiliate of Freedom Financial Asset
+Management, LLC (FFAM). FFAM is an operating entity of FFN and a general partner
+in the Fund, acting as an advisor to the Fund. The Fund was set up to acquire the
+consumer loans from FFN and Lendage, sponsor securitizations, and manage a
+portfolio of loans and securities, including the securities retained after the
+securitization issuance."
+
+"The transaction is the first securitization of HELOCs by the Sponsor."
+
+"Lendage offers two HELOC products: the Lendage Debt Consolidation (Limited
+Cash-Out) HELOCs and the Lendage Expanded Use HELOCs. The Debt Consolidation
+HELOCs are designed for borrowers with available equity in their homes, but have
+secured or unsecured debts that generate significant interest expenses and/or
+limit the borrowers' cash flow. A minimum monthly payment savings of $200 is
+required under the Debt Consolidation program. The Expanded Use HELOCs (Cash-Out)
+are intended for borrowers with higher credit scores looking to improve their
+homes or plan for additional expenses and allows for less th[an]..."
+[extract ends where the retrieved text was truncated]
+
+--- FACTS ESTABLISHED BY THIS SOURCE, PRECISELY ---
+1. A trust named FREED Mortgage Trust 2022-HE1 exists and issued rated notes.
+2. Its Cut-Off Date is September 30, 2022.
+3. Lendage, LLC originated ALL HELOCs in that pool.
+4. The pool held 3,292 HELOCs / $174,776,710 UPB at the Cut-Off Date.
+5. The sponsor is Series B of Freedom Consumer Credit Fund, LLC.
+6. Lendage sits under Freedom Financial Network Funding, LLC and Lendage
+   Holding, LLC, both under Pantheon Freedom, Inc.
+
+--- WHAT THIS SOURCE DOES NOT ESTABLISH ---
+It does not identify the Carrelha loan, or any loan, by number, borrower, or
+property. A HELOC originated by Lendage in July 2022 fits the pool's origination
+window and originator, but fitting a profile is not membership. Only the mortgage
+loan schedule, the custodian's records, or the trustee can establish membership.

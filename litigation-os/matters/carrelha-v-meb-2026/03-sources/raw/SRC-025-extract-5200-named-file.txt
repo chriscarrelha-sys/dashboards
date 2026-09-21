@@ -1,0 +1,37 @@
+VERBATIM NOTE ON A NAMED SOURCE — NEGATIVE FINDING
+Source: "2026-04-16 - Unknown Other 20260416-SHELLPOINT- 5200 on Ledger.pdf"
+        Drive file id 19nxbSSUH_cHaUy6C_I__lvIvjwvLGJbO, 153,736 bytes, 2026-04-16.
+        The client's own filename asserts that a $5,200 entry appears on the ledger.
+Extract prepared: 2026-09-21.
+
+WHAT THE FILE ACTUALLY IS: a scanned, OCR-degraded copy of **page 3 of 5** of the
+same Shellpoint "Loan History Statement" registered at SRC-006/SRC-013, printed
+"OV16/2026 4:29:59PM" (OCR of 01/16/2026 4:29:59PM). It carries a handwritten or
+typed annotation at the head reading "do these".
+
+WHAT IT CONTAINS: the transaction rows from 05/06/24 back through 09/14/23,
+including the 12/21/23 cluster, the 10/11/23 -$855.00, the 09/26/23 +$855.00, the
+09/26/23 -$10,000.00, and the 09/15/23 +$10,000.00.
+
+*** NEGATIVE FINDING — RECORDED BECAUSE THE FILENAME ASSERTS THE OPPOSITE ***
+No entry in the amount of $5,200.00, and no entry containing the digits 5200 in
+any amount column, appears anywhere in this file. The file named "5200 on Ledger"
+does not show $5,200 on the ledger.
+
+THE NEAREST CANDIDATE, for the accounting analyst to reconcile rather than assume:
+the 12/21/23 cluster, two days after a wire date of December 19, 2023 asserted
+outside this document. As printed, that cluster is:
+    12/21/23  Regular Payment          $2,081.81  (due 11/01/23)
+    12/21/23  Late Charge Assess         -$104.12 (due 12/01/23)
+    12/21/23  Regular Payment          $2,082.46  (due 12/01/23)
+    12/21/23  Late Charge Waive          $729.13
+    12/21/23  Principal Only Payment     $191.60
+Whether these entries represent the application of a single $5,200.00 remittance
+is NOT stated anywhere on the face of the document. See the variance computation
+in the accounting reconciliation; do not assume it.
+
+OCR QUALITY: poor. "$1.249.01" for "$1,249.01", "50.00" for "$0.00", "$10,467.84"
+where SRC-013 reads "$10,467.64", "Prior Servic"/"Pria Servic"/"PriorService" for
+"PriorServicer". Every figure taken from this file must be read against SRC-013,
+which is a native-text rendering of the same statement. Where the two differ,
+SRC-013 controls and the difference is noted.
