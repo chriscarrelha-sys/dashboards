@@ -57,6 +57,12 @@ ID_PATTERNS = {
     "ERM": re.compile(r"^ERM-\d{3}$"),
     "CUS": re.compile(r"^CUS-\d{3}$"),
     "HD": re.compile(r"^HD-\d{1,3}$"),
+    # Phase 3 operating layer.
+    "IDX": re.compile(r"^IDX-\d{3}$"),     # source-intake record
+    "CV": re.compile(r"^CV-\d{3}$"),       # citation verification
+    "APR": re.compile(r"^APR-\d{3}$"),     # human approval request
+    "WP": re.compile(r"^WP-\d{3}$"),       # produced work product
+    "TSK": re.compile(r"^TSK-\d{3}$"),     # task board
 }
 
 # Anything shaped like an identifier — UPPERCASE, a hyphen, digits — is treated as
@@ -105,6 +111,14 @@ REFERENCES = [
     ("07-evidence/disputed-amounts.csv", "related_claim_ids", {"CLM", "DEF"}),
     ("07-evidence/corrective-actions.csv", "prevents_attack_ids", {"ATK"}),
     ("07-evidence/corrective-actions.csv", "addresses_defect_ids", {"PD"}),
+    # Phase 3 operating layer
+    ("00-control/task-board.csv", "depends_on", {"TSK"}),
+    ("00-control/task-board.csv", "blocks", {"TSK"}),
+    ("00-control/task-board.csv", "unresolved_questions", {"OFQ", "OLQ", "ISS", "HD"}),
+    ("03-sources/source-index.csv", "duplicate_of", {"IDX"}),
+    ("09-research/citation-verification.csv", "used_in",
+     {"CLM", "DEF", "ISS", "AUTH", "WP", "ATK", "DL", "PROP", "GAP", "PD", "OLQ", "OFQ"}),
+    ("12-workproduct/production-log.csv", "approval_id", {"APR"}),
 ]
 
 # (file, column) pairs that DEFINE ids
@@ -128,6 +142,13 @@ DEFINITIONS = [
     ("07-evidence/pleading-support-table.csv", "allegation_id"),
     ("07-evidence/pleading-defects.csv", "defect_id"),
     ("07-evidence/corrective-actions.csv", "action_id"),
+    # Phase 3 operating layer
+    ("00-control/task-board.csv", "task_id"),
+    ("03-sources/source-index.csv", "index_id"),
+    ("09-research/citation-verification.csv", "cv_id"),
+    ("11-decisions/approval-requests.csv", "approval_id"),
+    ("11-decisions/attorney-decision-log.csv", "decision_id"),
+    ("12-workproduct/production-log.csv", "doc_id"),
 ]
 
 

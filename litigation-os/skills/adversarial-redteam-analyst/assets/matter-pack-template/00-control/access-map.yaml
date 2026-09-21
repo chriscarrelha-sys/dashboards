@@ -1,0 +1,135 @@
+# ACCESS MAP — <MATTER-SLUG>
+#
+# Where each source system lives, who can reach it, and what THIS session
+# actually had. It is a routing and provenance record, not a credential store.
+#
+# ABSOLUTE RULE — no secrets in this file, ever:
+#   No password. No passphrase. No PIN. No MFA / OTP / TOTP code or seed.
+#   No security-question answer. No API key, token, cookie or session id.
+#   No PACER, eFileGA/Odyssey, PeachCourt or email login of any kind.
+# A credential belongs in the human's own password manager. This file records
+# only WHERE a thing is and WHO holds the key, never the key.
+# `validate_access_map.py` scans this file (and the whole pack) and fails the
+# build if anything that looks like a secret is present.
+
+schema_version: "1.0"
+matter_id: <MATTER-ID>
+compiled_by: <NAME>
+compiled_date: <YYYY-MM-DD>
+
+# Each system the matter's material may live in. Delete the ones that do not
+# apply; do not leave a placeholder row claiming access nobody has.
+systems:
+
+  - key: google-drive
+    kind: cloud-storage
+    purpose: primary client document repository
+    reached_via: Google Drive connector (read)
+    credential_holder: client            # who holds the login — NOT the login
+    credential_location: client password manager
+    session_access: <none|read|read-write>
+    verified_on: <YYYY-MM-DD>
+    scope_note: <which folders were actually in scope>
+    write_permitted: no                  # originals are never modified
+    notes: <>
+
+  - key: dropbox
+    kind: cloud-storage
+    purpose: <>
+    reached_via: Dropbox connector
+    credential_holder: <>
+    credential_location: <>
+    session_access: <none|read|read-write>
+    verified_on: <YYYY-MM-DD>
+    scope_note: <>
+    write_permitted: no
+    notes: <>
+
+  - key: notion
+    kind: workspace
+    purpose: <case notes, task tracking>
+    reached_via: Notion connector
+    credential_holder: <>
+    credential_location: <>
+    session_access: <none|read|read-write>
+    verified_on: <YYYY-MM-DD>
+    scope_note: <>
+    write_permitted: <>
+    notes: <>
+
+  - key: pacer
+    kind: court-record
+    purpose: federal docket and filed documents
+    reached_via: pacer.uscourts.gov (human login) / CourtListener RECAP (free mirror)
+    credential_holder: <attorney of record>
+    credential_location: <human password manager — never here>
+    session_access: none
+    verified_on: <YYYY-MM-DD>
+    scope_note: >
+      RECAP mirrors only what somebody has already purchased. Absence from
+      RECAP is not absence from the docket. Any docket fact taken from RECAP
+      carries that limitation into every register that cites it.
+    write_permitted: no
+    cost_note: PACER charges per page. A human authorises each purchase.
+    notes: <>
+
+  - key: peachcourt
+    kind: court-record
+    purpose: Georgia state e-filing and county docket access
+    reached_via: peachcourt.com (human login)
+    credential_holder: <>
+    credential_location: <human password manager — never here>
+    session_access: none
+    verified_on: <YYYY-MM-DD>
+    scope_note: <which county/case>
+    write_permitted: no
+    notes: filing through this system requires an approved APR- gate entry.
+
+  - key: odyssey-efilega
+    kind: court-efiling
+    purpose: Georgia eFileGA / Odyssey submission
+    reached_via: efilega.tylertech.cloud (human login)
+    credential_holder: <>
+    credential_location: <human password manager — never here>
+    session_access: none
+    verified_on: <YYYY-MM-DD>
+    write_permitted: no
+    notes: >
+      No skill and no script submits here. A filing is prepared, QC'd, and
+      handed to a human with an approved APR- entry; the human files it.
+
+  - key: email
+    kind: correspondence
+    purpose: correspondence with counsel, servicer, agencies
+    reached_via: <Gmail connector | client mailbox>
+    credential_holder: <>
+    credential_location: <>
+    session_access: <none|read>
+    verified_on: <YYYY-MM-DD>
+    scope_note: <>
+    write_permitted: no
+    notes: nothing is sent without an approved APR- entry.
+
+  - key: public-legal-research
+    kind: legal-research
+    purpose: case law, statutes, rules, local rules, standing orders
+    reached_via: CourtListener / Descrybe / court websites / government publishers
+    credential_holder: n/a
+    credential_location: n/a
+    session_access: read
+    verified_on: <YYYY-MM-DD>
+    scope_note: >
+      Full text where available. NO commercial citator (Shepard's / KeyCite).
+      Good-law status therefore tops out at CITATOR-LIMITED MEDIUM — see
+      legal-research-paralegal references/verification-protocol.md.
+    write_permitted: no
+    notes: <>
+
+# Systems the matter needs but nobody in this session can reach. Every one of
+# these becomes a GAP- row in 07-evidence/missing-evidence.csv.
+known_inaccessible:
+  - system: <>
+    what_is_in_it: <>
+    why_unreachable: <>
+    gap_ids: <GAP-###>
+    how_a_human_would_get_it: <>

@@ -34,6 +34,8 @@ REQUIRED_DIRS = [
     "00-control", "01-parties", "02-court", "03-sources", "03-sources/raw",
     "04-docket", "05-chronology", "06-issues", "07-evidence", "08-deadlines",
     "09-research", "09-research/discovery", "10-specialist-results", "11-decisions",
+    # Phase 3 operating layer.
+    "12-workproduct", "12-workproduct/drafts", "12-workproduct/final",
 ]
 
 REQUIRED_FILES = [
@@ -67,6 +69,20 @@ REQUIRED_FILES = [
     "07-evidence/attack-surface.csv",
     "07-evidence/custodian-map.csv",
     "09-research/discovery/request-to-issue.csv",
+    # Phase 3: the operating layer. Each is a header-only file in a new pack.
+    # access-map.yaml records WHERE each source system is reached and who holds
+    # the key; it never holds a credential. task-board.csv is how a planned task
+    # survives the session that planned it. source-index.csv is the intake
+    # record behind the manifest. citation-verification.csv is where a quotation
+    # stops being an assertion. approval-requests.csv is the human gate in front
+    # of every irreversible act. production-log.csv is what was rendered and
+    # whether it passed QC.
+    "00-control/access-map.yaml",
+    "00-control/task-board.csv",
+    "03-sources/source-index.csv",
+    "09-research/citation-verification.csv",
+    "11-decisions/approval-requests.csv",
+    "12-workproduct/production-log.csv",
 ]
 
 # Top-level keys every matter-control file must carry. A missing key is an

@@ -560,12 +560,167 @@ def check_redteam(rep: Report, root: Path) -> None:
                       "corrective_action_id")
 
 
+def check_operations(rep: Report, root: Path) -> None:
+    """The Phase 3 operating registers: the task board and the source index.
+
+    Both exist to survive the session that created them. A task that lives only
+    in an orchestrator's working memory is a task that gets dropped at the
+    handoff; a source whose intake was never recorded is a source whose
+    provenance rests on somebody's recollection.
+    """
+    # ---------------------------------------------------------- task board --
+    path = root / "00-control/task-board.csv"
+    header, rows = read_csv(path)
+    if not header:
+        rep.error("missing or empty: 00-control/task-board.csv")
+    else:
+        require_columns(rep, path, header, [
+            "task_id", "title", "specialist", "assignment_id", "wave", "status",
+            "depends_on", "blocks", "opened_date", "completed_date", "output_path",
+            "unresolved_questions", "decision_supported", "notes"])
+        statuses = {"planned", "issued", "in-progress", "blocked", "returned",
+                    "complete", "cancelled"}
+        check_enum(rep, path, rows, "status", statuses)
+        ids = {(r.get("task_id") or "").strip() for r in rows}
+        for i, r in enumerate(rows, start=2):
+            g = lambda c: (r.get(c) or "").strip()  # noqa: E731
+            tid = g("task_id")
+            if not re.match(r"^TSK-\d{3}$", tid):
+                rep.error(f"{path.name} line {i}: task_id '{tid}' is not TSK-###")
+            if not g("title"):
+                rep.error(f"{path.name} line {i} [{tid}]: title is empty")
+            if not g("decision_supported"):
+                rep.error(f"{path.name} line {i} [{tid}]: decision_supported is "
+                          f"empty. A task that supports no decision is output "
+                          f"nobody will read.")
+            st = g("status")
+            if st == "complete":
+                if not g("completed_date"):
+                    rep.error(f"{path.name} line {i} [{tid}]: status=complete with "
+                              f"no completed_date")
+                if not g("output_path"):
+                    rep.error(f"{path.name} line {i} [{tid}]: status=complete with "
+                              f"no output_path. Completed work that points at no "
+                              f"artefact was not completed.")
+            if st == "blocked" and not g("depends_on"):
+                rep.error(f"{path.name} line {i} [{tid}]: status=blocked but "
+                          f"depends_on is empty — say what it is blocked on")
+            if st in {"issued", "in-progress", "returned", "complete"} and not g("assignment_id"):
+                rep.error(f"{path.name} line {i} [{tid}]: status='{st}' with no "
+                          f"assignment_id")
+            for dep in split_ids(g("depends_on")):
+                if dep == tid:
+                    rep.error(f"{path.name} line {i} [{tid}]: depends on itself")
+            if st == "complete" and g("unresolved_questions"):
+                rep.note(f"{tid} completed while still carrying open question(s): "
+                         f"{g('unresolved_questions')}")
+        # A dependency cycle silently stalls a plan; find it rather than wait.
+        graph = {(r.get("task_id") or "").strip(): split_ids(r.get("depends_on") or "")
+                 for r in rows}
+        state: dict[str, int] = {}
+
+        def visit(n: str, trail: list[str]) -> None:
+            if state.get(n) == 2:
+                return
+            if state.get(n) == 1:
+                rep.error(f"task-board.csv: dependency cycle "
+                          f"{' -> '.join(trail + [n])}")
+                return
+            state[n] = 1
+            for m in graph.get(n, []):
+                if m in graph:
+                    visit(m, trail + [n])
+            state[n] = 2
+
+        for n in graph:
+            visit(n, [])
+        if rows:
+            rep.note(f"task board: {len(rows)} task(s), "
+                     f"{sum(1 for r in rows if (r.get('status') or '') == 'complete')} complete")
+
+    # -------------------------------------------------------- source index --
+    path = root / "03-sources/source-index.csv"
+    header, rows = read_csv(path)
+    if not header:
+        rep.error("missing or empty: 03-sources/source-index.csv")
+        return
+    require_columns(rep, path, header, [
+        "index_id", "original_name", "original_system", "sha256", "dedupe_status",
+        "duplicate_of", "text_layer", "ocr_status", "classification",
+        "classification_basis", "imported_date", "source_id", "original_preserved"])
+    check_enum(rep, path, rows, "dedupe_status",
+               {"unique", "duplicate", "extract", "read-in-place", "superseded"})
+    check_enum(rep, path, rows, "original_preserved", {"yes"})
+    known_idx = {(r.get("index_id") or "").strip() for r in rows}
+    man_header, man_rows = read_csv(root / "03-sources/source-manifest.csv")
+    known_src = {(r.get("source_id") or "").strip() for r in man_rows}
+    for i, r in enumerate(rows, start=2):
+        g = lambda c: (r.get(c) or "").strip()  # noqa: E731
+        iid = g("index_id")
+        if not re.match(r"^IDX-\d{3}$", iid):
+            rep.error(f"{path.name} line {i}: index_id '{iid}' is not IDX-###")
+        if g("original_preserved") != "yes":
+            rep.error(f"{path.name} line {i} [{iid}]: original_preserved is not "
+                      f"'yes'. An import that did not preserve the original is a "
+                      f"modification of case material and is prohibited.")
+        digest = g("sha256")
+        if g("dedupe_status") == "read-in-place":
+            # Bytes that were never held cannot be fingerprinted. Say so
+            # explicitly and name where they were read, so the absence is a
+            # recorded fact rather than a blank nobody notices.
+            if digest != "NOT-COPIED":
+                rep.error(f"{path.name} line {i} [{iid}]: read-in-place intake must "
+                          f"record sha256 as NOT-COPIED, not '{digest[:24]}'. A hash "
+                          f"here would be a hash of something other than the source.")
+            if not g("original_location"):
+                rep.error(f"{path.name} line {i} [{iid}]: read-in-place intake with "
+                          f"no original_location — nobody can go back to it")
+        elif digest and not re.match(r"^[0-9a-f]{64}$", digest):
+            rep.error(f"{path.name} line {i} [{iid}]: sha256 '{digest[:20]}...' is "
+                      f"not a 64-character hex digest")
+        elif not digest:
+            rep.error(f"{path.name} line {i} [{iid}]: sha256 is empty — a source "
+                      f"with no fingerprint cannot be shown to be unchanged")
+        if g("dedupe_status") == "duplicate":
+            if not g("duplicate_of"):
+                rep.error(f"{path.name} line {i} [{iid}]: marked duplicate with no "
+                          f"duplicate_of")
+            elif g("duplicate_of") not in known_idx:
+                rep.error(f"{path.name} line {i} [{iid}]: duplicate_of "
+                          f"'{g('duplicate_of')}' is not an index_id in this file")
+        elif g("dedupe_status") in {"unique", "extract", "read-in-place"}:
+            sid = g("source_id")
+            if not sid:
+                rep.error(f"{path.name} line {i} [{iid}]: a {g('dedupe_status')} "
+                          f"intake with no source_id never reached the manifest")
+            elif sid not in known_src:
+                rep.error(f"{path.name} line {i} [{iid}]: source_id '{sid}' is not "
+                          f"in source-manifest.csv")
+        if g("text_layer") == "no" and g("ocr_status") in {"", "not-required"}:
+            rep.error(f"{path.name} line {i} [{iid}]: text_layer=no but ocr_status "
+                      f"'{g('ocr_status')}'. A document with no text layer has not "
+                      f"been read by anything; say pending, ocr-complete or "
+                      f"ocr-unavailable.")
+        if g("classification") == "UNCLASSIFIED":
+            rep.warn(f"{path.name} line {i} [{iid}]: UNCLASSIFIED — a human must "
+                     f"set doc_type before this source is cited")
+        elif not g("classification_basis"):
+            rep.error(f"{path.name} line {i} [{iid}]: classification "
+                      f"'{g('classification')}' with no classification_basis. A "
+                      f"classification nobody can argue with is a guess.")
+    if rows:
+        dup = sum(1 for r in rows if (r.get("dedupe_status") or "") == "duplicate")
+        rep.note(f"source index: {len(rows)} intake record(s), {dup} duplicate(s) "
+                 f"deduplicated")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Validate matter-pack registers")
     ap.add_argument("pack", type=Path)
     ap.add_argument("--which", default="all",
                     choices=["all", "deadlines", "research", "evidence", "pleading",
-                             "accounting", "discovery", "ownership", "redteam"])
+                             "accounting", "discovery", "ownership", "redteam",
+                             "operations"])
     args = ap.parse_args()
     root = args.pack.resolve()
     if not root.is_dir():
@@ -588,6 +743,8 @@ def main() -> int:
         check_ownership(rep, root)
     if args.which in ("all", "redteam"):
         check_redteam(rep, root)
+    if args.which in ("all", "operations"):
+        check_operations(rep, root)
     return rep.emit()
 
 

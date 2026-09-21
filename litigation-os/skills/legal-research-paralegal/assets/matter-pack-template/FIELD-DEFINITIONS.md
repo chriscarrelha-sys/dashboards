@@ -230,3 +230,103 @@ The most safety-critical file in the pack.
 | `authorizes_action` | The specific thing the human has approved — e.g. "draft (do not file) opposition to MTD." Nothing outbound happens without a row here. |
 | `expires` | When the authorization lapses, or `n/a`. Approval to draft is not approval to file next month. |
 | `decided_by` | A human name. A skill may never populate this. |
+
+---
+
+# Phase 3 — the operating layer
+
+## `00-control/access-map.yaml`
+
+Not a CSV. See `matter-operations-manager/references/access-map-protocol.md`
+for the full protocol. The rule that matters most: `credential_holder` names a
+**person or role** and `credential_location` names a **place**. Neither ever
+holds a key. Nothing anywhere in the pack does.
+
+| Field | Meaning |
+|---|---|
+| `key` | Short stable name for the system, used in prose and registers. |
+| `kind` | `cloud-storage`, `workspace`, `court-record`, `court-efiling`, `correspondence`, `legal-research`. |
+| `reached_via` | The route — a connector, a URL, "human login". Never the key. |
+| `session_access` | `none`, `read`, or `read-write`. What **this session** actually had, not what exists. |
+| `verified_on` | The date access was actually exercised. Required whenever access is claimed; access never exercised is not access. |
+| `scope_note` | What was in scope, and what the source's nature limits. RECAP mirrors only what somebody purchased; a client folder shows what the client kept. |
+| `write_permitted` | Always `no` for court systems and anything holding originals. |
+| `known_inaccessible[].gap_ids` | Every unreachable system needs a `GAP-` row. An access gap that is not a gap row is one nobody will close. |
+
+## `00-control/task-board.csv`
+
+| Column | Meaning |
+|---|---|
+| `task_id` | `TSK-###`. |
+| `title` | What the task is, in a line. |
+| `specialist` | Which registered specialist owns it. |
+| `assignment_id` | The `ASSIGN-` document. Required once status leaves `planned`. |
+| `wave` | 1, 2 or 3 — which dependency tier. |
+| `status` | `planned`, `issued`, `in-progress`, `blocked`, `returned`, `complete`, `cancelled`. A task is written as `planned` **when it is planned**, not when it is issued. |
+| `depends_on` / `blocks` | `TSK-` ids. The validator reports dependency cycles. |
+| `completed_date` / `output_path` | Both required to close. "Done" pointing at nothing is not done. |
+| `unresolved_questions` | `OFQ-`/`OLQ-`/`ISS-`/`HD-` ids still open. Closing over an open question is sometimes right and must be visible. |
+| `decision_supported` | Required. A task supporting no decision is output nobody will read, and is not issued. |
+
+## `03-sources/source-index.csv`
+
+The intake record behind the manifest. The manifest says what a source *is*;
+the index says how it *got here* and what was done to it.
+
+| Column | Meaning |
+|---|---|
+| `index_id` | `IDX-###`. |
+| `original_system` / `original_location` | Where it came from. For read-in-place material, "read in place — not copied". |
+| `sha256` | 64 hex characters, taken **before** anything else happens. A source with no fingerprint cannot be shown to be unchanged. For a `read-in-place` source — examined at its own location and never copied — this reads `NOT-COPIED`, and `original_location` must say where it was read. Bytes never held cannot be fingerprinted, and a hash of a substitute would be worse than none. |
+| `content_hash_group` | First 12 of the hash — a readable handle for a duplicate set. |
+| `dedupe_status` | The intake disposition: `unique`, `duplicate`, `extract`, `read-in-place`, `superseded`. Dedupe is by **bytes**, never by filename; when two files are identical, the one whose name does not read as a copy becomes canonical. |
+| `duplicate_of` | The `IDX-` this duplicates. Required when `dedupe_status: duplicate`. |
+| `text_layer` | `native-text`, `yes`, `no`, `n/a`. Detected before OCR, because OCR over an existing text layer degrades it. |
+| `ocr_status` | `not-required`, `pending`, `ocr-complete`, `ocr-unavailable`, `ocr-derived`, `n/a`. `text_layer: no` can never sit beside `not-required`. |
+| `classification` | The detected `doc_type`, or `UNCLASSIFIED`. Never a plausible guess. |
+| `classification_basis` | The phrase that fired the classifier. A classification nobody can argue with is a guess. |
+| `source_id` | The `SRC-` this became in the manifest. A `unique` intake with no `source_id` never reached the manifest. |
+| `original_preserved` | Always `yes`. Anything else means case material was modified, which is prohibited. |
+
+## `09-research/citation-verification.csv`
+
+| Column | Meaning |
+|---|---|
+| `cv_id` | `CV-###`. |
+| `cited_as` | The citation **exactly as it will appear in the filing**. That string is what is being checked. |
+| `authority_type` | `case`, `statute`, `regulation`, `federal-rule`, `local-rule`, `standing-order`, `constitutional`, `secondary`. |
+| `verification_target` | `quotation`, `pincite`, `holding`, `existence`, `text`, `subsequent-history`, `effective-date`. |
+| `target_text_verbatim` | The words actually read. Required for any verified quotation. |
+| `located_in` | Where it was read — reporter page, slip op., `SRC-` id, database. A quotation with no located_in is a memory. |
+| `pincite` | Required for a quotation. A quotation without a page is a paraphrase; label it one or find the page. |
+| `subsequent_history_checked` / `history_result` | Checked separately from good law. Record what was found, including "nothing adverse located". |
+| `still_good_law` | `yes` requires a stated `verification_method`. Without a commercial citator the honest ceiling is **CITATOR-LIMITED MEDIUM**, never high. |
+| `version_checked` / `effective_or_amendment_date` | Required for statutes, regulations and federal, local and standing rules. These texts change; the operative one is the one in force at the relevant time. |
+| `unverified_fields` | What was not confirmed. `confidence: high` cannot sit beside a non-empty value here. |
+| `verified_by` | A name. A verification nobody signed is not a verification. |
+
+## `11-decisions/approval-requests.csv`
+
+| Column | Meaning |
+|---|---|
+| `approval_id` | `APR-###`. |
+| `action_type` | `file`, `serve`, `send`, `publish`, `delete`, `rename`, `move`, `other`. |
+| `why_needed` | The order, rule or deadline that requires it. |
+| `irreversibility` | `irreversible`, `hard-to-reverse`, `reversible`. Filing, serving, sending, publishing and deleting may **never** be recorded as reversible — a human asked to approve on that premise is being misled. |
+| `what_human_must_review` | Exactly what to look at before deciding. |
+| `human_decision` | `pending`, `approved`, `approved-with-conditions`, `denied`, `withdrawn`. |
+| `decided_by` | A human name. A skill may never populate this. |
+| `conditions` | Required when `approved-with-conditions`. |
+| `executed` / `executed_date` | Set by the human **after they perform the action**. `executed: yes` without approval, or after denial, is a hard error and means the gate was bypassed. |
+
+## `12-workproduct/production-log.csv`
+
+| Column | Meaning |
+|---|---|
+| `doc_id` | `WP-###`. |
+| `doc_kind` | Drives QC: a `response`, `motion`, `brief` or `letter` is served and requires a certificate of service; a `work-product`, `report`, `analysis` or `internal-memo` is not. |
+| `source_markdown` | The single source both outputs were rendered from. Editing a PDF or Word file directly breaks that and is not permitted. |
+| `page_count` / `searchable_text` | Measured from the finished PDF by `qc_document.py`, not asserted. |
+| `qc_status` | `not-run`, `pass`, `pass-with-warnings`, `fail`. A `fail` is not handed to a human; it is fixed at source and re-produced. |
+| `approval_id` | The `APR-` that authorises anything outward-facing. Empty means nothing outward-facing has been authorised. |
+| `status` | `draft` until an approved gate entry says otherwise. Everything in `drafts/` carries a DRAFT overlay. |

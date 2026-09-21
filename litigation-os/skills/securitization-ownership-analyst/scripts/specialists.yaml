@@ -13,7 +13,7 @@
 # It is advisory, not a hard gate: a dependency can be satisfied by material
 # already in the matter pack. The orchestrator must say which it relied on.
 
-schema_version: "2.0"
+schema_version: "3.0"
 
 specialists:
 
@@ -146,6 +146,43 @@ specialists:
     depends_on: [pleading-amendment-analyst, evidence-chronology-paralegal, legal-research-paralegal]
     produces: [attack-surface report, argument ranking, credibility-risk list, curability analysis, corrective-action plan, result]
 
+  - name: matter-operations-manager
+    role: operations
+    phase: 3
+    function: >
+      The operating layer. Creates matter packs, imports and inventories
+      authorized sources with hashing, deduplication, OCR, classification and
+      indexing while leaving every original byte-identical, maintains the
+      authoritative source manifest and the register set, tracks every
+      assignment on a task board with dependencies and open questions,
+      maintains the access map, operates the human-approval gate in front of
+      every irreversible act, and produces the matter command-center report.
+    routes_on:
+      - "creating a matter; bringing documents in; what sources do we have"
+      - "what is outstanding; what is due; what is waiting on a human"
+      - "anything that would file, serve, send, delete, rename or move a document"
+    depends_on: []
+    produces: [matter pack, source index, source manifest, task board, access map, approval requests, command-center report]
+
+  - name: document-production-qc
+    role: operations
+    phase: 3
+    function: >
+      Renders a court-formatted filing or work product to PDF and Word from one
+      Markdown source, applying caption, paper, margins, spacing, font,
+      pagination, signature block and certificate of service from declared
+      requirements. Then inspects the result — searchable text, caption, case
+      number, pagination, signature, certificate, exhibits, internal
+      references, leftover drafting text, draft marking and redaction markers
+      over extractable text — and renders page images for visual inspection.
+      Drafts only.
+    routes_on:
+      - "produce a filing, motion, brief, letter, memorandum or exhibit index"
+      - "render to PDF or Word; check a document before a human reviews it"
+      - "does this document look right; is it formatted for this court"
+    depends_on: [matter-operations-manager]
+    produces: [PDF, Word document, production log entry, QC report, page images]
+
 # Routing discipline the orchestrator must apply, recorded here so it is read
 # alongside the list rather than only in the orchestrator's own instructions.
 routing_rules:
@@ -154,3 +191,5 @@ routing_rules:
   - "Never issue two assignments whose required_output overlaps. If two specialists need the same artefact, one produces it and the other is given it as a source."
   - "A dependent specialist is issued only when its dependency has returned, or when the matter pack already contains the equivalent material — and the assignment must say which."
   - "An assignment that would produce output nobody will read is not issued. Every assignment names the decision it supports."
+  - "Operations skills are not routed to as a wave. matter-operations-manager runs before Wave 1 (intake, task board) and after every wave (status, gate); document-production-qc runs only when a document must exist as an artefact."
+  - "Nothing that files, serves, sends, deletes, renames or materially moves a document is routed to any specialist. It goes to the approval gate and stops there until a named human decides."

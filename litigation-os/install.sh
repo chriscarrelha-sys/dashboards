@@ -12,15 +12,25 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-# Phase 1 + Phase 2. The authoritative list is standards/specialists.yaml; this
+# Phase 1 + Phase 2 + Phase 3. The authoritative list is standards/specialists.yaml; this
 # array must match it, and the build fails below if it does not.
 SKILLS=(litigation-matter-orchestrator legal-research-paralegal
         evidence-chronology-paralegal docket-deadline-paralegal
         pleading-amendment-analyst loan-accounting-analyst
         discovery-planning-analyst securitization-ownership-analyst
-        adversarial-redteam-analyst)
+        adversarial-redteam-analyst
+        matter-operations-manager document-production-qc)
 VALIDATORS=(common.py validate_matter_pack.py validate_handoff.py
             validate_registers.py validate_crossrefs.py validate_skill.py)
+# Phase 3 operating-layer scripts. Synced only into the skills that document
+# them, so a skill's scripts/ matches what its SKILL.md tells you to run.
+OPS_SCRIPTS=(new_matter.py import_sources.py verify_citations.py
+             approval_gate.py command_center.py validate_access_map.py)
+DOC_SCRIPTS=(produce_document.py qc_document.py approval_gate.py command_center.py)
+# A skill may only tell you to run a script that ships inside it, so a Phase 3
+# script referenced by a Phase 1 skill has to be synced there too.
+ORCH_SCRIPTS=(command_center.py)
+RESEARCH_SCRIPTS=(verify_citations.py)
 
 echo "== checking the skill list against the registry =="
 python3 - "$HERE" "${SKILLS[@]}" <<'PY'
@@ -54,6 +64,18 @@ for s in "${SKILLS[@]}"; do
     cp "$HERE/standards/specialists.yaml" "$HERE/skills/$s/references/specialists.yaml"
   fi
   cp "$HERE/standards/handoff-standard.md" "$HERE/skills/$s/references/handoff-standard.md"
+  if [[ "$s" == "matter-operations-manager" ]]; then
+    for v in "${OPS_SCRIPTS[@]}"; do cp "$HERE/tools/$v" "$HERE/skills/$s/scripts/$v"; done
+  fi
+  if [[ "$s" == "document-production-qc" ]]; then
+    for v in "${DOC_SCRIPTS[@]}"; do cp "$HERE/tools/$v" "$HERE/skills/$s/scripts/$v"; done
+  fi
+  if [[ "$s" == "litigation-matter-orchestrator" ]]; then
+    for v in "${ORCH_SCRIPTS[@]}"; do cp "$HERE/tools/$v" "$HERE/skills/$s/scripts/$v"; done
+  fi
+  if [[ "$s" == "legal-research-paralegal" ]]; then
+    for v in "${RESEARCH_SCRIPTS[@]}"; do cp "$HERE/tools/$v" "$HERE/skills/$s/scripts/$v"; done
+  fi
   rm -rf "$HERE/skills/$s/assets/matter-pack-template"
   cp -r "$HERE/matter-pack-template" "$HERE/skills/$s/assets/matter-pack-template"
   # a freshly copied template carries no integrity baseline
@@ -71,6 +93,12 @@ if grep -rn "litigation-os/tools\|litigation-os/matter-pack" "$HERE/skills/" 2>/
   exit 1
 fi
 echo "  none found"
+
+echo "== scanning for stored credentials =="
+# The rule is about the whole system, so the scan covers the template, every
+# skill, and the shared tools — not just the access map it also validates.
+python3 "$HERE/tools/validate_access_map.py" "$HERE/matter-pack-template" \
+        --also "$HERE/skills" --also "$HERE/tools" --also "$HERE/standards"
 
 echo "== validating the bundled template =="
 python3 "$HERE/tools/validate_matter_pack.py" "$HERE/matter-pack-template" --template

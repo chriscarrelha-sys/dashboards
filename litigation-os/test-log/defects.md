@@ -340,3 +340,37 @@ rather than documents, and that is a weaker test than it appears.
 
 Counts X through XVI were read at heading level only. The pleading result and the
 red-team result both say so. The attack surface is incomplete by construction.
+
+---
+
+## Phase 3 — Automated Legal Operations Layer
+
+Every defect below was found by running the thing, not by reading it.
+
+| ID | Where | What was wrong | Fix | How it was found |
+|---|---|---|---|---|
+| P3-D01 | `validate_access_map.py` | `pass(word\|phrase\|wd)?` made the suffix optional, so the code comment "Second pass: conflicts must point at rows that exist" was reported as a stored password — seven times across the skills tree. | Required the suffix: `(?:password\|passphrase\|passwd\|pwd)`. | First run of the credential scan over `skills/`. |
+| P3-D02 | `validate_access_map.py` | YAML 1.1 reads bare `no`/`yes` as booleans, so `write_permitted: no` arrived as `False` and failed its own enum on every system. | Added `yn()` to normalise booleans before comparison; the file stays plain `yes`/`no` for the human writing it. | First run against the template's own access map. |
+| P3-D03 | `import_sources.py` | Which of two byte-identical files became canonical was decided by sort order, so `Order (copy).txt` won the `SRC-` id and the real file was recorded as its duplicate. | `canonical_rank()` — least copy-like name first, then shallowest path, then shortest name. | Intake test with a deliberately duplicated file under a different name. |
+| P3-D04 | `import_sources.py` | The destination filename in `raw/` carried the original's spaces and parentheses, so every later command had to quote it. | `safe_name()`; `original_name` in the index preserves the real name, so nothing about provenance is lost. | Same test. |
+| P3-D05 | `validate_registers.py` | The index had no disposition for a source read in place and never copied. It has a `SRC-` id and no bytes here, so a required hash would have been a hash of something else. | Added `read-in-place`, requiring `sha256: NOT-COPIED` and a stated `original_location`. | Building the real Shellpoint index, where eleven of nineteen sources were read in Drive and never downloaded. |
+| P3-D06 | `validate_access_map.py` | `known_inaccessible[].gap_ids` was checked for presence and never resolved. Four of the five pointers in the first real access map were wrong and it passed. | Resolve every `GAP-` id against `missing-evidence.csv`; also error when a system listed as inaccessible claims read access. | Cross-reading the access map against the gap register by hand. |
+| P3-D07 | `verify_citations.py` | The statute pattern stopped at the first digit, so `15 U.S.C. § 1692k(d)` was reported as `15 U.S.C. § 1` and could never match a correctly written row. | Full section and subsection capture for U.S.C., O.C.G.A. and the Federal Rules. | First `--cross` run over the existing work product. |
+| P3-D08 | `qc_document.py` | The pypdf fallback never ran. A broken system `cryptography` raises pyo3's `PanicException`, a `BaseException`, so `except Exception` missed it — and the half-imported modules were already in `sys.modules`, so stubbing afterwards could not help. | `_ensure_pypdf_importable()` probes first catching `BaseException`, clears the poisoned modules, and stubs before pypdf is imported at all. | First QC run, which crashed outright. |
+| P3-D09 | `produce_document.py` | The signature line was a CSS border — a picture, not text. Word rendered underscores and the PDF rendered a rule, so the two outputs disagreed in the one place a court looks, and no text extraction could see a signature line at all. | Render underscores and style them with CSS. | QC failed the document for having no signature block, when the front matter plainly declared one. |
+| P3-D10 | `qc_document.py` | The Rule 11(a) failure fired on an internal memorandum, where the rule does not apply. | Scaled by `document_kind`: a warning about attribution for unserved work product, an error for anything served. | Same run. |
+| P3-D11 | `command_center.py` | Fallback column names were written from memory rather than from the registers, so four sections rendered em-dashes over live data — a page of blank "BLOCKING" rows that looked answered. | Read the real headers; added `blank_column_warning()`, which distinguishes an empty register from a column name this script got wrong and says which. | Reading the first generated command centre against the registers it claims to summarise. |
+| P3-D12 | `validate_crossrefs.py` | `HD-` ids were reconciled by `check_decision_log` but never entered the defined set, so any other register pointing at one resolved to nothing; and `used_in` on the citation register rejected `ATK-` and `DL-` targets that are entirely legitimate. | Added the decision log to `DEFINITIONS`; widened the `used_in` families. | Full sweep after populating the task board and citation register. |
+| P3-D13 | `qc_document.py` | The visual-inspection render used LCD subpixel antialiasing, fringing black text with blue and orange. Pixel sampling showed the ink was `rgb(0,0,0)`; the picture of the document lied about it. | `--disable-lcd-text --disable-font-subpixel-positioning --force-color-profile=srgb`. | Looking at the rendered page image, then sampling its pixels rather than trusting the impression. |
+
+### Phase 3 negative tests
+
+| Target | Defects injected | Caught |
+|---|---|---|
+| Credential scanner | 7 secret shapes (password, OTP, API key, bearer token, otpauth URI, AWS key, security answer) | 7 |
+| Source index | 8 (duplicate with no target, original not preserved, malformed id, malformed hash, dangling `SRC-`, no text layer with OCR not-required, classification with no basis) | 8 |
+| Task board | 10 (bad status, bad id, complete with no date/output/assignment, blocked with no dependency, self-dependency, two-node cycle, no decision supported) | 10 |
+| Approval gate | 13 (self-approval, executed unapproved, executed before decided, executed after denial, serve marked reversible, conditions missing, bad enums, empty required fields) | 13 |
+| Document QC | 8 (no signature on a served document, no certificate of service, `[REDACTED]` over live text, TODO, `[BASIS-REQUIRED]`, `<PLACEHOLDER>`, unattached exhibits, dangling internal reference) | 8 |
+| Access map | 1 (gap pointer to a `GAP-` id that does not exist) | 1 |
+| Citation cross-check | 2 (unregistered case; unpinned pincite of a registered case) | 2 |

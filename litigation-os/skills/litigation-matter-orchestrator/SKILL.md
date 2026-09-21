@@ -45,11 +45,21 @@ it. Confirm:
 - `authorized_source_locations` and `prohibited_actions`
 - `immediate_objectives`
 
-Then run the structural check:
+Then run the structural check and read the state of play:
 
 ```bash
 python3 scripts/validate_matter_pack.py <pack> --hash-check
+python3 scripts/command_center.py <pack>
 ```
+
+The command center is one page in five fixed sections — deadlines, waiting on a
+human, unfinished work, critical risks, next actions. Read it before planning
+anything: an objective framed without knowing that three tasks are already
+blocked and two decisions are unanswered is an objective that will collide with
+them. It is generated from the registers, so it is exactly as current as they
+are, and it computes no deadline — a date whose inputs are incomplete appears
+as `NOT-COMPUTABLE` with the missing input named, and stays that way until a
+human supplies it.
 
 A failing pack is reported to the user before work proceeds — do not paper over
 a missing control field by assuming its value. If the pack does not exist yet,
@@ -289,6 +299,14 @@ foreclosed loses a live position; calling a foreclosed one weak wastes a filing.
 ## Step 8 — Close the loop
 
 - Update `06-issues/issue-register.csv` with what is now answered and what opened.
+- Update `00-control/task-board.csv`: every task you planned was written there
+  as `planned` at plan time (Step 3), so closing the loop means moving each to
+  `complete` with its `completed_date` and `output_path`, or leaving it with a
+  status and a named dependency. `validate_registers.py --which operations`
+  rejects a complete task that points at no artefact, and finds dependency
+  cycles.
+- Regenerate `command_center.py <pack>` so the next session opens on the state
+  this one left.
 - Account for **every task you planned**, including the ones you never issued:
   each is either issued, superseded, or still queued with its dependency named.
   An unissued dependent task is disclosed in the report, never quietly dropped.
@@ -300,6 +318,23 @@ foreclosed loses a live position; calling a foreclosed one weak wastes a filing.
   blocking question that never reached the log has silently stopped blocking.
 - Re-run `validate_matter_pack.py --hash-check` and report the integrity result
   so the user can see the originals were untouched.
+
+## What you route to operations rather than to a specialist
+
+Two skills in the registry carry `role: operations`. They are not a wave and
+are not stress-tested like a specialist result:
+
+- **`matter-operations-manager`** — creating the pack, importing and indexing
+  sources, the task board, the access map, the approval gate, the command
+  center. Runs before Wave 1 and after every wave.
+- **`document-production-qc`** — whenever a conclusion has to exist as an
+  artefact: a filing, a letter, an exhibit index, an attorney-review package.
+
+**Anything that would file, serve, send, publish, delete, rename or materially
+move a document is not routed to anyone.** It becomes an `APR-` request in
+`11-decisions/approval-requests.csv` and stops there until a named human
+decides and performs it. You may prepare it, QC it, and say it is ready. You
+may not take it, and no specialist may be asked to.
 
 ## Reference files
 

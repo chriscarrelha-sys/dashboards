@@ -1,0 +1,202 @@
+# ACCESS MAP — carrelha-v-meb-2026
+#
+# Where each source system lives, who can reach it, and what THIS session
+# actually had. A routing and provenance record, never a credential store.
+#
+# ABSOLUTE RULE — no secrets in this file, ever: no password, passphrase, PIN,
+# MFA/OTP code or seed, security answer, API key, token, cookie or court login.
+# This file records WHERE a thing is and WHO holds the key, never the key.
+# validate_access_map.py scans the whole pack and fails the build otherwise.
+
+schema_version: "1.0"
+matter_id: CARRELHA-2026
+compiled_by: Litigation OS (matter-operations-manager), for attorney review
+compiled_date: 2026-09-21
+
+systems:
+
+  - key: google-drive
+    kind: cloud-storage
+    purpose: >
+      Primary client document repository. Holds the complaint drafts, the two
+      district-court orders, the Shellpoint loan history, the CFPB
+      correspondence, and the file named "5200 on Ledger".
+    reached_via: Google Drive connector (read)
+    credential_holder: client
+    credential_location: client's own password manager
+    session_access: read
+    verified_on: 2026-09-20
+    scope_note: >
+      Full-text search and read of the files located by search. Eleven
+      documents were examined in place and never downloaded or modified;
+      verbatim extracts of eight of them were produced into 03-sources/raw/
+      with their own SRC- ids. What this shows is what the client kept, not
+      what exists: a document's absence here is not evidence it was never
+      sent or never created.
+    write_permitted: no
+    notes: >
+      Counts X-XVI of SRC-020 were read at heading level only. No primary
+      ownership instrument (note, allonge, security deed, assignment,
+      trust agreement, loan schedule) was located here or anywhere.
+
+  - key: courtlistener
+    kind: court-record
+    purpose: Federal docket record and published opinions.
+    reached_via: CourtListener API (RECAP search, opinion full text)
+    credential_holder: n/a — public API
+    credential_location: n/a
+    session_access: read
+    verified_on: 2026-09-20
+    scope_note: >
+      The RECAP record for this case carries metadata and ZERO docket
+      entries. RECAP mirrors only what somebody has already purchased, so
+      absence from it is not absence from the docket. Every docket fact in
+      this pack came from the two orders read in Drive, not from RECAP, and
+      the docket register says so row by row.
+    write_permitted: no
+    notes: Rate limited to roughly 10 requests per minute.
+
+  - key: pacer
+    kind: court-record
+    purpose: The authoritative federal docket and every filed document.
+    reached_via: pacer.uscourts.gov (human login)
+    credential_holder: attorney of record / party
+    credential_location: that person's own password manager — never here
+    session_access: none
+    verified_on: n/a
+    scope_note: >
+      NOT AVAILABLE THIS SESSION. This is the single largest limitation on
+      the pack: the motions to dismiss and their exhibits, every docket
+      entry, and the current deadline posture all live here and none of
+      them has been read.
+    write_permitted: no
+    cost_note: PACER charges per page; a human authorises each purchase.
+    notes: See GAP-011 — no filing after Doc. 35 has been read.
+
+  - key: peachcourt
+    kind: court-record
+    purpose: >
+      Forsyth County Superior Court record for 26CV-0387-1, the pre-removal
+      state case, including anything filed before removal on 2026-04-15.
+    reached_via: peachcourt.com (human login)
+    credential_holder: attorney of record / party
+    credential_location: that person's own password manager — never here
+    session_access: none
+    verified_on: n/a
+    scope_note: NOT AVAILABLE THIS SESSION. Nothing in this pack comes from it.
+    write_permitted: no
+    notes: Filing here requires an approved APR- entry and a human to file it.
+
+  - key: odyssey-efilega
+    kind: court-efiling
+    purpose: Georgia eFileGA / Odyssey submission.
+    reached_via: efilega.tylertech.cloud (human login)
+    credential_holder: attorney of record / party
+    credential_location: that person's own password manager — never here
+    session_access: none
+    verified_on: n/a
+    write_permitted: no
+    notes: >
+      No skill and no script submits here. A filing is prepared, QC'd, gated,
+      and handed to a human, who files it.
+
+  - key: dropbox
+    kind: cloud-storage
+    purpose: Possible secondary document store.
+    reached_via: Dropbox connector
+    credential_holder: client
+    credential_location: client's own password manager
+    session_access: none
+    verified_on: n/a
+    scope_note: >
+      NOT EXERCISED THIS SESSION. No file in this pack came from Dropbox, and
+      nothing here asserts what it does or does not contain.
+    write_permitted: no
+    notes: <>
+
+  - key: notion
+    kind: workspace
+    purpose: Possible case notes and task tracking.
+    reached_via: Notion connector
+    credential_holder: client
+    credential_location: client's own password manager
+    session_access: none
+    verified_on: n/a
+    scope_note: NOT EXERCISED THIS SESSION.
+    write_permitted: no
+    notes: <>
+
+  - key: email
+    kind: correspondence
+    purpose: >
+      Correspondence with Shellpoint, the CFPB, and opposing counsel;
+      notices of error and requests for information and their responses.
+    reached_via: Gmail connector
+    credential_holder: client
+    credential_location: client's own password manager
+    session_access: none
+    verified_on: n/a
+    scope_note: >
+      NOT EXERCISED THIS SESSION. The CFPB correspondence in this pack came
+      from Drive, not from a mailbox. No NOE or RFI has been located.
+    write_permitted: no
+    notes: Nothing is sent without an approved APR- entry. See GAP-003.
+
+  - key: public-legal-research
+    kind: legal-research
+    purpose: Case law, statutes, the Federal Rules, local rules, standing orders.
+    reached_via: CourtListener and Descrybe full text; court websites
+    credential_holder: n/a
+    credential_location: n/a
+    session_access: read
+    verified_on: 2026-09-20
+    scope_note: >
+      Full text where available. NO commercial citator (Shepard's, KeyCite).
+      Good-law status therefore tops out at CITATOR-LIMITED MEDIUM and no
+      research row in this pack carries confidence high on that ground.
+      N.D. Ga. local rules and Standing Order 18-01 were NOT retrieved in
+      full text; Standing Order 18-01 is known only from its recital in
+      Doc. 34.
+    write_permitted: no
+    notes: See OLQ-5, OLQ-6 and OLQ-7 for what remains unresearched.
+
+known_inaccessible:
+  - system: pacer
+    what_is_in_it: >
+      Defendants' motions to dismiss and their exhibits; every docket entry;
+      the operative deadline posture; whether either candidate first amended
+      complaint was in fact filed.
+    why_unreachable: No PACER account is available to this session.
+    gap_ids: GAP-011
+    how_a_human_would_get_it: >
+      Log in to PACER, purchase the docket sheet and Docs. 4, 5, 22-26 and
+      34-36, and confirm the post-8/21 entries.
+
+  - system: primary-loan-documents
+    what_is_in_it: >
+      The note or HELOC agreement, any allonge or endorsement, the security
+      deed, the recorded and unrecorded assignments, the servicing agreement,
+      the trust agreement and the loan schedule identifying this loan.
+    why_unreachable: >
+      Not present in the client repository and not obtainable from any public
+      source reached this session. The recorded assignment is known only from
+      its book-and-page recital.
+    gap_ids: GAP-019; GAP-009; GAP-020; GAP-021
+    how_a_human_would_get_it: >
+      Forsyth County deed records for the recorded instruments; the rest
+      through discovery or a qualified written request.
+
+  - system: borrower-financial-records
+    what_is_in_it: >
+      The Bank of America account records showing what was actually funded on
+      2022-08-05, and the wire confirmation for the December 2023 payment.
+    why_unreachable: Held by the client and by the bank; not produced to this session.
+    gap_ids: GAP-001; GAP-002; GAP-014
+    how_a_human_would_get_it: Client's own statements, or a subpoena to the bank.
+
+  - system: credit-reporting-records
+    what_is_in_it: Credit reports, ACDV responses, and furnishing records.
+    why_unreachable: Not produced to this session.
+    gap_ids: GAP-004
+    how_a_human_would_get_it: >
+      The client's own annual disclosures, and discovery to the furnisher.

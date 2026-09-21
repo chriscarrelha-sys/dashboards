@@ -111,6 +111,26 @@ Put what you confirmed in `verified_fields` and what you did not in
 `unverified_fields`. Both columns are required; "verified" without saying what
 was verified is not verification.
 
+**Record the verification, not just its conclusion.** Every authority you
+intend to rely on gets a row in `09-research/citation-verification.csv` — the
+citation exactly as it will appear, the verbatim text if you are quoting, the
+pincite, where you actually read it, whether subsequent history was checked and
+what it showed, the method, the date, and your name. Then:
+
+```bash
+python3 scripts/verify_citations.py <pack> --cross 10-specialist-results
+```
+
+`--cross` names every authority quoted somewhere in the work product that
+appears nowhere in the register. Each one is either a verification nobody wrote
+down or a citation that should not be in the draft; there is no third case.
+
+**A statute, regulation, or federal, local or standing rule additionally
+requires the version you read and its effective or amendment date.** These
+texts change. Quoting the current version of a rule amended after the operative
+events produces an argument that is wrong in a way opposing counsel will find
+immediately, and the validator will not let the row be written without them.
+
 Procedural posture deserves separate attention. A case reversing a dismissal
 holds that the allegations *sufficed to plead*; it does not hold they were true
 or would survive summary judgment. Misreading posture is the most common way

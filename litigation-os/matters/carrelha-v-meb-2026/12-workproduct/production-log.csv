@@ -1,0 +1,2 @@
+doc_id,title,doc_kind,source_markdown,output_pdf,output_docx,produced_date,page_count,searchable_text,qc_status,qc_findings_open,approval_id,status,notes
+WP-001,MATTER STATUS AND DECISION MEMORANDUM,work-product,12-workproduct/drafts/WP-001-status-memo.md,12-workproduct/drafts/WP-001-matter-status-and-decision-memorandum.pdf,12-workproduct/drafts/WP-001-matter-status-and-decision-memorandum.docx,2026-09-21,4,yes,pass,,,draft,produced by produce_document.py; run qc_document.py before any human review is requested
