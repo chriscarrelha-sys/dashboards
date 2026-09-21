@@ -1,0 +1,5 @@
+# Never commit case documents. See pro_se_litigation_ops/INTAKE_MANIFEST.md.
+pro_se_litigation_ops/cases/**/*.pdf
+pro_se_litigation_ops/cases/**/*.docx
+pro_se_litigation_ops/cases/**/*.xlsx
+pro_se_litigation_ops/cases/**/*.zip

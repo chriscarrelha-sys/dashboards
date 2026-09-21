@@ -1,0 +1,28 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "MAX_CONCURRENT_SUBAGENTS": "16"
+  },
+  "permissions": {
+    "allow": [
+      "Read(//home/user/dashboards/pro_se_litigation_ops/**)",
+      "Write(//home/user/dashboards/pro_se_litigation_ops/cases/**)",
+      "Edit(//home/user/dashboards/pro_se_litigation_ops/cases/**)",
+      "Glob", "Grep",
+      "Bash(date:*)", "Bash(ls:*)", "Bash(cat:*)", "Bash(wc:*)",
+      "mcp__Dropbox__search", "mcp__Dropbox__list_folder", "mcp__Dropbox__fetch",
+      "mcp__Google_Drive__search_files", "mcp__Google_Drive__read_file_content",
+      "mcp__CourtListener__search", "mcp__CourtListener__read_document",
+      "mcp__CourtListener__call_endpoint", "mcp__CourtListener__verify_quote",
+      "mcp__Descrybe_Legal_Engine__find_case_from_reference",
+      "mcp__Descrybe_Legal_Engine__search_cases_by_concept",
+      "mcp__Descrybe_Legal_Engine__verify_quote",
+      "WebFetch", "WebSearch"
+    ],
+    "deny": [
+      "Bash(rm:*)",
+      "Bash(git push:*)",
+      "Write(//home/user/dashboards/pro_se_litigation_ops/.claude/**)"
+    ]
+  }
+}
