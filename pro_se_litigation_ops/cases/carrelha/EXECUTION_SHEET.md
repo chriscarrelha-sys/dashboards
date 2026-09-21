@@ -9,22 +9,28 @@ deadline is today.**
 
 ---
 
-## Workstream 1 — Response to Doc 37 (Shellpoint MTD) · **DEADLINE TODAY**
-**State: `BLOCKED — needs docket confirmation`**
+## Workstream 1 — Response to Doc 37 (Shellpoint MTD) · **DUE TODAY, NOTHING FILED**
+**State: `ACT NOW`**
 
-Doc 37 was filed 2026-09-04, exactly on Doc 35's 14-day deadline. Under LR 7.1(B) our
-response runs 14 days from service, plus 3 for mail: **2026-09-21 — today.**
+Doc 37 was filed 2026-09-04, exactly on Doc 35's 14-day deadline. Response due
+**2026-09-21 — today**; PACER's submission deadline of 09/22 confirms it.
+
+**Confirmed from the PACER Deadlines/Hearings report:** the docket header reads
+**"Date of last filing: 09/15/2026."** Nothing has been filed since Doc 41. No response,
+no extension motion. Doc 37's submission deadline is not marked Terminated or Satisfied —
+the motion is pending and undecided.
 
 This is now **the entire case**. It attacks all four surviving counts against the only
 two remaining defendants. Everything else on this sheet is secondary.
 
-`ACTION NOW: confirm on the docket whether a response was filed or an extension granted.`
-If nothing was filed, the move is a prompt Rule 6(b)(1)(B) motion for leave to file out of
-time showing excusable neglect — **not** a late brief filed as though timely.
+`ACTION TODAY:` file the response, or file a motion for extension **before the deadline
+passes**. An extension sought today is an ordinary request under Rule 6(b)(1)(A). The same
+request tomorrow becomes a Rule 6(b)(1)(B) motion requiring excusable neglect. The
+difference in difficulty is large and it is measured in hours.
 
 ---
 
-## Workstream 2 — Response to Doc 40 (McCalla MTD) · due 2026-09-25
+## Workstream 2 — Response to Doc 40 (McCalla MTD) · due 2026-09-28
 **State: `DO NOT OPPOSE ON THE MERITS — file a short non-opposition instead`**
 
 McCalla's motion makes **one** argument: Doc 36 never mentions MRLP, so no claim is
@@ -125,12 +131,23 @@ a chance.
 
 | Date | Item | State |
 |---|---|---|
-| **2026-09-21** | **Doc 37 response — verify status now** | **`BLOCKED — docket`** |
-| 2026-09-25 | Doc 40 non-opposition (without prejudice) | `READY TO DRAFT` |
+| **2026-09-21** | **Doc 37 response — DUE TODAY, nothing filed** | **`ACT NOW`** |
+| 2026-09-28 | Doc 40 non-opposition (without prejudice) | `READY TO DRAFT` |
 | 2026-09-28 | Rule 72(a) window on Doc 39 closes | `DO NOT FILE` |
 | — | Second Amended Complaint decision | `USER DECISION` |
 | 2026-12-01 | Foreclosure sale — compliant with Doc 34 | `NO VEHICLE ON FILE` |
 
 ## Most urgent open item
-**Pull the docket and establish whether a response to Doc 37 was filed.** Nothing else on
-this sheet matters as much, and it is answerable in one look.
+**The Doc 37 response is due today and nothing is on file.** Confirmed from the PACER
+Deadlines/Hearings report: last filing 09/15/2026. File the response or a motion for
+extension today — not tomorrow, when the standard changes from Rule 6(b)(1)(A) to
+excusable neglect under Rule 6(b)(1)(B).
+
+## Correction recorded
+The prior sheet gave 2026-09-25 for the Doc 40 response and said PACER's 09/29 was
+unexplained. Both wrong. PACER publishes a *submission* deadline — response deadline plus
+one business day — and it matches a clean computation on all three pending motions. The
+Doc 40 response is due **2026-09-28**. The mail addition under Rule 6(d), previously
+flagged as the largest unverified assumption on the sheet, is now confirmed by the court's
+own calendar. `docket-deadline-clerk` has been rewritten to reconcile PACER rather than
+dismiss it.

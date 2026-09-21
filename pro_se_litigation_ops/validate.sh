@@ -113,8 +113,45 @@ sec "9. Blocker integrity"
 for d in 35 36 37 38 39 40 41; do
   grep -q "Doc $d" cases/carrelha/01_record/RECORD_INDEX.md || no "Doc $d not tracked in RECORD_INDEX"
 done
-grep -q "BLOCKED" cases/carrelha/02_procedure/DEADLINES.md || no "DEADLINES.md does not mark blocked items"
-ok "missing documents are tracked and their deadlines marked BLOCKED"
+# Conditional invariant: BLOCKED is required only while a blocking document is MISSING.
+if grep -qE '^\| \*\*(Doc )?3[5-9]\*\*.*MISSING|^\| \*\*(Doc )?4[01]\*\*.*MISSING' \
+     cases/carrelha/01_record/RECORD_INDEX.md; then
+  grep -q "BLOCKED" cases/carrelha/02_procedure/DEADLINES.md \
+    && ok "blocking documents are MISSING and their deadlines are marked BLOCKED" \
+    || no "a document is MISSING but DEADLINES.md marks nothing BLOCKED"
+else
+  grep -q "BLOCKED" cases/carrelha/02_procedure/DEADLINES.md \
+    && no "nothing is MISSING but DEADLINES.md still marks items BLOCKED (stale)" \
+    || ok "no blocking documents outstanding; no stale BLOCKED markers"
+fi
+
+sec "10. PACER submission-deadline model reconciles"
+# The court's calendar must be EXPLAINED, not dismissed. Model:
+#   submission = filed + 14 (LR 7.1(B)) + 3 (Rule 6(d) mail) + 1, rolled off weekends.
+# Verified against every pending motion on the Deadlines/Hearings report.
+rollfwd(){ d="$1"; while [ "$(date -d "$d" +%u)" -gt 5 ]; do d=$(date -d "$d +1 day" +%F); done; echo "$d"; }
+MODEL_OK=1
+for row in "37:2026-09-04:2026-09-22:2026-09-21" \
+           "38:2026-09-08:2026-09-28:2026-09-25" \
+           "40:2026-09-11:2026-09-29:2026-09-28"; do
+  IFS=: read -r doc filed pacer wantresp <<<"$row"
+  resp=$(rollfwd "$(date -d "$filed +17 days" +%F)")
+  sub=$(rollfwd "$(date -d "$resp +1 day" +%F)")
+  if [[ "$sub" == "$pacer" && "$resp" == "$wantresp" ]]; then
+    ok "Doc $doc: response $resp, submission $sub = PACER $pacer"
+  else
+    no "Doc $doc: computed resp=$resp sub=$sub; expected resp=$wantresp PACER=$pacer"; MODEL_OK=0
+  fi
+done
+[[ $MODEL_OK -eq 1 ]] && ok "Rule 6(d) mail addition confirmed by the court's own calendar (3/3)" \
+  || no "submission-deadline model does not reconcile — do not rely on any date on the sheet"
+# the corrected Doc 40 date must be what the case files actually say
+grep -q "2026-09-28" cases/carrelha/02_procedure/DEADLINES.md \
+  && ok "DEADLINES.md carries the corrected Doc 40 date" || no "DEADLINES.md missing 2026-09-28"
+grep -q "2026-09-25 for the Doc 40 response" cases/carrelha/EXECUTION_SHEET.md \
+  && ok "the 9/25 error is recorded as a correction, not silently dropped" \
+  || no "correction not recorded in EXECUTION_SHEET.md"
+
 
 printf '\n─────────────────────────────\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]] || exit 1
