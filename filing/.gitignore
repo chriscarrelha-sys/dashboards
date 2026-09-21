@@ -1,0 +1,12 @@
+# Case material — never commit to this repository. It is PUBLIC.
+# These files contain consumer-report data, servicing ledgers, account
+# balances, a residential address and other personal information.
+src/
+out/
+qc/
+build/opp.html
+build/index.html
+build/*.pdf
+*.png
+build/0*.html
+build/caption.html
