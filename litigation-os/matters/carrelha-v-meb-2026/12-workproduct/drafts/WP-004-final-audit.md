@@ -201,6 +201,35 @@ with an opponent.
 | 7 | A trust from a different case in the strategy materials | CON-009 opened; excluded expressly in WP-003 |
 | 8 | Contradictory case number and firm history in the repository | CON-010 and CON-011 opened |
 
+## Second gate — the Phase 5 build
+
+Five further defects, all found by running the new work rather than reading it.
+
+| # | Defect | Correction |
+|---|---|---|
+| 9 | **This system produced a non-compliant filing.** WP-003 went out in 13-point Times New Roman. N.D. Ga. LR 5.1 permits that typeface only at 14 point or larger. The format profile carried a note saying "read the current rule and set `font_size` from it" — and nobody did. | The rule was read and recorded (CV-031). `produce_document.py` now **refuses** to render a filed document that violates a court type rule it has read, and refuses a profile name it has no rule for. A note is not a check. |
+| 10 | **The docket-ingest tool silently discarded its own output.** It wrote row keys invented from memory rather than read from the register header, and the CSV writer dropped every unknown key without a word. It reported "6 rows added" and wrote six blank rows. | Column names corrected, and the writer now refuses to write at all when a populated column is not in the header. A writer that discards data silently turns a typo into undetectable loss. |
+| 11 | A notice of removal classified as a complaint, because the classifier read the attachment list — "(Attachments: Exhibit A State Court Complaint)". | Classification now reads the opening of the entry, where the clerk names the filing, and falls back to the whole text only if nothing matches. |
+| 12 | The ingest wrote `deadline_type` and `date_status` values that do not exist in the register's enums, so every row it opened failed validation. An ingest that produces rows a human must redo saves nothing. | Corrected to the register's own vocabulary. Every ingested row is now `needs-verification` with `ambiguity_flag: yes`, and a period-setting entry becomes a `conditional` row reading `NOT-COMPUTABLE` with its trigger named. |
+| 13 | QC reported "paragraph 3" and "¶ 116" in a motion as dangling internal references. They point at the *pleading*. | Only Section and Part references are resolved against the document's own headings; the rest are counted and reported as outward. |
+
+### And the finding that changed the risk picture
+
+Checking the operative pleading directly — rather than reasoning from the
+strategy documents that discuss it — established that **the two citation defects
+never reached it.** Zero occurrences of *Racette*, Fannie Mae, REMIC Trust
+2024-91, or any void-assignment attack. Paragraph 3 was drafted around *Ames*.
+
+That is the opposite of what the first gate assumed, and it was one command
+away the entire time. Recorded here because the lesson generalises: a document
+that *discusses* a filing is not evidence of what the filing says.
+
+Two defects that **are** in the pleading were found in the same pass, and they
+are the ones that matter — a cross-reference in paragraph 3 pointing at the
+wrong counts, and one count incorporating "the substantive facts of Counts VI,
+VIII, XII, and XIII", which contradicts paragraph 2's own representation to the
+Court and is the second *Weiland* category that Doc. 35 ordered cured.
+
 ## Validations re-run after correction
 
 All registers; cross-references (422 identifiers defined, 614 references

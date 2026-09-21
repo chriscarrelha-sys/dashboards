@@ -114,8 +114,23 @@ published foreclosure advertisements that misdescribed a senior lien by deed
 book and page.
 
 Citing a real case for a holding it does not contain is the fact pattern behind
-most Rule 11 citation inquiries. If either citation reached a filed pleading, it
-needs correcting rather than defending.
+most Rule 11 citation inquiries.
+
+`[VERIFIED]` **Neither citation reached the pleading.** The sixteen-count
+amended complaint was checked directly: zero occurrences of "Racette", zero of
+"Fannie", zero of "REMIC", zero of "2024-91", and no void-assignment attack. Its
+paragraph 3 was drafted *around* `Ames`, expressly disclaiming "any theory
+foreclosed by Ames v. JP Morgan Chase Bank, N.A., 298 Ga. 732, 738-41 & nn.7-8".
+The drafter of the pleading did not follow the QuickRef's advice, and the Rule
+11 exposure recorded before that check was run is materially lower than it
+looked.
+
+`[VERIFIED]` **One narrower clause survives.** Paragraph 3 says the theories
+"fall within the carveouts recognized in *Ames* **or** attack the enforceability
+of the underlying obligation independent of any assignment." The second branch
+is sound and is what Counts IX and X do. The first is the same misreading, more
+cautiously stated. The fix is to delete nine words, not to rewrite the
+paragraph.
 
 `[VERIFIED]` **A fact was imported from the template case.** The QuickRef
 instructs pleading that the chain "terminates before reaching Fannie Mae REMIC
@@ -149,16 +164,38 @@ defect, this matter has a claim with Georgia appellate authority holding it
 survives a motion to dismiss, carrying emotional-distress damages, and entirely
 independent of who owns the note.
 
-`[VERIFIED]` **The § 44-14-162(b) theory faces authority *Ames* itself cites.**
-*Ames* describes *Haynes v. McCalla Raymer, LLC*, 793 F.3d 1246, 1252–53 (11th
-Cir. 2015), as "holding that debtors lacked standing to challenge an assignment
-using OCGA § 44-14-162(b) on the ground that the assignment was not properly
-attested." *Haynes* has not been read and must be, before that count is pleaded
-or abandoned. *Ames* also cites *Duke Galish, LLC v. Southcrest Bank*, 314 Ga.
-App. 801, 803 (2012), "leaving open the question of whether a failure to comply
-with OCGA § 44-14-162(b) rendered the sale void or voidable" — but that open
-question is about the **sale**, not about standing to attack an assignment, and
-the two must not be run together.
+`[VERIFIED]` ***Haynes* forecloses the § 44-14-162(b) theory twice over, and
+opens a different door.** It has now been read in full.
+
+At 1253: "Georgia law is clear that borrowers do not have standing to attack a
+forged assignment of their security deed … we see no reason that the patent
+defect in attestation at issue here would provide them with standing to
+challenge an otherwise effective, if not properly recordable, assignment."
+
+At 1252, a second and independent bar: § 44-14-162(b) "provides only that '[t]he
+security instrument … shall be **filed** prior to the time of sale,'" and "says
+nothing of when (or even if) the deed must actually be **recorded**." A theory
+premised on a defect in the *recorded* chain misreads what the statute requires.
+
+But the *Haynes* court reached the plaintiffs' **§ 44-14-162.2** notice claim on
+the merits, not on standing — and rejected it on **causation**: "The Haynes have
+failed to show any disputed issue of material fact indicating that their
+'confusion,' rather than the missed payments, led to the foreclosure." Only
+substantial compliance is required, satisfied where the party named in the
+notice "was authorized to convey communications to the party that retains full
+authority to modify the loan."
+
+`[INFERENCE]` That is a second theory riding on the same documents as the
+*Racette* theory, and it fits this record's shape: two records naming different
+owners, and a loss-mitigation narrative. Both need the foreclosure notices.
+Neither depends on who owns the note. And *Haynes* states in advance what would
+defeat the second one — the defect, not the default, must have caused the harm.
+
+*Ames* also cites *Duke Galish, LLC v. Southcrest Bank*, 314 Ga. App. 801, 803
+(2012), "leaving open the question of whether a failure to comply with OCGA
+§ 44-14-162(b) rendered the sale void or voidable" — but that open question is
+about the **sale**, not about standing to attack an assignment, and the two must
+not be run together.
 
 ### What to expect procedurally
 
@@ -239,6 +276,52 @@ as though it did.
 matters. A pleading organised the way an FCRA or RESPA complaint is organised —
 each communication categorised, each statutory subsection identified, each item
 of damage particularised — is in a form she reads constantly.
+
+## The procedural picture, now that the standing order has been read
+
+`[VERIFIED]` Standing Order No. 18-01, filed February 12, 2018 and signed by
+Chief Judge Thrash, has been retrieved and read. It was previously known here
+only from a recital in Doc. 34. Three things follow.
+
+**This case is referred three times over.** It falls independently within
+paragraph 1 (RESPA), paragraph 2 (FDCPA) and paragraph 3, which covers "[a]ll
+cases … that contain a claim of, or a challenge to, an allegedly wrongful or
+attempted wrongful residential real property foreclosure." Removing a count
+would not remove the referral.
+
+**The referral is the Clerk's, not the judge's.** "The Clerk shall automatically
+assign the above categories of cases to a District Judge and refer them to a
+Magistrate Judge." Nothing about this referral is a signal about this case.
+
+**There is a lever nobody has considered.** The same paragraph continues: "The
+District Judge may, at any time, withdraw the reference to the Magistrate
+Judge." `[INFERENCE]` It is recorded as available, not as recommended — it is
+rarely granted, and asking badly costs standing with both judges at once.
+
+The more immediately useful half is the **review standard**. The magistrate acts
+"to the full extent allowed by 28 U.S.C. § 636(b)(1)(A) and (B)." Doc. 35 was a
+non-dispositive order under (b)(1)(A), reviewable for clear error. A
+recommendation to dismiss would be a report and recommendation under (b)(1)(B),
+carrying fourteen days to object and **de novo** review by Judge Story. A
+dismissal recommendation is not the end of the matter, and should not be
+described to the client as though it were.
+
+## The limitations picture, now that the statute has been read
+
+`[VERIFIED]` 15 U.S.C. § 1692k(d): an action must be brought "within one year
+from the date on which the violation occurs." An occurrence rule, not a
+discovery rule. Each discrete violation starts its own clock.
+
+`[VERIFIED]` Rule 15(c)(1)(B) allows relation back where the amendment "asserts
+a claim or defense that arose out of the conduct, transaction, or occurrence set
+out — or attempted to be set out — in the original pleading."
+
+`[INFERENCE]` The limitations analysis therefore runs from the **original
+state-court filing date in 26CV-0387-1**, not from the date of any amendment.
+`[UNRESOLVED]` That date appears nowhere in the record available here, and it is
+the date the whole analysis turns on. The 2023 reinstatement and reversal
+conduct is very likely outside the window; the 2025–2026 fee disbursements are
+very likely inside it.
 
 ## What this analysis cannot tell you
 

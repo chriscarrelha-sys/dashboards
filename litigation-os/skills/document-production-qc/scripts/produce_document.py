@@ -49,6 +49,91 @@ CHROME_CANDIDATES = [
 FM_REQUIRED = ["title", "court", "case_number", "caption_plaintiff",
                "caption_defendant", "document_kind"]
 
+# Type requirements for courts whose rule has been read and recorded in the
+# matter's citation-verification register. A profile is asserted by the source,
+# not guessed from the caption: a document that does not name a profile is not
+# checked, because a wrong assumption here is worse than none.
+#
+# Each entry: profile key -> (citation, {font family (lowercased) -> minimum pt},
+#                             minimum margin inches, required line spacing or None)
+COURT_TYPE_RULES: dict[str, tuple] = {
+    "ndga": (
+        "N.D. Ga. LR 5.1",
+        {"times new roman": 14.0, "courier new": 12.0,
+         "century schoolbook": 13.0, "book antiqua": 13.0, "book antigua": 13.0},
+        1.0, 2.0,
+    ),
+}
+
+# Document kinds that are filed with a court, and so must satisfy its type rule.
+FILED_KINDS = {"motion", "brief", "response", "reply", "complaint", "petition",
+               "notice", "objection", "answer"}
+
+
+def _pt(value, default: float) -> float:
+    try:
+        return float(str(value).lower().replace("pt", "").strip())
+    except Exception:
+        return default
+
+
+def _inches(value, default: float) -> float:
+    try:
+        return float(str(value).lower().replace("in", "").strip())
+    except Exception:
+        return default
+
+
+def check_court_type_rule(rep: Report, fm: dict) -> bool:
+    """Refuse to produce a filing that violates a court type rule we have read.
+
+    Returns False when the document must not be produced as declared.
+    """
+    fmt = fm.get("format", {}) or {}
+    profile = str(fmt.get("court_profile", "")).strip().lower()
+    kind = str(fm.get("document_kind", "")).strip().lower()
+    if not profile:
+        if kind in FILED_KINDS:
+            rep.warn(f"document_kind '{kind}' is filed with a court but the source "
+                     f"declares no format.court_profile, so no type rule was "
+                     f"checked. Known profiles: {', '.join(sorted(COURT_TYPE_RULES))}.")
+        return True
+    if profile not in COURT_TYPE_RULES:
+        rep.error(f"format.court_profile '{profile}' is not a profile this system "
+                  f"has read a rule for. Known: {', '.join(sorted(COURT_TYPE_RULES))}. "
+                  f"Read the rule, record it in the citation-verification register, "
+                  f"and add it here — do not guess.")
+        return False
+
+    cite, fonts, min_margin, spacing = COURT_TYPE_RULES[profile]
+    ok = True
+    family = str(fmt.get("docx_font", "Times New Roman")).strip().lower()
+    size = _pt(fmt.get("font_size", "12pt"), 12.0)
+    if family not in fonts:
+        rep.error(f"{cite} does not permit '{family}'. Permitted: "
+                  f"{', '.join(sorted(set(fonts) - {'book antigua'}))}.")
+        ok = False
+    elif size < fonts[family]:
+        rep.error(f"{cite} requires {family.title()} at no less than "
+                  f"{fonts[family]:g} point; this document declares {size:g}pt. "
+                  f"A filing in the wrong type is a filing the clerk can reject.")
+        ok = False
+    else:
+        rep.note(f"{cite}: {family.title()} {size:g}pt is compliant")
+
+    for side in ("margin_top", "margin_bottom", "margin_left", "margin_right"):
+        m = _inches(fmt.get(side, "1in"), 1.0)
+        if m < min_margin:
+            rep.error(f"{cite} requires margins of at least {min_margin:g} inch; "
+                      f"{side} is {m:g}in")
+            ok = False
+    if spacing is not None:
+        ls = _pt(fmt.get("line_spacing", spacing), spacing)
+        if ls < spacing:
+            rep.error(f"{cite} requires double spacing; line_spacing is {ls:g}")
+            ok = False
+    return ok
+
 
 def find_chrome() -> str | None:
     for c in CHROME_CANDIDATES:
@@ -501,6 +586,11 @@ def main() -> int:
         rep.error(f"{src.name}: front matter is missing {', '.join(missing)}. A "
                   f"litigation document without a caption is not a litigation "
                   f"document.")
+        return rep.emit()
+
+    if not check_court_type_rule(rep, fm):
+        rep.error("refusing to produce a document that violates a court rule this "
+                  "system has read. Correct the source and re-run.")
         return rep.emit()
 
     blocks = md_to_blocks(body)

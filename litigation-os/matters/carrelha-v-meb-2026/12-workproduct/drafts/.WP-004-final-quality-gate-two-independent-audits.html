@@ -119,6 +119,23 @@ MEB LOAN TRUST VIII, et al.,<br><br>
 <tr><td>7</td><td>A trust from a different case in the strategy materials</td><td>CON-009 opened; excluded expressly in WP-003</td></tr>
 <tr><td>8</td><td>Contradictory case number and firm history in the repository</td><td>CON-010 and CON-011 opened</td></tr>
 </tbody></table>
+<h2>Second gate — the Phase 5 build</h2>
+<p>Five further defects, all found by running the new work rather than reading it.</p>
+<table class='data'><thead><tr>
+<th>#</th>
+<th>Defect</th>
+<th>Correction</th>
+</tr></thead><tbody>
+<tr><td>9</td><td><strong>This system produced a non-compliant filing.</strong> WP-003 went out in 13-point Times New Roman. N.D. Ga. LR 5.1 permits that typeface only at 14 point or larger. The format profile carried a note saying &quot;read the current rule and set <code>font_size</code> from it&quot; — and nobody did.</td><td>The rule was read and recorded (CV-031). <code>produce_document.py</code> now <strong>refuses</strong> to render a filed document that violates a court type rule it has read, and refuses a profile name it has no rule for. A note is not a check.</td></tr>
+<tr><td>10</td><td><strong>The docket-ingest tool silently discarded its own output.</strong> It wrote row keys invented from memory rather than read from the register header, and the CSV writer dropped every unknown key without a word. It reported &quot;6 rows added&quot; and wrote six blank rows.</td><td>Column names corrected, and the writer now refuses to write at all when a populated column is not in the header. A writer that discards data silently turns a typo into undetectable loss.</td></tr>
+<tr><td>11</td><td>A notice of removal classified as a complaint, because the classifier read the attachment list — &quot;(Attachments: Exhibit A State Court Complaint)&quot;.</td><td>Classification now reads the opening of the entry, where the clerk names the filing, and falls back to the whole text only if nothing matches.</td></tr>
+<tr><td>12</td><td>The ingest wrote <code>deadline_type</code> and <code>date_status</code> values that do not exist in the register&#x27;s enums, so every row it opened failed validation. An ingest that produces rows a human must redo saves nothing.</td><td>Corrected to the register&#x27;s own vocabulary. Every ingested row is now <code>needs-verification</code> with <code>ambiguity_flag: yes</code>, and a period-setting entry becomes a <code>conditional</code> row reading <code>NOT-COMPUTABLE</code> with its trigger named.</td></tr>
+<tr><td>13</td><td>QC reported &quot;paragraph 3&quot; and &quot;¶ 116&quot; in a motion as dangling internal references. They point at the <em>pleading</em>.</td><td>Only Section and Part references are resolved against the document&#x27;s own headings; the rest are counted and reported as outward.</td></tr>
+</tbody></table>
+<h3>And the finding that changed the risk picture</h3>
+<p>Checking the operative pleading directly — rather than reasoning from the strategy documents that discuss it — established that <strong>the two citation defects never reached it.</strong> Zero occurrences of <em>Racette</em>, Fannie Mae, REMIC Trust 2024-91, or any void-assignment attack. Paragraph 3 was drafted around <em>Ames</em>.</p>
+<p>That is the opposite of what the first gate assumed, and it was one command away the entire time. Recorded here because the lesson generalises: a document that <em>discusses</em> a filing is not evidence of what the filing says.</p>
+<p>Two defects that <strong>are</strong> in the pleading were found in the same pass, and they are the ones that matter — a cross-reference in paragraph 3 pointing at the wrong counts, and one count incorporating &quot;the substantive facts of Counts VI, VIII, XII, and XIII&quot;, which contradicts paragraph 2&#x27;s own representation to the Court and is the second <em>Weiland</em> category that Doc. 35 ordered cured.</p>
 <h2>Validations re-run after correction</h2>
 <p>All registers; cross-references (422 identifiers defined, 614 references checked, 22 decisions raised and 22 logged); the matter-pack structure with hash-check confirming every original source byte-identical; the access map and credential scan; citation verification with cross-check against the work product; the approval gate; every handoff document; all eleven skills in both source and installed form; and document QC on every produced document.</p>
 <div class='sigblock'>

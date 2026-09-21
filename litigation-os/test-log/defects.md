@@ -406,3 +406,41 @@ These are recorded here because they were produced by the same discipline: verif
 ### Phase 4 negative tests
 
 Audit A is itself a negative test of the registers: it recomputes rather than re-reads, and it found four defects the validators had passed. Two of its own findings turned out to be defects in the audit, which is the reason both are recorded above rather than silently corrected.
+
+---
+
+## Phase 5 — completing the recommended work
+
+Everything on the previous report's Phase 5 list that did not require a PACER
+login. Five defects, every one found by running the new work.
+
+| ID | Where | What was wrong | Fix | How it was found |
+|---|---|---|---|---|
+| P5-D01 | `produce_document.py`, `format-profiles.md` | **This system produced a non-compliant filing.** WP-003 was rendered in 13-point Times New Roman. N.D. Ga. LR 5.1 permits that typeface only at 14 point or larger. The format profile carried a note reading "read the current rule text and set `font_size` from it; do not rely on this note" — and nobody did, which is what a note instead of a check always gets you. | Read the rule and recorded it (CV-031). Added `COURT_TYPE_RULES` and `check_court_type_rule()`: a source declaring `format.court_profile` is checked for typeface, point size, margins and spacing, and production is **refused** on violation. A profile name with no rule behind it is also refused. | Researching the local rules as a Phase 5 item, then reading the profile this system had been using. |
+| P5-D02 | `ingest_docket.py` | **Silent data loss.** The row keys were invented from memory rather than read from the register header, and `DictWriter` with a `{k: r.get(k) for k in header}` comprehension dropped every unknown key without a word. The tool reported "6 row(s) added" and wrote six blank rows. | Column names corrected — and `write()` now refuses to write at all when a populated column is absent from the header, naming the column and a sample of what would have been lost. | The first end-to-end run, where the summary said six and the register showed nothing. |
+| P5-D03 | `ingest_docket.py` | "NOTICE OF REMOVAL … (Attachments: # 1 Exhibit A State Court Complaint)" classified as a complaint, because the classifier read the whole entry and the attachment list named one. | Classification reads the first 90 characters — where the clerk names the filing — and falls back to the full text only if nothing matches. Added `removal` and `remand` types; kept `order` ahead of both, because an order about remand is still an order. | Reading the classifications the first successful run produced. |
+| P5-D04 | `ingest_docket.py` | `deadline_type` and `date_status` were filled with invented vocabulary (`court-ordered`, `express` as a status), so every deadline row the tool opened failed the deadline validator. An ingest whose output a human must redo saves nothing. | Corrected to the register's own enums. Every ingested row is `needs-verification` with `ambiguity_flag: yes`; an entry stating a date becomes `express` transcribed verbatim, an entry setting a period becomes `conditional` reading `NOT-COMPUTABLE` with its trigger named. Nothing counts days. | Running `validate_registers.py --which deadlines` against the probe pack. |
+| P5-D05 | `qc_document.py` | "paragraph 3" and "¶ 116" in a motion were reported as dangling internal references. They point at the *pleading*. A warning that is wrong trains the reader to skip the check. | Only Section and Part references are resolved against the document's own headings; the rest are counted and reported as outward references QC does not resolve. | QC output on the rewritten filing package. |
+| P5-D06 | `validate_crossrefs.py`, `validate_registers.py` | A task blocked on a *human decision* rather than on another task could not say so — `depends_on` accepted only `TSK-`. A task's open question could not be an evidentiary gap. Both rejected correct data. | Widened to `{TSK, HD}` and `{OFQ, OLQ, ISS, HD, GAP, CON}`, and the blocked-status rule now requires a `TSK-` or `HD-` blocker by name: "a task can wait on another task or on a human decision; it cannot wait on nothing." | Opening TSK-015, which waits on a person buying a docket. |
+
+### Findings in the case material
+
+| ID | What Phase 4 recorded | What Phase 5 established |
+|---|---|---|
+| CON-012, CON-013, CON-009 | Three defects imported from the client's strategy materials, possibly in the filed pleading | **None reached it.** The sixteen-count pleading contains zero occurrences of *Racette*, "Fannie", "REMIC" or "2024-91", and pleads no void-assignment attack. Its ¶ 3 was drafted *around* *Ames*. The Rule 11 exposure is materially lower than it looked, and the check was one command away the whole time. |
+| OC-012 (new) | — | ¶ 3 still says the theories "fall within the carveouts recognized in *Ames* **or** attack the enforceability of the underlying obligation independent of any assignment." The second branch carries the weight; the first is the same misreading. The fix is to delete nine words. |
+| CON-007 (confirmed, now precise) | An internal cross-reference inconsistency | ¶ 3 cites failure of consideration as "Count X" and Security Deed unenforceability as "Count XI". The headings read Count IX, Count X, Count XI respectively, and ¶ 116 confirms it. **Off by one**, pointing the Court at the wrong counts. |
+| PD (new) | — | One count incorporates "¶¶ 10, 48–53, **and the substantive facts of Counts VI, VIII, XII, and XIII**." ¶ 2 represents to the Court that "each Count incorporates only specifically identified numbered paragraphs." It is the second *Weiland* category, inside the pleading filed to cure it. Against *Vibe Micro* at 1309, the most dangerous item in the matter. |
+| CV-024 – CV-026 | *Haynes* known only from a parenthetical | Read in full. Forecloses the § 44-14-162(b) theory **twice** — no borrower standing (1253), and the subsection requires only *filing* before sale, "nothing of when (or even if) the deed must actually be recorded" (1252). But it reached a § 44-14-162.2 **notice** claim on the merits and killed it on **causation**, which is a roadmap. |
+| CV-027 | § 1692k(d) unread | "within one year from the date on which the violation occurs" — occurrence, not discovery. Rule 15(c)(1)(B) relation back is load-bearing and runs from the original state-court filing date, which is established nowhere in the record. |
+| CV-030 | SO 18-01 known from a recital in Doc. 34 | Retrieved and read. This case is referred under ¶¶ 1, 2 **and** 3 independently; the referral is automatic by the Clerk; and "[t]he District Judge may, at any time, withdraw the reference." A dismissal would arrive as an R&R under § 636(b)(1)(B) with fourteen days to object and de novo review. |
+| CV-032 | § 10-1-399(b) unread | The 30-day pre-suit written demand is a condition precedent, and nothing shows one was made. The statute excepts a respondent that "does not maintain a place of business or does not keep assets within the state" — which may cover the trusts and will not cover the servicers. |
+
+### Phase 5 negative tests
+
+| Target | Defects injected | Caught |
+|---|---|---|
+| Court type rule | 3 (13pt Times New Roman; an unknown court profile; half-inch margins) | 3 |
+| Silent-drop writer | 1 (a populated column absent from the header) | 1 |
+| Docket re-ingest | 1 (a human's edit, re-ingested over) | 1 — kept the edit, reported the conflict |
+| Task board | 1 (blocked with no named blocker) | 1 |

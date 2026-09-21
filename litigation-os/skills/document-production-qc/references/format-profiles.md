@@ -9,22 +9,49 @@ standing orders change, and neither is in the general databases.
 
 ```yaml
 format:
+  court_profile: ndga      # enforced by produce_document.py — see below
   paper: Letter
   margin_top: 1in
   margin_bottom: 1in
   margin_left: 1in
   margin_right: 1in
-  font_size: 13pt          # see the type note below
+  docx_font: Times New Roman
+  font_size: 14pt          # LR 5.1 minimum for this typeface
   line_spacing: 2.0
   first_line_indent: 0.5in
   certificate_page_break: always
 ```
 
-**Type note.** N.D. Ga. LR 5.1C restricts the fonts and sizes for documents
-filed in that court, and the permitted size differs by typeface. Read the
-current rule text and set `font_size` from it; do not rely on this note or on
-memory. `verify_citations.py` requires the version and date of any local rule
-before it may be cited.
+**The type rule, read and verified** (CV-031). N.D. Ga. LR 5.1 permits
+computer-prepared documents in:
+
+| Typeface | Minimum |
+|---|---|
+| Times New Roman | **14 point** |
+| Courier New | 12 point |
+| Century Schoolbook | 13 point |
+| Book Antiqua | 13 point |
+
+Also required: double spacing between lines (footnotes, headings and indented
+citations may be single-spaced), margins of at least one inch on all four
+sides, and 8½ × 11 white opaque paper.
+
+**This is enforced, not advised.** `format.court_profile: ndga` makes
+`produce_document.py` refuse to render a filed document that violates the rule.
+The previous version of this file carried a note saying "read the current rule
+and set `font_size` from it" — and the first filing this system produced went
+out at 13pt Times New Roman, which the rule does not permit. A note is not a
+check.
+
+Two cautions a profile cannot carry for you. There is an announced proposed
+amendment to **LR 5.1(D) governing margins**; confirm the current text before
+filing. And a profile covers only what the type rule says — page limits,
+certificates and judge-specific standing orders are separate.
+
+**To add a court:** read its rule, record it in
+`09-research/citation-verification.csv` with the version and date, then add it
+to `COURT_TYPE_RULES` in `produce_document.py`. A profile that is not backed by
+a read rule is refused by name.
 
 ## Georgia superior court — general civil filing
 

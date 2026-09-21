@@ -24,8 +24,9 @@ VALIDATORS=(common.py validate_matter_pack.py validate_handoff.py
             validate_registers.py validate_crossrefs.py validate_skill.py)
 # Phase 3 operating-layer scripts. Synced only into the skills that document
 # them, so a skill's scripts/ matches what its SKILL.md tells you to run.
-OPS_SCRIPTS=(new_matter.py import_sources.py verify_citations.py
-             approval_gate.py command_center.py validate_access_map.py)
+OPS_SCRIPTS=(new_matter.py import_sources.py ingest_docket.py verify_citations.py
+             approval_gate.py command_center.py validate_access_map.py
+             audit_accuracy.py)
 DOC_SCRIPTS=(produce_document.py qc_document.py approval_gate.py command_center.py)
 # A skill may only tell you to run a script that ships inside it, so a Phase 3
 # script referenced by a Phase 1 skill has to be synced there too.

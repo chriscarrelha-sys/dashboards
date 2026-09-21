@@ -57,14 +57,16 @@
 
 | APR | Action | Target | What the human must review |
 |---|---|---|---|
-| APR-001 | file | Motion for leave to file a corrected amended complaint, with | the docket first - whether an amended complaint was filed by 2026-08-21 and what |
+| APR-001 | file | Motion for leave to file a corrected amended complaint, with | the docket first - whether an amended complaint was filed by 2026-08-21, what it |
 
 ## 3 · Unfinished work
 
 | Task | Specialist | Wave | Status | Blocked by | Supports |
 |---|---|---|---|---|---|
-| TSK-010 Verify every authority the work product alre | legal-research-paralegal | 2 | in-progress | TSK-009 | Whether any citation in the draft packag |
 | TSK-012 Obtain attorney decision on the amendment ro | litigation-matter-orchestrator | 3 | blocked | TSK-010;TSK-011 | Which procedural response is actually fi |
+| TSK-013 Research the element formulations for every  | legal-research-paralegal | 2 | planned | — | Whether each count as pleaded states a c |
+| TSK-014 Obtain and read the published notices of for | evidence-chronology-paralegal | 1 | planned | — | Whether a Racette advertisement-defect c |
+| TSK-015 Ingest the purchased docket sheet and reconc | matter-operations-manager | 1 | blocked | HD-1 | Every downstream decision in the matter |
 
 **11 open issue(s) in the issue register.** Highest-ranked:
 

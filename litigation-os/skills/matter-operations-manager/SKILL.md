@@ -99,6 +99,37 @@ The extract gets its own id, its own hash, `access_status: extract-only`, and a
 pointer to its parent. Every finding resting on it inherits that ceiling, and
 the narrative must say so — not just the register.
 
+## Step 2a — Bring the docket in
+
+A purchased docket sheet is the single highest-value source in most matters,
+and the one most often read once and left in somebody's head.
+
+```
+python3 scripts/ingest_docket.py <pack> --sheet docket.pdf --case 2:26-cv-00110
+```
+
+It registers the sheet itself as a hashed, read-only source *before* anything
+is derived from it, parses each entry into `04-docket/docket-register.csv`
+keeping the clerk's words verbatim, and opens a candidate deadline for every
+entry whose text sets one.
+
+Three refusals are the point of it:
+
+- **It never computes a deadline.** An entry that states a date produces an
+  `express` row transcribed verbatim. An entry that sets a period — "within 14
+  days of the filing of the amended complaint" — produces a `conditional` row
+  reading `NOT-COMPUTABLE` with the trigger named. Nothing counts days.
+- **Every row it opens is `needs-verification` with `ambiguity_flag: yes`.** A
+  date lifted out of docket text by a pattern is a candidate, never a deadline.
+- **It never overwrites.** Re-running against a second print merges by document
+  number and reports conflicts rather than replacing a human's edits. A docket
+  bought twice is two prints of one record.
+
+Classification comes from how the clerk *opened* the entry, because everything
+after is description — an attachment list, the motion an order resolves. Read
+whole, "NOTICE OF REMOVAL … (Attachments: Exhibit A State Court Complaint)"
+classifies as a complaint, which is how that mistake actually happens.
+
 ## Step 3 — Open the registers
 
 A new pack ships every register as a header-only file. They are opened in
@@ -210,6 +241,7 @@ at the end of one.
 - `references/access-map-protocol.md` — what goes in the access map, what never
   does, and how an access gap becomes a `GAP-` row
 - `scripts/new_matter.py`, `scripts/import_sources.py`,
+  `scripts/ingest_docket.py`, `scripts/audit_accuracy.py`,
   `scripts/verify_citations.py`, `scripts/approval_gate.py`,
   `scripts/command_center.py`, `scripts/validate_access_map.py`
 - `scripts/validate_matter_pack.py`, `scripts/validate_registers.py`,

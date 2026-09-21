@@ -646,6 +646,12 @@ def check_operations(rep: Report, root: Path) -> None:
             for dep in split_ids(g("depends_on")):
                 if dep == tid:
                     rep.error(f"{path.name} line {i} [{tid}]: depends on itself")
+            if st == "blocked" and not any(
+                    d.startswith("TSK-") or d.startswith("HD-")
+                    for d in split_ids(g("depends_on"))):
+                rep.error(f"{path.name} line {i} [{tid}]: status=blocked with no "
+                          f"TSK- or HD- blocker named. A task can wait on another "
+                          f"task or on a human decision; it cannot wait on nothing.")
             if st == "complete" and g("unresolved_questions"):
                 rep.note(f"{tid} completed while still carrying open question(s): "
                          f"{g('unresolved_questions')}")

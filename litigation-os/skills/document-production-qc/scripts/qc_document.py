@@ -53,6 +53,11 @@ LEFTOVER = re.compile(
 EXHIBIT_REF = re.compile(r"\bExhibit\s+([A-Z]{1,2}|\d{1,2})\b")
 INTERNAL_REF = re.compile(r"\b(?:see\s+)?(?:Section|Part|Paragraph|¶|Table|Appendix)\s+"
                           r"([IVXLC]+|\d+(?:\.\d+)*|[A-Z])\b")
+# Only these reliably point at something inside the same document. A reference
+# to "paragraph 3" in a motion is almost always a paragraph of the pleading,
+# and flagging it as dangling trains the reader to skip the whole check.
+INWARD_REF = re.compile(r"\b(?:see\s+)?(?:Section|Part)\s+"
+                        r"([IVXLC]+|\d+(?:\.\d+)*|[A-Z])\b")
 
 
 def find_chrome() -> str | None:
@@ -288,12 +293,17 @@ def qc(rep: Report, pack: Path, row: dict, want_images: bool, strict: bool) -> d
     # --- internal references -------------------------------------------------
     int_refs = set(INTERNAL_REF.findall(flat))
     if int_refs:
+        inward = set(INWARD_REF.findall(flat))
         headings = set(re.findall(r"(?m)^\s*(?:Section|Part)?\s*([IVXLC]+|\d+(?:\.\d+)*)\.\s+\S", text))
-        dangling = {r_ for r_ in int_refs if r_ not in headings and len(r_) <= 6}
+        dangling = {r_ for r_ in inward if r_ not in headings and len(r_) <= 6}
         if dangling and strict:
-            rep.warn(f"internal reference(s) with no matching heading in the text: "
-                     f"{', '.join(sorted(dangling))} — verify each points somewhere")
-        note(f"{len(int_refs)} internal cross-reference(s) found")
+            rep.warn(f"Section/Part reference(s) with no matching heading in this "
+                     f"document: {', '.join(sorted(dangling))} — verify each points "
+                     f"somewhere")
+        outward = len(int_refs) - len(inward)
+        note(f"{len(int_refs)} cross-reference(s) found ({len(inward)} to this "
+             f"document's own sections, {outward} to paragraphs or tables "
+             f"elsewhere, which QC does not resolve)")
 
     # --- redaction -----------------------------------------------------------
     if REDACTION_MARKERS.search(flat):
