@@ -9,8 +9,9 @@ fully briefed and headed to Magistrate Judge Howard for a report and recommendat
 turned against the one option that could stop it.**
 
 ## What changed since 2026-09-21
-- Workstreams 1 and 2 (the Doc 37 and Doc 40 oppositions) are **reported filed**. Both
-  deadlines — 09/21 and 09/28 — are behind us.
+- **One consolidated opposition** was filed answering both motions to dismiss (Doc 37 and
+  Doc 40) — not two separate papers. Corrected 2026-10-04 from the user. Filing date not
+  yet established; see the open question below, which is not cosmetic.
 - Workstream 3 closed unused: the Rule 72(a) window on Doc 39 lapsed 09/28 with no
   objection filed, which was the recommendation.
 - Workstream 4 is now the whole board, and it is time-critical in a way it was not two
@@ -158,8 +159,7 @@ case proceeds to the R&R on its own schedule.
 
 | Date | Item | State |
 |---|---|---|
-| 2026-09-21 | Doc 37 opposition | `FILED — confirm & index` |
-| 2026-09-28 | Doc 40 opposition | `FILED — confirm & index` |
+| ? | Consolidated opposition to Docs 37 and 40 | `FILED — date & content unconfirmed` |
 | 2026-09-28 | Rule 72(a) window on Doc 39 | `LAPSED — as recommended` |
 | **open** | **Dec 1 sale decision — A, B, or C** | **`OVERDUE`** |
 | when it issues | **R&R on Docs 37 & 40 → Rule 72(b) de novo, 14 days (+3)** | `WATCH` |
@@ -171,6 +171,28 @@ case proceeds to the R&R on its own schedule.
 Deadlines/Hearings report: last filing 09/15/2026. File the response or a motion for
 extension today — not tomorrow, when the standard changes from Rule 6(b)(1)(A) to
 excusable neglect under Rule 6(b)(1)(B).
+
+## Open questions on the consolidated opposition
+
+**1. What date was it filed?** This is the one that matters.
+
+| Filed on | Doc 37 (response due 09/21, submitted 09/22) | Doc 40 (response due 09/28) |
+|---|---|---|
+| 09/21 or earlier | timely | timely, early |
+| 09/22 – 09/28 | **late — and the motion may already have gone to the judge on 09/22** | timely |
+
+If it went in on the Doc 40 date, it is late as to Doc 37 — the motion that attacks all
+four surviving counts. That is curable (a short Rule 6(b)(1)(B) showing, or the court
+simply considering it), but it needs to be known rather than discovered in the R&R.
+
+**2. What does it say about McCalla?** Doc 36 names MRLP nowhere outside the certificate
+of service, and states that it "states only the claims pleaded below." Opposing McCalla's
+motion *on the merits* argues for claims the operative pleading does not contain. If the
+brief instead said Plaintiffs do not oppose dismissal but it should be without prejudice,
+that is the recommended posture and there is no issue.
+
+**3. Page limit.** N.D. Ga. LR 7.1(D) caps briefs at 25 pages absent leave. A consolidated
+brief answering two motions still has to fit inside one limit unless leave was sought.
 
 ## Correction recorded
 The prior sheet gave 2026-09-25 for the Doc 40 response and said PACER's 09/29 was
