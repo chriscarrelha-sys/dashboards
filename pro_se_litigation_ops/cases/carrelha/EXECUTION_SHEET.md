@@ -9,9 +9,23 @@ fully briefed and headed to Magistrate Judge Howard for a report and recommendat
 turned against the one option that could stop it.**
 
 ## What changed since 2026-09-21
-- **One consolidated opposition** was filed answering both motions to dismiss (Doc 37 and
-  Doc 40) — not two separate papers. Corrected 2026-10-04 from the user. Filing date not
-  yet established; see the open question below, which is not cosmetic.
+- **CORRECTION, 2026-10-04.** An eight-document package was filed **2026-09-22**, not the
+  two oppositions previously recorded. Prior entries on this sheet understated what is on
+  file, and the 9/21 and 10/04 advice that "nothing on file stops the December 1 sale" was
+  **wrong as of 9/22**. The package:
+
+  | # | Document |
+  |---|---|
+  | 01 | Response in Opposition to Doc 37 (MEB/NewRez MTD) |
+  | 02 | Response in Opposition to Doc 40 (McCalla MTD) |
+  | 03 | **Motion for Leave to File Second Amended Complaint** |
+  | 04 | Exhibit A — Proposed Second Amended Verified Complaint |
+  | 05 | Proposed Order Granting Leave to Amend |
+  | 06 | **Renewed Motion for Preliminary Injunction** |
+  | 07 | Declaration of Christopher J. Carrelha |
+  | 08 | Proposed Order Granting Preliminary Injunction |
+
+  Option B was taken on 2026-09-22. Workstream 4 is live, not open.
 - Workstream 3 closed unused: the Rule 72(a) window on Doc 39 lapsed 09/28 with no
   objection filed, which was the recommendation.
 - Workstream 4 is now the whole board, and it is time-critical in a way it was not two
