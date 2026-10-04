@@ -1,11 +1,20 @@
 # EXECUTION SHEET — Carrelha, 2:26-cv-00110-RWS-AWH
-*2026-09-21. Record now complete through Doc 41. All five blocking documents read in full.*
+*Updated 2026-10-04. Both MTD oppositions reported filed by the user — **not yet
+confirmed against the docket or read by the system**. Prior sheet dated 2026-09-21.*
 
 ## The one-line summary
-The amended complaint deliberately dropped McCalla, wrongful foreclosure, and quiet
-title. That was the right move for surviving Doc 35 — and it also removed the legal basis
-for stopping the December 1 foreclosure sale. **The live fight is Doc 37, and its
-deadline is today.**
+Both oppositions are in and the briefing deadlines are behind us. The motions are now
+fully briefed and headed to Magistrate Judge Howard for a report and recommendation.
+**The only live item is the December 1 sale — 58 days out — and the arithmetic has
+turned against the one option that could stop it.**
+
+## What changed since 2026-09-21
+- Workstreams 1 and 2 (the Doc 37 and Doc 40 oppositions) are **reported filed**. Both
+  deadlines — 09/21 and 09/28 — are behind us.
+- Workstream 3 closed unused: the Rule 72(a) window on Doc 39 lapsed 09/28 with no
+  objection filed, which was the recommendation.
+- Workstream 4 is now the whole board, and it is time-critical in a way it was not two
+  weeks ago.
 
 ---
 
@@ -121,9 +130,27 @@ case is currently pleaded, **nothing on file stops the December 1 sale.**
 | **B. Move for leave to file a Second Amended Complaint** | Restore wrongful foreclosure and equitable claims, then move for a PI. A draft dated 2026-09-19 already exists in the record store. | Doc 35 warned Plaintiffs "might not be given another opportunity to amend." Re-adding claims risks re-triggering the shotgun analysis that Doc 36 just cured. And it is a heavy lift while two motions to dismiss are pending. |
 | **C. Separate injunctive motion on the existing counts** | Argue irreparable harm from the sale notwithstanding the pleaded claims. | Weakest. No pleaded claim supports enjoining the sale; the express disclaimer in Doc 36 will be quoted back. |
 
-**Timing note in your favor:** the sale is 71 days out. There is no emergency and no need
-for a TRO. If option B is chosen, it can be done properly — which is the only way it has
-a chance.
+### Timing — this has inverted since 2026-09-21
+
+Two weeks ago the sale was 71 days out and option B could be briefed on the normal
+schedule. It no longer can. A motion for leave filed **today** does not even ripen:
+
+    motion for leave filed      2026-10-04
+    response due (14 + 3 mail)  2026-10-21
+    reply (+14 + 3)             2026-11-07
+    ripe for ruling             2026-11-08  — 23 days before the sale
+
+And that is only the motion for *leave*. A preliminary-injunction motion would then need
+its own briefing cycle on top, after an amended complaint is accepted. **The normal
+schedule cannot beat December 1.**
+
+Any path that still stops the sale requires two things together, and soon:
+1. Moving in the next several days, not weeks; and
+2. **Expressly requesting expedited consideration**, stating the sale date and why the
+   ordinary briefing schedule would moot the relief sought.
+
+Option A does not have this problem. If the answer is A, nothing further is urgent and the
+case proceeds to the R&R on its own schedule.
 
 ---
 
@@ -131,9 +158,11 @@ a chance.
 
 | Date | Item | State |
 |---|---|---|
-| **2026-09-21** | **Doc 37 response — DUE TODAY, nothing filed** | **`ACT NOW`** |
-| 2026-09-28 | Doc 40 non-opposition (without prejudice) | `READY TO DRAFT` |
-| 2026-09-28 | Rule 72(a) window on Doc 39 closes | `DO NOT FILE` |
+| 2026-09-21 | Doc 37 opposition | `FILED — confirm & index` |
+| 2026-09-28 | Doc 40 opposition | `FILED — confirm & index` |
+| 2026-09-28 | Rule 72(a) window on Doc 39 | `LAPSED — as recommended` |
+| **open** | **Dec 1 sale decision — A, B, or C** | **`OVERDUE`** |
+| when it issues | **R&R on Docs 37 & 40 → Rule 72(b) de novo, 14 days (+3)** | `WATCH` |
 | — | Second Amended Complaint decision | `USER DECISION` |
 | 2026-12-01 | Foreclosure sale — compliant with Doc 34 | `NO VEHICLE ON FILE` |
 
